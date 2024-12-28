@@ -6,6 +6,8 @@ artifacts/
 backend/obj/*
 backend/bin/*
 .vs
+selfsigned.crt
+selfsigned.key
 # React
 
 .DS_STORE
