@@ -1,0 +1,27 @@
+@use "../../styles/colors.scss";
+.header {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    padding: 0.5rem;
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.overview {
+    background-color: colors.$white;
+    border: 1px solid colors.$gray;
+    border-radius: 10px;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    align-items: center;
+
+    > div {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+}
