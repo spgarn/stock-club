@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { base_url, MeetingSuggestion, User } from '../../../api';
+import api, { MeetingSuggestion, User } from '../../../api';
 import Suggestion from './Suggestion';
 import axios from 'axios';
 import { translate, translateText } from '../../../i18n';
@@ -12,8 +12,8 @@ export default function Suggestions({ user, refetch, meetingsSuggestions }: { us
 
         setIsUpvoting(true);
         try {
-            const res = await axios.post<unknown>
-                (base_url + "/club/react", {
+            const res = await api.post<unknown>
+                ("/club/react", {
                     suggestionId,
                     isUpvote
                 }, {
@@ -44,8 +44,8 @@ export default function Suggestions({ user, refetch, meetingsSuggestions }: { us
         if (!confirm(translate["confirm_delete_suggestion"])) return;
         setIsUpvoting(true);
         try {
-            const res = await axios.delete<unknown>
-                (base_url + "/club/suggestion/delete/" + suggestionId, {
+            const res = await api.delete<unknown>
+                ("/club/suggestion/delete/" + suggestionId, {
                     headers: {
                         "Access-Control-Allow-Origin": "*"
                     },

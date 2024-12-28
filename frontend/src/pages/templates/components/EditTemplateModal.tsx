@@ -6,7 +6,7 @@ import Button from "@mui/material/Button";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { base_url, Templates } from "../../../api";
+import api, { Templates } from "../../../api";
 import { toast } from "react-toastify";
 import TextField from "@mui/material/TextField";
 import TipTapEditor from "../../../components/TipTapEditor";
@@ -36,8 +36,8 @@ export default function EditTemplateModal({ handleClose, refetch, template }: { 
         if (loading) return;
         setLoading(true);
         try {
-            const res = await axios.put<unknown>
-                (base_url + "/templates/edit", {
+            const res = await api.put<unknown>
+                ("/templates/edit", {
                     ...template,
                     ...data,
                 }, {

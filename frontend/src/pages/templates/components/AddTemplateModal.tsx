@@ -6,7 +6,7 @@ import Button from "@mui/material/Button";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { useState } from "react";
 import axios from "axios";
-import { base_url } from "../../../api";
+import api from "../../../api";
 import { toast } from "react-toastify";
 import TextField from "@mui/material/TextField";
 import TipTapEditor from "../../../components/TipTapEditor";
@@ -27,8 +27,8 @@ export default function AddTemplateModal({ handleClose, refetch, clubId }: { han
         if (loading) return;
         setLoading(true);
         try {
-            const res = await axios.post<unknown>
-                (base_url + "/templates/add/" + clubId, {
+            const res = await api.post<unknown>
+                ("/templates/add/" + clubId, {
                     ...data,
                 }, {
                     headers: {

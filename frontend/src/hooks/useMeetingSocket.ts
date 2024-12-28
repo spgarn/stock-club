@@ -7,7 +7,7 @@ import {
     HubConnection,
 } from "@microsoft/signalr"
 import { useEffect, useState } from "react";
-import { base_url, MeetingChat } from "../api";
+import { MeetingChat } from "../api";
 
 export default function useMeetingSocket(meetingId: number, clubId: number, getAgenda: (m: string) => void, getMeetingProtocol: (m: string) => void, getChat: (chat: MeetingChat) => void, removeChat: (id: number) => void, refetch: () => void) {
 
@@ -24,7 +24,7 @@ export default function useMeetingSocket(meetingId: number, clubId: number, getA
 
             socketConnection = new HubConnectionBuilder()
                 .configureLogging(LogLevel.Debug)
-                .withUrl(base_url + "/meetingHub", {
+                .withUrl("/api/meetingHub", {
                     skipNegotiation: true,
                     transport: HttpTransportType.WebSockets,
                 })

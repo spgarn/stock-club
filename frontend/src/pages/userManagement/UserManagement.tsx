@@ -12,7 +12,7 @@ import { useQuery } from "@tanstack/react-query";
 import Loading from "../../components/Loading";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrash } from "@fortawesome/free-solid-svg-icons/faTrash";
-import { base_url, getUser, getUsersInClub, User } from "../../api";
+import api, { getUser, getUsersInClub, User } from "../../api";
 import axios from "axios";
 import { toast } from "react-toastify";
 import Typography from "@mui/material/Typography";
@@ -47,8 +47,8 @@ export default function UserManagement() {
         if (loading || email.length < 1) return;
         setLoading(true);
         try {
-            const res = await axios.post<unknown>
-                (base_url + '/usermanagement/add/' + clubId, { email }, {
+            const res = await api.post<unknown>
+                ('/usermanagement/add/' + clubId, { email }, {
                     headers: {
                         "Access-Control-Allow-Origin": "*"
                     },
@@ -82,8 +82,8 @@ export default function UserManagement() {
         if (!confirm(translate["confirm_delete_user"])) return;
         setLoading(true);
         try {
-            const res = await axios.delete<unknown>
-                (base_url + '/usermanagement/' + clubId + "/userid/" + id, {
+            const res = await api.delete<unknown>
+                ('/usermanagement/' + clubId + "/userid/" + id, {
                     headers: {
                         "Access-Control-Allow-Origin": "*"
                     },

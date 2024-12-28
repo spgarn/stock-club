@@ -20,8 +20,8 @@ VALUES (gen_random_uuid(), 'Admin', 'ADMIN');
 SELECT "Id" FROM "AspNetRoles" WHERE "Name" = 'Admin';
 
 INSERT INTO "AspNetUserRoles" ("UserId", "RoleId")
-VALUES ('61426a20-8d42-4d98-9840-d0a25a7dadda', 'b45a178f-a774-41f2-9542-815171312762');
+VALUES ('0a6440b5-d2a8-468c-852d-07ad926ec6ce', '1798a063-6527-45e7-9028-a750c103060d');
 
 INSERT INTO "Club" ("Name") VALUES ('Testklubben');
-INSERT INTO "ApplicationUserClub" ("ClubsId", "UsersId") VALUES (1, '61426a20-8d42-4d98-9840-d0a25a7dadda');
+INSERT INTO "ApplicationUserClub" ("ClubsId", "UsersId") VALUES (1, '0a6440b5-d2a8-468c-852d-07ad926ec6ce');
 ```

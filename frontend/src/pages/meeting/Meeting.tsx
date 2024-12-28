@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import meetingStyles from "./meeting.module.scss";
 import { translate } from "../../i18n";
 import { useQuery } from "@tanstack/react-query";
-import { base_url, getClubDetails, getMeeting, getUser, MeetingChat } from "../../api";
+import api, { getClubDetails, getMeeting, getUser, MeetingChat } from "../../api";
 import ErrorMessage from "../../components/ErrorMessage";
 import Loading from "../../components/Loading";
 import Suggestions from "../home/components/Suggestions";
@@ -72,8 +72,8 @@ export default function Meeting() {
 
     const toggleMeeting = async () => {
         try {
-            const res = await axios.put<unknown>
-                (base_url + "/meeting/toggle/" + meeting?.id, {}, {
+            const res = await api.put<unknown>
+                ("/meeting/toggle/" + meeting?.id, {}, {
                     headers: {
                         "Access-Control-Allow-Origin": "*"
                     },

@@ -1,5 +1,16 @@
 import axios from "axios";
-export const base_url = import.meta.env.VITE_BASE_URL;
+
+// Create an axios instance with default config
+const api = axios.create({
+    baseURL: '/api',
+    // You can add other default configurations here
+    headers: {
+        'Content-Type': 'application/json'
+    }
+});
+
+// Export it for use in other files
+export default api;
 
 export type Club = {
     id: number;
@@ -87,8 +98,8 @@ export type Decisions = {
     club: Club;
 }
 export const getUsersInClub = async (clubId: number) => {
-    const response = await axios.get<User[]>(
-        base_url + '/usermanagement/all_in_club/' + clubId,
+    const response = await api.get<User[]>(
+        '/usermanagement/all_in_club/' + clubId,
         {
             headers: {
                 "Access-Control-Allow-Origin": "*"
@@ -100,8 +111,8 @@ export const getUsersInClub = async (clubId: number) => {
 }
 
 export const getUsersNotInClub = async (clubId: number) => {
-    const response = await axios.get<User[]>(
-        base_url + '/usermanagement/all_not_in_club/' + clubId,
+    const response = await api.get<User[]>(
+        '/usermanagement/all_not_in_club/' + clubId,
         {
             headers: {
                 "Access-Control-Allow-Origin": "*"
@@ -113,8 +124,8 @@ export const getUsersNotInClub = async (clubId: number) => {
 }
 
 export const getDecisions = async () => {
-    const response = await axios.get<Decisions[]>(
-        base_url + '/decisions/all',
+    const response = await api.get<Decisions[]>(
+        '/decisions/all',
         {
             headers: {
                 "Access-Control-Allow-Origin": "*"
@@ -127,8 +138,8 @@ export const getDecisions = async () => {
 
 
 export const getTemplates = async () => {
-    const response = await axios.get<Templates[]>(
-        base_url + '/templates/all',
+    const response = await api.get<Templates[]>(
+        '/templates/all',
         {
             headers: {
                 "Access-Control-Allow-Origin": "*"
@@ -141,8 +152,8 @@ export const getTemplates = async () => {
 
 
 export const getStocks = async () => {
-    const response = await axios.get<StockHoldings[]>(
-        base_url + '/stocks/all',
+    const response = await api.get<StockHoldings[]>(
+        '/stocks/all',
         {
             headers: {
                 "Access-Control-Allow-Origin": "*"
@@ -167,8 +178,8 @@ export const getStocks = async () => {
 // }
 
 export const getMeeting = async (id: number) => {
-    const response = await axios.get<MeetingExtended>(
-        base_url + '/meeting/get/' + id,
+    const response = await api.get<MeetingExtended>(
+        '/meeting/get/' + id,
         {
             headers: {
                 "Access-Control-Allow-Origin": "*"
@@ -180,8 +191,8 @@ export const getMeeting = async (id: number) => {
 }
 
 export const getClubDetails = async (id: number) => {
-    const response = await axios.get<ClubDetails>(
-        base_url + '/club/' + id + "/info",
+    const response = await api.get<ClubDetails>(
+        '/club/' + id + "/info",
         {
             headers: {
                 "Access-Control-Allow-Origin": "*"
@@ -193,8 +204,8 @@ export const getClubDetails = async (id: number) => {
 }
 
 export const getClubs = async () => {
-    const response = await axios.get<Club[]>(
-        base_url + '/club',
+    const response = await api.get<Club[]>(
+        '/club',
         {
             headers: {
                 "Access-Control-Allow-Origin": "*"
@@ -205,8 +216,8 @@ export const getClubs = async () => {
     return response.data;
 }
 export const getUser = async () => {
-    const response = await axios.get<User>(
-        base_url + '/user/info',
+    const response = await api.get<User>(
+        '/user/info',
         {
             headers: {
                 "Access-Control-Allow-Origin": "*"

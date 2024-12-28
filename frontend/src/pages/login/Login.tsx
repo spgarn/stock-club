@@ -4,7 +4,7 @@ import { useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { NavLink } from "react-router-dom";
-import { base_url } from "../../api";
+import api from "../../api";
 import { useAppContext } from "../../contexts/useAppContext";
 import { translate, translateText } from "../../i18n";
 type Inputs = {
@@ -22,8 +22,8 @@ export default function Login() {
     const onSubmit: SubmitHandler<Inputs> = async (data: Inputs) => {
         setLoading(true);
         try {
-            const res = await axios.post<unknown>
-                (base_url + "/login?useCookies=true", data, {
+            const res = await api.post<unknown>
+                ("/login?useCookies=true", data, {
                     headers: {
                         "Access-Control-Allow-Origin": "*"
                     },

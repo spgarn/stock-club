@@ -4,7 +4,7 @@ import { useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { NavLink } from "react-router-dom";
-import { base_url } from "../../api";
+import api from "../../api";
 import ErrorMessage from "../../components/ErrorMessage";
 import { useAppContext } from "../../contexts/useAppContext";
 import { translate, translateText } from "../../i18n";
@@ -53,8 +53,8 @@ export default function Register() {
         }
         setLoading(true);
         try {
-            const res = await axios.post<unknown>
-                (base_url + "/register", data, {
+            const res = await api.post<unknown>
+                ("/register", data, {
                     headers: {
                         "Access-Control-Allow-Origin": "*"
                     },
@@ -65,8 +65,8 @@ export default function Register() {
             //We have registered and can now login.
             if (resData) {
                 try {
-                    const res = await axios.post<unknown>
-                        (base_url + "/login?useCookies=true", data, {
+                    const res = await api.post<unknown>
+                        ("/login?useCookies=true", data, {
                             headers: {
                                 "Access-Control-Allow-Origin": "*"
                             },

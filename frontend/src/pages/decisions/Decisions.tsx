@@ -6,7 +6,7 @@ import dayjs from "dayjs";
 import Button from "@mui/material/Button";
 import { useQuery } from "@tanstack/react-query";
 import Loading from "../../components/Loading";
-import { base_url, getDecisions, getUser } from "../../api";
+import api, { getDecisions, getUser } from "../../api";
 import AddDecisionModal from "./components/AddDecisionModal";
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -34,8 +34,8 @@ export default function Decisions() {
         if (!confirm(translate["confirm_delete_news"])) return;
         setLoading(true);
         try {
-            const res = await axios.delete<unknown>
-                (base_url + "/decisions/" + id, {
+            const res = await api.delete<unknown>
+                ("/decisions/" + id, {
                     headers: {
                         "Access-Control-Allow-Origin": "*"
                     },

@@ -32,7 +32,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("reactApp", policyBuilder =>
     {
-        policyBuilder.WithOrigins("http://localhost:5173", "https://olesien.github.io/club-frontend", "https://olesien.github.io");
+        policyBuilder.WithOrigins("http://localhost:5173", "http://localhost:8080");
         policyBuilder.AllowAnyHeader();
         policyBuilder.AllowAnyMethod();
         policyBuilder.AllowCredentials();
@@ -76,10 +76,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+app.UsePathBase("/api");
 app.UseCors("reactApp");
 //app.MapIdentityApi<ApplicationUser>();
 app.MapCustomIdentityApi<ApplicationUser>();
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

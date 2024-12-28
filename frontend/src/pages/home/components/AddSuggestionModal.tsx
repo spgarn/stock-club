@@ -18,9 +18,9 @@ import Button from "@mui/material/Button";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { useState } from "react";
 import axios from "axios";
-import { base_url } from "../../../api";
 import { toast } from "react-toastify";
 import TextField from "@mui/material/TextField";
+import api from "../../../api";
 export type NewSuggestion = {
     title: string;
     description: string;
@@ -36,8 +36,8 @@ export default function AddSuggestionModal({ handleClose, refetch, clubId }: { h
     const onSubmit: SubmitHandler<NewSuggestion> = async (data: NewSuggestion) => {
         setLoading(true);
         try {
-            const res = await axios.post<unknown>
-                (base_url + "/club/suggestion/" + clubId, data, {
+            const res = await api.post<unknown>
+                ("/club/suggestion/" + clubId, data, {
                     headers: {
                         "Access-Control-Allow-Origin": "*"
                     },

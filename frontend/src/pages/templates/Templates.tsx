@@ -14,7 +14,7 @@ import Loading from "../../components/Loading";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEdit } from "@fortawesome/free-regular-svg-icons/faEdit";
 import { faTrash } from "@fortawesome/free-solid-svg-icons/faTrash";
-import { base_url, getTemplates, Templates as TemplateTypes } from "../../api";
+import api, { getTemplates, Templates as TemplateTypes } from "../../api";
 import AddTemplateModal from "./components/AddTemplateModal";
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -48,8 +48,8 @@ export default function Templates() {
         if (!confirm(translate["confirm_delete"])) return;
         setLoading(true);
         try {
-            const res = await axios.delete<unknown>
-                (base_url + "/templates/" + id, {
+            const res = await api.delete<unknown>
+                ("/templates/" + id, {
                     headers: {
                         "Access-Control-Allow-Origin": "*"
                     },

@@ -18,7 +18,7 @@ import Button from "@mui/material/Button";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { base_url, getTemplates, MeetingExtended, Templates } from "../../../api";
+import api, { getTemplates, MeetingExtended, Templates } from "../../../api";
 import { toast } from "react-toastify";
 import TextField from "@mui/material/TextField";
 import BasicDateTimePicker from "../../../components/BasicDateTimePicker";
@@ -61,8 +61,8 @@ export default function EditMeetingModal({ handleClose, refetch, meeting }: { ha
     const onSubmit: SubmitHandler<NewMeeting> = async (data: NewMeeting) => {
         setLoading(true);
         try {
-            const res = await axios.put<unknown>
-                (base_url + "/meeting/" + meeting.id, {
+            const res = await api.put<unknown>
+                ("/meeting/" + meeting.id, {
                     name: data.name,
                     description: data.description,
                     meetingTime: data.time,

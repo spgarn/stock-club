@@ -1,15 +1,3 @@
-
-// const style = {
-//     position: 'absolute',
-//     top: '50%',
-//     left: '50%',
-//     transform: 'translate(-50%, -50%)',
-//     width: 400,
-//     bgcolor: 'background.paper',
-//     border: '2px solid #000',
-//     boxShadow: 24,
-//     p: 4,
-
 import Dialog from "@mui/material/Dialog";
 import { BootstrapDialogTitle } from "../../../components/BootstrapDialogTitle";
 import { translate, translateText } from "../../../i18n";
@@ -18,7 +6,7 @@ import Button from "@mui/material/Button";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { useState } from "react";
 import axios from "axios";
-import { base_url, getTemplates, Templates } from "../../../api";
+import api, { getTemplates, Templates } from "../../../api";
 import { toast } from "react-toastify";
 import TextField from "@mui/material/TextField";
 import BasicDateTimePicker from "../../../components/BasicDateTimePicker";
@@ -55,8 +43,8 @@ export default function AddMeetingModal({ handleClose, refetch, clubId }: { hand
     const onSubmit: SubmitHandler<NewMeeting> = async (data: NewMeeting) => {
         setLoading(true);
         try {
-            const res = await axios.post<unknown>
-                (base_url + "/meeting/" + clubId, {
+            const res = await api.post<unknown>
+                ("/meeting/" + clubId, {
                     name: data.name,
                     description: data.description,
                     meetingTime: data.time,

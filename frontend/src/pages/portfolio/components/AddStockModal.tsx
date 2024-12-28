@@ -6,7 +6,7 @@ import Button from "@mui/material/Button";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { useState } from "react";
 import axios from "axios";
-import { base_url } from "../../../api";
+import api from "../../../api";
 import { toast } from "react-toastify";
 import TextField from "@mui/material/TextField";
 import BasicDateTimePicker from "../../../components/BasicDateTimePicker";
@@ -33,8 +33,8 @@ export default function AddStockModal({ handleClose, refetch }: { handleClose: (
     const onSubmit: SubmitHandler<NewInvestment> = async (data: NewInvestment) => {
         setLoading(true);
         try {
-            const res = await axios.post<unknown>
-                (base_url + "/stocks/add", {
+            const res = await api.post<unknown>
+                ("/stocks/add", {
                     ...data,
                     sellPrice: null,
                     stockId: "1",
