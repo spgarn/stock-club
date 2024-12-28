@@ -1,4 +1,4 @@
-import { Button, Typography } from "@mui/material";
+import { Button, ToggleButton, ToggleButtonGroup, Typography } from "@mui/material";
 import { useParams } from "react-router-dom";
 import meetingStyles from "./meeting.module.scss";
 import { translate } from "../../i18n";
@@ -17,8 +17,13 @@ import useClubs from "../../hooks/useClubs";
 import Chats from "./components/Chats";
 import axios from "axios";
 import { toast } from "react-toastify";
+import useWindowDimensions from "../../hooks/useWindowDimensions";
+import Wrapper from "./components/Wrapper";
 
 export default function Meeting() {
+    const [displayMethod, setDisplayMethod] = useState<"agenda" | "meeting_protocol" | "proposals" | "chat">("agenda");
+    const { width } = useWindowDimensions();
+    const isMobile = (width ?? 0) < 700;
     const [agenda, setAgenda] = useState("");
     const [meetingProtocols, setMeetingProtocols] = useState("");
     const [chats, setChats] = useState<MeetingChat[]>([]);
@@ -121,37 +126,52 @@ export default function Meeting() {
 
                 </div>
             </div>
-            <div className={meetingStyles.meeting}>
+            {isMobile ? <div className={meetingStyles.mobileView}>
+                <div className={meetingStyles.toggleContainer}>
+                    <ToggleButtonGroup
+                        color="primary"
+                        value={displayMethod}
+                        exclusive
+                        onChange={(_v, r) => setDisplayMethod(r)}
+                        aria-label="Display Type"
+                    >
+                        <ToggleButton value="agenda">{translate["agenda"]}</ToggleButton>
+                        <ToggleButton value="meeting_protocol">{translate["meeting_protocols"]}</ToggleButton>
+                        <ToggleButton value="proposals">{translate["proposals"]}</ToggleButton>
+                        <ToggleButton value="chat">{translate["chat"]}</ToggleButton>
+                    </ToggleButtonGroup>
+                </div>
+                {displayMethod === "agenda" && <Wrapper title={translate["agenda"]}>
+                    <TipTapEditor content={agenda} label={translate["agenda"]} onChange={sendAgenda} />
+                </Wrapper>}
+                {displayMethod === "meeting_protocol" && <Wrapper title={translate["meeting_protocols"]}>
+                    <TipTapEditor content={meetingProtocols} label={translate["meeting_protocols"]} onChange={sendMeetingProtocol} />
+                </Wrapper>}
+                {displayMethod === "chat" && <Wrapper title={translate["chat"]}>
+                    <Chats messages={chats} sendMessage={sendChat} user={user} removeMessage={removeMessage} />
+                </Wrapper>}
+                {displayMethod === "proposals" && <Wrapper title={translate["proposals"]}>
+                    <Suggestions user={user} refetch={liveRefetch} meetingsSuggestions={clubDetails.meetingsSuggestions} />
+                </Wrapper>}
+            </div> : <div className={meetingStyles.desktopView}>
                 <div className={meetingStyles.left}>
-                    <div className={meetingStyles.wrapper}>
-                        <Typography variant="h5">{translate["agenda"]}</Typography>
-                        <div className="content-box">
-                            <TipTapEditor content={agenda} label={translate["agenda"]} onChange={sendAgenda} />
-
-                        </div>
-                    </div>
-                    <div className={meetingStyles.wrapper}>
-                        <Typography variant="h5">{translate["meeting_protocols"]}</Typography>
-                        <div className="content-box">
-                            <TipTapEditor content={meetingProtocols} label={translate["meeting_protocols"]} onChange={sendMeetingProtocol} />
-                        </div>
-                    </div>
-
+                    <Wrapper title={translate["agenda"]}>
+                        <TipTapEditor content={agenda} label={translate["agenda"]} onChange={sendAgenda} />
+                    </Wrapper>
+                    <Wrapper title={translate["meeting_protocols"]}>
+                        <TipTapEditor content={meetingProtocols} label={translate["meeting_protocols"]} onChange={sendMeetingProtocol} />
+                    </Wrapper>
                 </div>
                 <div className={meetingStyles.right}>
-                    <div className={meetingStyles.wrapper}>
-                        <Typography variant="h5">{translate["chat"]}</Typography>
-                        <div className="content-box">
-                            <Chats messages={chats} sendMessage={sendChat} user={user} removeMessage={removeMessage} />
-                        </div>
-                    </div>
-                    <div className={meetingStyles.wrapper}>
-                        <Typography variant="h5">{translate["proposals"]}</Typography>
+                    <Wrapper title={translate["chat"]}>
+                        <Chats messages={chats} sendMessage={sendChat} user={user} removeMessage={removeMessage} />
+                    </Wrapper>
+                    <Wrapper title={translate["proposals"]}>
                         <Suggestions user={user} refetch={liveRefetch} meetingsSuggestions={clubDetails.meetingsSuggestions} />
-                    </div>
+                    </Wrapper>
                 </div>
 
-            </div>
+            </div>}
             {editMeetingOpen && <EditMeetingModal refetch={liveRefetch} handleClose={() => setEditMeetingOpen(false)} meeting={meeting} />}
 
         </div>

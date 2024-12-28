@@ -69,6 +69,7 @@ export default function Chats({ messages, sendMessage, user, removeMessage }: { 
     );
     return (
         <div className={meetingStyles.messageContainer}>
+            {messages.length === 0 && <p className='text-center p-1'>{translate["no_chats"]}</p>}
             <div className={meetingStyles.messages} ref={containerRef}>
                 {messages.map(message => <Chat key={message.id} message={message} user={user} removeMessage={removeMessage} />)}
             </div>

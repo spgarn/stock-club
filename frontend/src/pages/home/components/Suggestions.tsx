@@ -70,6 +70,7 @@ export default function Suggestions({ user, refetch, meetingsSuggestions }: { us
     }
     return (
         <div className="content-box">
+            {meetingsSuggestions.length === 0 && <p className='text-center p-1'>{translate["no_suggestions"]}</p>}
             {meetingsSuggestions.map(suggestion => <Suggestion user={user} react={react} suggestion={suggestion} key={suggestion.id} removeSuggestion={removeSuggestion} />)}
         </div>
     )

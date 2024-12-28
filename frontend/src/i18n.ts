@@ -143,7 +143,9 @@ export const translate = {
     "suggestion_deleted_success": "Förslag borttaget!",
     "confirm_delete_suggestion": "Är du säker att du vill ta bort detta förslaget?",
     "confirm_delete_news": "Är du säker att du vill ta bort denna nyheten?",
-    "news_deleted": "Nyhet borttagen!"
+    "news_deleted": "Nyhet borttagen!",
+    "no_suggestions": "Det finns inget förslag just nu.",
+    "no_chats": "Det finns inga chat meddelande just nu."
 }
 
 //Translate with fallback

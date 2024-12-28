@@ -1,6 +1,6 @@
 @use "../../styles/colors.scss";
 
-.meeting {
+.desktopView {
     display: flex;
     gap: 1rem;
 
@@ -29,6 +29,19 @@
             padding: 1rem;
         }
     }
+}
+
+.mobileView {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.toggleContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem;
 }
 
 .messageContainer {
