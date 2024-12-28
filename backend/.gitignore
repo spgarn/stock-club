@@ -9,8 +9,6 @@ backend/bin/*
 bin
 Debug
 Release
-docker-compose.yaml
-Dockerfile
 # React
 
 .DS_STORE
