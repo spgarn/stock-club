@@ -1,6 +1,6 @@
 import { Suspense } from 'react'
 import {
-    createBrowserRouter,
+    createHashRouter,
     createRoutesFromElements,
     Route,
 } from 'react-router-dom'
@@ -17,7 +17,7 @@ import UserManagement from './pages/userManagement/UserManagement';
 import AdminRoute from './components/AdminRoute';
 
 
-export const publicRoutes = createBrowserRouter(
+export const publicRoutes = createHashRouter(
     createRoutesFromElements(
         <Route path='/' element={<Layout />}>
             {/* <Route
