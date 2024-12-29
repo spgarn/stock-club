@@ -261,8 +261,19 @@ h5 {
 }
 
 @media only screen and (max-width: 700px) {
-    * {
+    p,
+    input,
+    button {
         font-size: 0.95em;
+    }
+    h4 {
+        font-size: 1em;
+    }
+    h5 {
+        font-size: 0.956em;
+    }
+    h6 {
+        font-size: 0.9em;
     }
 }
 
