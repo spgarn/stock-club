@@ -21,5 +21,7 @@ namespace club.Dtos
         public bool Sold { get; set; }
 
         public DateTime InvestedAt { get; set; }
+
+        public DateTime? SoldAt { get; set; }
     }
 }

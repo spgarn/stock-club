@@ -17,7 +17,7 @@ import FormControlLabel from "@mui/material/FormControlLabel";
 import portfolioStyles from "../portfolio.module.scss";
 
 // };
-export default function EditStockModal({ handleClose, refetch, stock }: { handleClose: () => void; refetch: () => void; stock: StockHoldings }) {
+export default function SellPortionModal({ handleClose, refetch, stock }: { handleClose: () => void; refetch: () => void; stock: StockHoldings }) {
     const {
         control,
         register,

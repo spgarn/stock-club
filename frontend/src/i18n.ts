@@ -153,9 +153,14 @@ export const translate = {
     "sell_price_positive": "Säljpris måste vara positivt",
     "edit_stock": "Ändra innehav",
     "editing_stock": "Ändrar innehav..",
-    "sellPrice": "Såld",
+    "sellPrice": "Säljpris",
     "empty_table": "Ingen data kunde hittas!",
-    "adding_decision": "Lägger till nyhet.."
+    "adding_decision": "Lägger till nyhet..",
+    "soldAt": "Säljdatum",
+    "sell_date_required": "Säljdatum krävs",
+    "currentPrice": "Nuvarande Pris",
+    "yield": "Avkastning",
+    "value": "Värde"
 }
 
 //Translate with fallback

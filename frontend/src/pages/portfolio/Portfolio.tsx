@@ -31,17 +31,30 @@ export default function Portfolio() {
     const [displayMethod, setDisplayMethod] = useState<"active_stocks" | "sold_stocks">("active_stocks");
     const [currencyDisplay, setCurrencyDisplay] = useState<"kr" | "percent">("kr");
     const {
-        totalAmount, totalValue, development, currentStocks, soldStocks
+        totalValue, totalAmount, development, list
     } = useMemo(() => {
         if (!data) {
-            return { totalAmount: 0, totalValue: 0, development: 0, currentStocks: [], soldStocks: [] }
+            return { totalAmount: 0, list: [], totalValue: 0, development: 0 }
         }
-        return { totalAmount: data.length, totalValue: 15555, development: 40.2, currentStocks: data.filter(stock => !stock.sold), soldStocks: data.filter(stock => stock.sold) }
-    }, [data]);
+        const currentStocks = data.filter(stock => !stock.sold);
+        const soldStocks = data.filter(stock => stock.sold);
 
+        const initial = currentStocks.reduce((prev, stock) => prev + (stock.amount * stock.buyPrice), 0);
+        if (displayMethod === "active_stocks") {
+            const currentValue = currentStocks.reduce((prev, stock) => prev + (stock.amount * stock.currentPrice), 0);
+            return { totalAmount: currentStocks.length, list: currentStocks, totalValue: currentValue, development: ((1 - currentValue / initial) * 100).toFixed(2) }
+
+
+        } else {
+            //Not active
+            const soldValue = soldStocks.reduce((prev, stock) => prev + (stock.amount * Number(stock.sellPrice)), 0);
+            return { totalAmount: soldStocks.length, totalValue: soldValue, list: soldStocks, development: ((1 - soldValue / initial) * 100).toFixed(2) }
+
+        }
+    }, [data, displayMethod]);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const columnsSold: ColumnDef<StockHoldings, any>[] = [
+    const columnsSold: ColumnDef<StockHoldings, any>[] = useMemo(() => [
         columnHelper.accessor('stockName', {
             header: () => translate["stockName"],
             cell: info => info.renderValue(),
@@ -50,36 +63,63 @@ export default function Portfolio() {
             header: () => translate["investedAt"],
             cell: info => dayjs(info.renderValue() as Date).format("DD/MM/YYYY")
         }),
+        columnHelper.accessor('soldAt', {
+            header: () => translate["soldAt"],
+            cell: info => dayjs(info.renderValue() as Date).format("DD/MM/YYYY")
+        }),
         columnHelper.accessor('buyPrice', {
             header: () => translate["buyPrice"],
-            cell: info => info.renderValue(),
+            cell: info => info.renderValue() + " kr",
         }),
         columnHelper.accessor('amount', {
             header: translate["amount"],
-            cell: info => info.renderValue(),
-        }),
-        columnHelper.accessor('currentPrice', {
-            header: translate["dev_since_buy"],
             cell: info => info.renderValue(),
         }),
         columnHelper.accessor('sellPrice', {
             header: translate["sellPrice"],
-            cell: info => info.renderValue(),
+            cell: info => info.renderValue() + " kr",
         }),
+        {
+            id: 'yield',  // Change this to an id instead of accessor
+            header: translate["yield"],
+            cell: info => {
+                const original = info.row.original;
+                const buyPrice = original.buyPrice;
+                const sellPrice = Number(original.sellPrice);
+
+                if (currencyDisplay === "percent") {
+                    const percent = 100 * (1 - (sellPrice / buyPrice));
+                    return <p>{percent >= 0 ? "+" : ""}{percent.toFixed(2)} %</p>;
+                }
+                const value = sellPrice - buyPrice;
+                return <p>{value >= 0 ? "+" : ""}{value.toFixed(2)} kr</p>; // Ensure to return the value
+            },
+        },
+        {
+            id: 'value',  // Change this to an id instead of accessor
+            header: translate["value"],
+            cell: info => {
+                const original = info.row.original;
+                const soldPrice = Number(original.sellPrice);
+                const amount = Number(original.amount);
+                const value = soldPrice * amount;
+                return <p>{formatCurrency(value, true, 2, true)}</p>; // Ensure to return the value
+            },
+        },
         columnHelper.accessor('id', {
             header: "",
-            cell: info => {
-                return <div>
+            cell: info => (
+                <div>
                     <div className={"edit"} onClick={() => setEditStock(info.row.original)} title={translate["edit"]} role="button">
                         <FontAwesomeIcon icon={faEdit} />
                     </div>
-
                 </div>
-            },
+            ),
         }),
-    ];
+    ], [currencyDisplay]);
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const columnsCurrent: ColumnDef<StockHoldings, any>[] = [
+    const columnsCurrent: ColumnDef<StockHoldings, any>[] = useMemo(() => [
         columnHelper.accessor('stockName', {
             header: () => translate["stockName"],
             cell: info => info.renderValue(),
@@ -90,28 +130,54 @@ export default function Portfolio() {
         }),
         columnHelper.accessor('buyPrice', {
             header: () => translate["buyPrice"],
-            cell: info => info.renderValue(),
+            cell: info => info.renderValue() + " kr",
         }),
         columnHelper.accessor('amount', {
             header: translate["amount"],
             cell: info => info.renderValue(),
         }),
         columnHelper.accessor('currentPrice', {
-            header: translate["dev_since_buy"],
-            cell: info => info.renderValue(),
+            header: translate["currentPrice"],
+            cell: info => info.renderValue() + " kr",
         }),
+        {
+            id: 'devSinceBuy',  // Change this to an id instead of accessor
+            header: translate["dev_since_buy"],
+            cell: info => {
+                const original = info.row.original;
+                const buyPrice = original.buyPrice;
+                const currentPrice = Number(original.currentPrice);
+
+                if (currencyDisplay === "percent") {
+                    const percent = 100 * (1 - (currentPrice / buyPrice));
+                    return <p>{percent >= 0 ? "+" : ""}{percent.toFixed(2)} %</p>;
+                }
+                const value = currentPrice - buyPrice;
+                return <p>{value >= 0 ? "+" : ""}{value.toFixed(2)} kr</p>; // Ensure to return the value
+            },
+        },
+        {
+            id: 'value',  // Change this to an id instead of accessor
+            header: translate["value"],
+            cell: info => {
+                const original = info.row.original;
+                const currentPrice = Number(original.currentPrice);
+                const amount = Number(original.amount);
+                const value = currentPrice * amount;
+                return <p>{formatCurrency(value, true, 2, true)}</p>; // Ensure to return the value
+            },
+        },
         columnHelper.accessor('id', {
             header: "",
-            cell: info => {
-                return <div>
+            cell: info => (
+                <div>
                     <div className={"edit"} onClick={() => setEditStock(info.row.original)} title={translate["edit"]} role="button">
                         <FontAwesomeIcon icon={faEdit} />
                     </div>
-
                 </div>
-            },
+            ),
         }),
-    ];
+    ], [currencyDisplay]);
     if (!data) {
         return <div>
             <Loading />
@@ -151,13 +217,12 @@ export default function Portfolio() {
                     <p>{formatCurrency(totalValue, false, 2, true)} {translate["price_metric"]}</p>
                 </div>
                 <div>
-                    <p>{translate["dev_since_start"]}</p>
+                    <p>{translate[displayMethod === "active_stocks" ? "dev_since_start" : "yield"]}</p>
                     <p>{formatCurrency(development, false, 2, true)}%</p>
                 </div>
             </div>
-            {
-                displayMethod === "active_stocks" ? <BasicTable columns={columnsCurrent} data={currentStocks} /> : <BasicTable columns={columnsSold} data={soldStocks} />
-            }
+
+            <BasicTable columns={displayMethod === "active_stocks" ? columnsCurrent : columnsSold} data={list} />
             <Button sx={{ marginTop: "2rem" }} onClick={() => setAddStockOpen(true)}>{translate["add_investment"]}</Button>
             {addStockOpen && <AddStockModal refetch={refetch} handleClose={() => setAddStockOpen(false)} />}
             {!!editStock && <EditStockModal refetch={refetch} handleClose={() => setEditStock(null)} stock={editStock} />}

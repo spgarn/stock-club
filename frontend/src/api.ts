@@ -79,6 +79,7 @@ export type StockHoldings = {
     amount: number;
     currentPrice: number;
     sold: boolean;
+    soldAt: Date | null;
 }
 
 export type Templates = {

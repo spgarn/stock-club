@@ -21,6 +21,7 @@ export type NewInvestment = {
     buyPrice: number;
     sellPrice: number | null;
     sold: boolean;
+    soldAt: Date | null;
 }
 // };
 export default function AddStockModal({ handleClose, refetch }: { handleClose: () => void; refetch: () => void; }) {
@@ -31,7 +32,8 @@ export default function AddStockModal({ handleClose, refetch }: { handleClose: (
         formState: { errors },
     } = useForm<NewInvestment>({
         defaultValues: {
-            investedAt: new Date(Date.now())
+            investedAt: new Date(Date.now()),
+            soldAt: new Date(Date.now())
         },
     });
     const [loading, setLoading] = useState(false);
@@ -144,25 +146,40 @@ export default function AddStockModal({ handleClose, refetch }: { handleClose: (
                                     label={translate["sold_label"]} // Example label text, update as needed
                                 />
                                 {value && (
-                                    <Controller
-                                        name="sellPrice"
-                                        control={control}
-                                        rules={{
-                                            required: translate["sell_price_required"],
-                                            validate: (value) => Number(value) > 0 || translate["sell_price_positive"]
-                                        }}
-                                        render={({ field: { onChange, value }, fieldState: { error } }) => (
-                                            <TextField
-                                                sx={{ marginLeft: "10px" }}
-                                                label={translate["sell_price"]}
-                                                value={value || ""}
-                                                onChange={(e) => onChange(e.target.value)}
-                                                error={!!error}
-                                                helperText={error ? error.message : ""}
-                                                type="number"
-                                            />
-                                        )}
-                                    />
+                                    <>
+                                        <Controller
+                                            name="sellPrice"
+                                            control={control}
+                                            rules={{
+                                                required: translate["sell_price_required"],
+                                                validate: (value) => Number(value) > 0 || translate["sell_price_positive"]
+                                            }}
+                                            render={({ field: { onChange, value }, fieldState: { error } }) => (
+                                                <TextField
+                                                    sx={{ marginLeft: "10px" }}
+                                                    label={translate["sell_price"]}
+                                                    value={value || ""}
+                                                    onChange={(e) => onChange(e.target.value)}
+                                                    error={!!error}
+                                                    helperText={error ? error.message : ""}
+                                                    type="number"
+                                                />
+                                            )}
+                                        />
+                                        <Controller
+                                            name="soldAt"
+                                            control={control}
+                                            rules={{ required: translate["sell_date_required"] }}
+                                            render={({ field: { onChange, value } }) => (
+                                                <BasicDateTimePicker
+                                                    error={errors.soldAt ? errors?.soldAt.message : undefined}
+                                                    label={translate["soldAt"]}
+                                                    value={dayjs(value ?? new Date(Date.now()))}
+                                                    onChange={(v) => onChange(v?.toDate())}
+                                                />
+                                            )}
+                                        />
+                                    </>
                                 )}
                             </>
                         )}

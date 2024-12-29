@@ -39,7 +39,9 @@ namespace club.Controllers
                      InvestedAt = club.InvestedAt,
                      Sold = club.Sold,
                      StockId = club.StockId,
-                     StockName = club.StockName
+                     StockName = club.StockName,
+                     SoldAt = club.SoldAt,
+                     CurrentPrice = 100 //Inject current prices here
                  }).ToList());
         }
         [HttpPost]
@@ -62,6 +64,7 @@ namespace club.Controllers
                 StockName = stockDTO.StockName,
                 Sold = stockDTO.Sold,
                 InvestedAt = stockDTO.InvestedAt,
+                SoldAt = stockDTO.SoldAt,
                 User = user
             });
             await _context.SaveChangesAsync();
@@ -88,10 +91,12 @@ namespace club.Controllers
             if (stockDTO.Sold)
             {
                 existingStock.SellPrice = stockDTO.SellPrice;
+                existingStock.SoldAt = stockDTO.SoldAt;
             }
             else
             {
                 existingStock.SellPrice = null;
+                existingStock.SoldAt = null;
             }
 
             _context.StockHolding.Update(existingStock);

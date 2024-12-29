@@ -25,5 +25,7 @@ public partial class StockHolding
 
     public DateTime InvestedAt { get; set; }
 
+    public DateTime? SoldAt { get; set; }
+
     public virtual ApplicationUser User { get; set; } = null!;
 }
