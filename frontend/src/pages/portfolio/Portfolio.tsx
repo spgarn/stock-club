@@ -36,7 +36,7 @@ export default function Portfolio() {
         if (!data) {
             return { totalAmount: 0, totalValue: 0, development: 0, currentStocks: [], soldStocks: [] }
         }
-        return { totalAmount: data.length, totalValue: 105495, development: 40.2, currentStocks: data.filter(stock => !stock.sold), soldStocks: data.filter(stock => stock.sold) }
+        return { totalAmount: data.length, totalValue: 15555, development: 40.2, currentStocks: data.filter(stock => !stock.sold), soldStocks: data.filter(stock => stock.sold) }
     }, [data]);
 
 

@@ -1,0 +1,52 @@
+version: '3.8'
+services:
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - frontend
+      - backend
+    volumes:
+      - ./nginx/nginx.dev.conf:/etc/nginx/nginx.conf  # Development nginx config
+      - ./nginx/certs:/etc/nginx/certs
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev  # Development dockerfile for frontend
+    volumes:
+      - ./frontend:/app  # Mount source code for hot reload
+      - /app/node_modules  # Preserve node_modules
+    environment:
+      - VITE_API_URL=/api
+    command: yarn dev  # Run in development mode
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__DefaultConnection=Host=db;Database=club;Username=postgres;Password=23jka2jk3na2ujk3ss
+    depends_on:
+      - db
+  db:
+    image: postgres:16
+    container_name: postgres_db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 23jka2jk3na2ujk3ss
+      POSTGRES_DB: club
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+volumes:
+  pgdata:
