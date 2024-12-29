@@ -34,11 +34,12 @@ export default function EditStockModal({ handleClose, refetch, stock }: { handle
         if (stock) {
             reset({
                 stockName: stock.stockName,
-                investedAt: stock.investedAt,
+                investedAt: stock.investedAt ?? new Date(Date.now()),
                 amount: stock.amount,
                 buyPrice: stock.buyPrice,
                 sellPrice: stock.sellPrice ?? stock.currentPrice,
-                sold: stock.sold
+                sold: stock.sold,
+                soldAt: new Date(Date.now())
             });
         }
     }, [stock, reset]);
@@ -95,7 +96,7 @@ export default function EditStockModal({ handleClose, refetch, stock }: { handle
                     <TextField
                         fullWidth={true}
                         error={!!errors.stockName}
-                        id="edit_meeting_title"
+                        id="edit_stock_title"
                         label={translate["stock_name"]}
                         type="text"
                         variant="standard"
@@ -118,9 +119,9 @@ export default function EditStockModal({ handleClose, refetch, stock }: { handle
                     <TextField
                         fullWidth={true}
                         error={!!errors.amount}
-                        id="edit_meeting_location"
+                        id="edit_stock_amount"
                         label={translate["amount_of_stocks"]}
-                        type="number"
+                        type="text"
                         variant="standard"
                         helperText={errors.amount ? errors?.amount.message : " "}
                         {...register("amount", { required: true })}
@@ -128,9 +129,9 @@ export default function EditStockModal({ handleClose, refetch, stock }: { handle
                     <TextField
                         fullWidth={true}
                         error={!!errors.buyPrice}
-                        id="edit_meeting_content"
+                        id="edit_stock_content"
                         label={translate["price_per_stock"]}
-                        type="number"
+                        type="text"
                         variant="standard"
                         helperText={errors.buyPrice ? errors?.buyPrice.message : " "}
                         {...register("buyPrice", { required: true })}
@@ -168,7 +169,7 @@ export default function EditStockModal({ handleClose, refetch, stock }: { handle
                                                     onChange={(e) => onChange(e.target.value)}
                                                     error={!!error}
                                                     helperText={error ? error.message : ""}
-                                                    type="number"
+                                                    type="text"
                                                 />
                                             )}
                                         />

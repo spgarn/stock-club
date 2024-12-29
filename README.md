@@ -2,7 +2,7 @@
 
 A portal for clubs to use
 
-## Dev
+## Dev (with vite hot reload)
 
 `docker-compose -f docker-compose.dev.yaml up --build`
 

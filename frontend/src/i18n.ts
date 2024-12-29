@@ -119,6 +119,7 @@ export const translate = {
     "template_updated_success": "Mall uppdaterades!",
     "confirm_delete": "Är du säker att du vill ta bort denna mallen?",
     "confirm_delete_user": "Är du säker att du vill ta bort denna användaren?",
+    "confirm_delete_stock": "Är du säker att du vill ta bort detta innehavet?",
     "meeting_protocols": "Mötesprotokoll",
     "choose_agenda_template": "Välj dagordning mall (valfri)",
     "choose_meeting_protocol_template": "Välj mötesprotokoll mall (valfri)",
@@ -149,18 +150,25 @@ export const translate = {
     "no_chats": "Det finns inga chat meddelande just nu.",
     "sold_label": "Aktie är såld",
     "sell_price_required": "Pris måste anges",
-    "sell_price": "Säljpris",
+    "sell_price": "Säljkurs",
     "sell_price_positive": "Säljpris måste vara positivt",
     "edit_stock": "Ändra innehav",
     "editing_stock": "Ändrar innehav..",
     "sellPrice": "Säljpris",
     "empty_table": "Ingen data kunde hittas!",
     "adding_decision": "Lägger till nyhet..",
-    "soldAt": "Säljdatum",
+    "soldAt": "Försäljningsdatum",
     "sell_date_required": "Säljdatum krävs",
     "currentPrice": "Nuvarande Pris",
     "yield": "Avkastning",
-    "value": "Värde"
+    "value": "Värde",
+    "sell_portion": "Realisera innehav",
+    "selling_portion": "Realiserar innehav..",
+    "sell": "Realisera",
+    "sell_portion_desc": "kommer markeras som realiserat  och flyttas till listan Realiserade.",
+    "stock_deleted": "Innehav borttaget",
+    "amount_less_than_current": "Antal måste vara mindre än nuvarande",
+    "rows": "Rader"
 }
 
 //Translate with fallback

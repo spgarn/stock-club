@@ -103,5 +103,62 @@ namespace club.Controllers
             await _context.SaveChangesAsync();
             return CreatedAtAction(nameof(EditStock), user.Id);
         }
+
+        [HttpPut]
+        [Authorize]
+        [Route("sellportion")]
+        public async Task<ActionResult<string>> SellChunk(
+           [FromServices] MyDbContext _context, StockSplitForm stockDTO)
+        {
+            var result = await GetCurrentUser(_context);
+            if (result.Result != null) // If it's an error result
+                return result.Result;
+            if (result.Value == null) return NotFound();
+            ApplicationUser user = result.Value;
+            var existingStock = _context.StockHolding.Where(stock => stock.Id == stockDTO.Id && stock.User.Equals(user)).FirstOrDefault();
+            if (existingStock == null) return NotFound();
+            if (existingStock.Amount < stockDTO.Amount) return StatusCode(400); //Too many
+
+            //Remove from current one
+            existingStock.Amount -= stockDTO.Amount;
+
+            //Create a new from the amount split off
+            var newSoldStock = new StockHolding
+            {
+                Amount = stockDTO.Amount,
+                SellPrice = stockDTO.SellPrice,
+                BuyPrice = existingStock.BuyPrice,
+                StockId = existingStock.StockId,
+                StockName = existingStock.StockName,
+                Sold = true,
+                InvestedAt = existingStock.InvestedAt,
+                SoldAt = stockDTO.SoldAt,
+                User = user
+            };
+
+            _context.StockHolding.Update(existingStock);
+            _context.StockHolding.Add(newSoldStock);
+            await _context.SaveChangesAsync();
+            return CreatedAtAction(nameof(SellChunk), user.Id);
+        }
+
+        [HttpDelete]
+        [Authorize]
+        [Route("{id}")]
+        public async Task<ActionResult<string>> DeleteStock(
+          [FromServices] MyDbContext _context, int id)
+        {
+            var result = await GetCurrentUser(_context);
+            if (result.Result != null) // If it's an error result
+                return result.Result;
+            if (result.Value == null) return NotFound();
+            ApplicationUser user = result.Value;
+            if (user.Clubs.Count == 0) return NotFound();
+            var existingStock = _context.StockHolding.Where(stock => stock.Id == id && stock.User.Equals(user)).FirstOrDefault();
+            if (existingStock == null) return NotFound();
+            _context.StockHolding.Remove(existingStock);
+            await _context.SaveChangesAsync();
+            return CreatedAtAction(nameof(DeleteStock), user.Id);
+        }
     }
 }

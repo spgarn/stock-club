@@ -99,8 +99,6 @@ namespace club.Controllers
             if (result.Value == null) return NotFound();
             ApplicationUser user = result.Value;
             if (user.Clubs.Count == 0) return NotFound();
-            var club = user.Clubs.First(); //For now just select the first club
-
             var meetingProtocol = await _context.ClubTemplates.Where(template => template.Id == id && user.Clubs.Select(c => c.Id).Contains(template.Club.Id)).FirstOrDefaultAsync();
             if (meetingProtocol == null) return NotFound();
             _context.ClubTemplates.Remove(meetingProtocol);

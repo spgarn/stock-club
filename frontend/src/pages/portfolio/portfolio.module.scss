@@ -32,3 +32,39 @@
     gap: 0.5rem;
     padding-bottom: 1rem;
 }
+
+.sellMaxAmount {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    > p {
+        white-space: nowrap;
+    }
+}
+
+.positive {
+    color: colors.$positive;
+}
+
+.negative {
+    color: colors.$danger;
+}
+
+.positiveBubble {
+    padding: 10px;
+    background-color: colors.$positiveBubble;
+    border-radius: 10px;
+}
+
+.negativeBubble {
+    padding: 10px;
+    background-color: colors.$dangerBubble;
+    border-radius: 10px;
+}
+
+.actionContainer {
+    display: flex;
+    justify-content: space-between;
+    padding-bottom: 1rem;
+    align-items: center;
+}

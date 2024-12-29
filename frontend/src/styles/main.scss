@@ -303,3 +303,14 @@ h5 {
 .delete:hover {
     background-color: rgba(0, 0, 0, 0.1);
 }
+
+.pagination-container {
+    margin-top: 1rem;
+    display: flex;
+    justify-content: center;
+}
+
+.clickable:hover {
+    cursor: pointer;
+    color: colors.$primary;
+}

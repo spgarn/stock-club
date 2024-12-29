@@ -11,12 +11,14 @@ import { toast } from "react-toastify";
 import TextField from "@mui/material/TextField";
 import BasicDateTimePicker from "../../../components/BasicDateTimePicker";
 import dayjs from "dayjs";
-import { NewInvestment } from "./AddStockModal";
-import Checkbox from "@mui/material/Checkbox";
-import FormControlLabel from "@mui/material/FormControlLabel";
 import portfolioStyles from "../portfolio.module.scss";
+import { formatCurrency } from "../../../funcs/funcs";
 
-// };
+type SellChunk = {
+    amount: number;
+    sellPrice: number;
+    soldAt: Date;
+}
 export default function SellPortionModal({ handleClose, refetch, stock }: { handleClose: () => void; refetch: () => void; stock: StockHoldings }) {
     const {
         control,
@@ -24,32 +26,28 @@ export default function SellPortionModal({ handleClose, refetch, stock }: { hand
         handleSubmit,
         formState: { errors },
         reset
-    } = useForm<NewInvestment>({
+    } = useForm<SellChunk>({
         defaultValues: {
-            investedAt: new Date(Date.now()),
             soldAt: new Date(Date.now())
         },
     });
     useEffect(() => {
         if (stock) {
             reset({
-                stockName: stock.stockName,
-                investedAt: stock.investedAt,
-                amount: stock.amount,
-                buyPrice: stock.buyPrice,
-                sellPrice: stock.sellPrice ?? stock.currentPrice,
-                sold: stock.sold
+                amount: Number(stock.amount),
+                sellPrice: stock.currentPrice,
+                soldAt: new Date(Date.now())
             });
         }
     }, [stock, reset]);
     const [loading, setLoading] = useState(false);
-    const onSubmit: SubmitHandler<NewInvestment> = async (data: NewInvestment) => {
+    const onSubmit: SubmitHandler<SellChunk> = async (data: SellChunk) => {
         setLoading(true);
         try {
             const res = await api.put<unknown>
-                ("/stocks/edit/" + stock.id, {
+                ("/stocks/sellportion", {
+                    id: stock.id,
                     ...data,
-                    stockId: "1",
                 }, {
                     headers: {
                         "Access-Control-Allow-Origin": "*"
@@ -87,117 +85,63 @@ export default function SellPortionModal({ handleClose, refetch, stock }: { hand
                 id="edit_alert-dialog-title"
                 onClose={() => handleClose()}
             >
-                {translate["edit_stock"]}
+                {translate["sell"]} {stock.stockName}
             </BootstrapDialogTitle>
 
             <DialogContent>
+                <p className="p-1">{stock.stockName} {translate["sell_portion_desc"]}</p>
                 <form onSubmit={handleSubmit(onSubmit)} className={portfolioStyles.form}>
-                    <TextField
-                        fullWidth={true}
-                        error={!!errors.stockName}
-                        id="edit_meeting_title"
-                        label={translate["stock_name"]}
-                        type="text"
-                        variant="standard"
-                        helperText={errors.stockName ? errors?.stockName.message : " "}
-                        {...register("stockName", { required: true })}
+                    <div className={portfolioStyles.sellMaxAmount}>
+                        <TextField
+                            fullWidth={true}
+                            error={!!errors.amount}
+                            id="split_amount"
+                            label={translate["amount_of_stocks"]}
+                            type="text"
+                            variant="standard"
+                            helperText={errors.amount ? errors?.amount.message : " "}
+                            {...register("amount", { required: true, validate: (value) => Number(value) < stock.amount || translate["amount_less_than_current"] })}
+                        />
+                        <p>/ {formatCurrency(stock.amount, false, 0, false)}</p>
+                    </div>
+
+                    <Controller
+                        name="sellPrice"
+                        control={control}
+                        rules={{
+                            required: translate["sell_price_required"],
+                            validate: (value) => Number(value) > 0 || translate["sell_price_positive"]
+                        }}
+                        render={({ field: { onChange, value }, fieldState: { error } }) => (
+                            <TextField
+                                sx={{ marginLeft: "10px" }}
+                                label={translate["sell_price"]}
+                                value={value || ""}
+                                onChange={(e) => onChange(e.target.value)}
+                                error={!!error}
+                                helperText={error ? error.message : ""}
+                                type="text"
+                            />
+                        )}
                     />
                     <Controller
-                        name="investedAt"
+                        name="soldAt"
                         control={control}
-                        rules={{ required: translate["investment_date_required"] }}
+                        rules={{ required: translate["sell_date_required"] }}
                         render={({ field: { onChange, value } }) => (
                             <BasicDateTimePicker
-                                error={errors.investedAt ? errors?.investedAt.message : undefined}
-                                label={translate["investment_date"]}
-                                value={dayjs(value)}
+                                error={errors.soldAt ? errors?.soldAt.message : undefined}
+                                label={translate["soldAt"]}
+                                value={dayjs(value ?? new Date(Date.now()))}
                                 onChange={(v) => onChange(v?.toDate())}
                             />
                         )}
                     />
-                    <TextField
-                        fullWidth={true}
-                        error={!!errors.amount}
-                        id="edit_meeting_location"
-                        label={translate["amount_of_stocks"]}
-                        type="number"
-                        variant="standard"
-                        helperText={errors.amount ? errors?.amount.message : " "}
-                        {...register("amount", { required: true })}
-                    />
-                    <TextField
-                        fullWidth={true}
-                        error={!!errors.buyPrice}
-                        id="edit_meeting_content"
-                        label={translate["price_per_stock"]}
-                        type="number"
-                        variant="standard"
-                        helperText={errors.buyPrice ? errors?.buyPrice.message : " "}
-                        {...register("buyPrice", { required: true })}
-                        rows={4}
-                    />
-
-                    <Controller
-                        name="sold"
-                        control={control}
-                        render={({ field: { onChange, value } }) => (
-                            <>
-                                <FormControlLabel
-                                    control={
-                                        <Checkbox
-                                            checked={value}
-                                            onChange={(e) => onChange(e.target.checked)}
-                                        />
-                                    }
-                                    label={translate["sold_label"]} // Example label text, update as needed
-                                />
-                                {value && (
-                                    <>
-                                        <Controller
-                                            name="sellPrice"
-                                            control={control}
-                                            rules={{
-                                                required: translate["sell_price_required"],
-                                                validate: (value) => Number(value) > 0 || translate["sell_price_positive"]
-                                            }}
-                                            render={({ field: { onChange, value }, fieldState: { error } }) => (
-                                                <TextField
-                                                    sx={{ marginLeft: "10px" }}
-                                                    label={translate["sell_price"]}
-                                                    value={value || ""}
-                                                    onChange={(e) => onChange(e.target.value)}
-                                                    error={!!error}
-                                                    helperText={error ? error.message : ""}
-                                                    type="number"
-                                                />
-                                            )}
-                                        />
-                                        <Controller
-                                            name="soldAt"
-                                            control={control}
-                                            rules={{ required: translate["sell_date_required"] }}
-                                            render={({ field: { onChange, value } }) => (
-                                                <BasicDateTimePicker
-                                                    error={errors.soldAt ? errors?.soldAt.message : undefined}
-                                                    label={translate["soldAt"]}
-                                                    value={dayjs(value ?? new Date(Date.now()))}
-                                                    onChange={(v) => onChange(v?.toDate())}
-                                                />
-                                            )}
-                                        />
-                                    </>
-                                )}
-                            </>
-                        )}
-                    />
-
 
                     <div className="align-center">
-                        <Button type="submit" variant="contained" disabled={loading}>{loading ? translate["editing_stock"] : translate["edit_stock"]}</Button>
+                        <Button type="submit" variant="contained" disabled={loading}>{loading ? translate["selling_portion"] : translate["sell_portion"]}</Button>
                     </div>
                 </form>
-
-
             </DialogContent>
         </Dialog>
     )

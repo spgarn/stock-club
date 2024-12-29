@@ -89,7 +89,7 @@ export default function AddStockModal({ handleClose, refetch }: { handleClose: (
                     <TextField
                         fullWidth={true}
                         error={!!errors.stockName}
-                        id="meeting_title"
+                        id="stock_title"
                         label={translate["stock_name"]}
                         type="text"
                         variant="standard"
@@ -112,9 +112,9 @@ export default function AddStockModal({ handleClose, refetch }: { handleClose: (
                     <TextField
                         fullWidth={true}
                         error={!!errors.amount}
-                        id="meeting_location"
+                        id="stock_amount"
                         label={translate["amount_of_stocks"]}
-                        type="number"
+                        type="text"
                         variant="standard"
                         helperText={errors.amount ? errors?.amount.message : " "}
                         {...register("amount", { required: true })}
@@ -122,9 +122,9 @@ export default function AddStockModal({ handleClose, refetch }: { handleClose: (
                     <TextField
                         fullWidth={true}
                         error={!!errors.buyPrice}
-                        id="meeting_content"
+                        id="stock_content"
                         label={translate["price_per_stock"]}
-                        type="number"
+                        type="text"
                         variant="standard"
                         helperText={errors.buyPrice ? errors?.buyPrice.message : " "}
                         {...register("buyPrice", { required: true })}
@@ -162,7 +162,7 @@ export default function AddStockModal({ handleClose, refetch }: { handleClose: (
                                                     onChange={(e) => onChange(e.target.value)}
                                                     error={!!error}
                                                     helperText={error ? error.message : ""}
-                                                    type="number"
+                                                    type="text"
                                                 />
                                             )}
                                         />
