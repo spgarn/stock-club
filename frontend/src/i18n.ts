@@ -69,7 +69,7 @@ export const translate = {
     "amount": "Antal",
     "action": "Värde",
     "add_investment": "Lägg till innehav",
-    "stock_name": "Namn på aktien",
+    "stock_name": "Tickersymbol",
     "investment_date": "Datum för investering",
     "amount_of_stocks": "Antal aktier",
     "price_per_stock": "Pris per aktie",

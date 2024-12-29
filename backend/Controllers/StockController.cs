@@ -3,11 +3,6 @@ using club.Dtos;
 using club.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using System.Security.Claims;
-using System.Security.Cryptography.X509Certificates;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace club.Controllers
 {
@@ -29,20 +24,23 @@ namespace club.Controllers
 
             var stocks = _context.StockHolding.Where(stocks => stocks.User.Id == user.Id).OrderByDescending(stock => stock.Id).ToArray();
 
-            return Ok(stocks.Select(club =>
-                 new StockDTO
-                 {
-                     Id = club.Id,
-                     Amount = club.Amount,
-                     SellPrice = club.SellPrice,
-                     BuyPrice = club.BuyPrice,
-                     InvestedAt = club.InvestedAt,
-                     Sold = club.Sold,
-                     StockId = club.StockId,
-                     StockName = club.StockName,
-                     SoldAt = club.SoldAt,
-                     CurrentPrice = 100 //Inject current prices here
-                 }).ToList());
+            var tasks = stocks.Select(async club =>
+                new StockDTO
+                {
+                    Id = club.Id,
+                    Amount = club.Amount,
+                    SellPrice = club.SellPrice,
+                    BuyPrice = club.BuyPrice,
+                    InvestedAt = club.InvestedAt,
+                    Sold = club.Sold,
+                    StockId = club.StockId,
+                    StockName = club.StockName,
+                    SoldAt = club.SoldAt,
+                    CurrentPrice = await YahooAPI.GetStock(club.StockName)
+                });
+
+            var results = await Task.WhenAll(tasks);
+            return Ok(results.ToList());
         }
         [HttpPost]
         [Authorize]
