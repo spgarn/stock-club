@@ -2,24 +2,37 @@
 body {
     min-height: 100vh;
     background-color: colors.$background;
-    font-family: "Roboto", sans-serif; /* Use a fallback font */
     font-weight: 400; /* Normal weight */
 }
 
 /* Apply different font weights to specific elements */
 h1 {
-    font-family: "Roboto", sans-serif;
     font-weight: 700; /* Bold weight */
 }
 
 h2 {
-    font-family: "Roboto", sans-serif;
     font-weight: 500; /* Medium weight */
 }
 
-p {
-    font-family: "Roboto", sans-serif;
+p,
+a,
+td {
     font-weight: 300; /* Light weight */
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+a,
+button,
+input,
+td,
+th {
+    font-family: "Roboto", sans-serif;
 }
 
 * {
@@ -27,12 +40,11 @@ p {
     padding: 0;
     margin: 0;
     max-width: 100%;
-    font-family: Rob;
 }
 
 .container {
     margin: 1rem auto;
-    width: 1000px;
+    width: 1100px;
     max-width: 100%;
 }
 
@@ -260,27 +272,10 @@ h5 {
     text-align: center;
 }
 
-@media only screen and (max-width: 700px) {
-    p,
-    input,
-    button {
-        font-size: 0.95em;
-    }
-    h4 {
-        font-size: 1em;
-    }
-    h5 {
-        font-size: 0.956em;
-    }
-    h6 {
-        font-size: 0.9em;
-    }
-}
-
 .edit {
     display: inline;
     font-size: 1.2em;
-    padding: 10px;
+    padding: 5px;
     border-radius: 5px;
     > * {
         color: colors.$primary;
@@ -294,7 +289,7 @@ h5 {
 .delete {
     display: inline;
     font-size: 1.2em;
-    padding: 10px;
+    padding: 5px;
     border-radius: 5px;
     > * {
         color: colors.$danger;
@@ -313,4 +308,52 @@ h5 {
 .clickable:hover {
     cursor: pointer;
     color: colors.$primary;
+}
+
+.icon-container {
+    min-width: 60px;
+    gap: 0;
+    padding: 0;
+    margin: 0;
+    align-items: center;
+    overflow: visible;
+}
+
+td {
+    font-size: 0.5em;
+}
+
+.sort-table {
+    th,
+    td {
+        font-size: 0.85em;
+    }
+}
+
+@media only screen and (max-width: 700px) {
+    p,
+    input,
+    button {
+        font-size: 0.95em;
+    }
+    h4 {
+        font-size: 1em;
+    }
+    h5 {
+        font-size: 0.956em;
+    }
+    h6 {
+        font-size: 0.9em;
+    }
+
+    td,
+    th {
+        font-size: 0.9em;
+    }
+    .sort-table {
+        th,
+        td {
+            font-size: 0.7em;
+        }
+    }
 }

@@ -164,11 +164,13 @@ export default function Portfolio() {
             enableSorting: false,
             cell: info => (
                 <div>
-                    <div className={"edit"} onClick={() => setEditStock(info.row.original)} title={translate["edit"]} role="button">
-                        <FontAwesomeIcon icon={faEdit} />
-                    </div>
-                    <div className={"delete"} onClick={() => removeStock(info.renderValue() as number)} role="button" title={translate["remove"]}>
-                        <FontAwesomeIcon icon={faTrash} />
+                    <div className="icon-container">
+                        <div className={"edit"} onClick={() => setEditStock(info.row.original)} title={translate["edit"]} role="button">
+                            <FontAwesomeIcon icon={faEdit} />
+                        </div>
+                        <div className={"delete"} onClick={() => removeStock(info.renderValue() as number)} role="button" title={translate["remove"]}>
+                            <FontAwesomeIcon icon={faTrash} />
+                        </div>
                     </div>
                 </div>
             ),
@@ -233,11 +235,13 @@ export default function Portfolio() {
             enableSorting: false,
             cell: info => (
                 <div>
-                    <div className={"edit"} onClick={() => setEditStock(info.row.original)} title={translate["edit"]} role="button">
-                        <FontAwesomeIcon icon={faEdit} />
-                    </div>
-                    <div className={"edit"} onClick={() => setSellPortion(info.row.original)} title={translate["sell"]} role="button">
-                        <FontAwesomeIcon icon={faScaleBalanced} />
+                    <div className="icon-container">
+                        <div className={"edit"} onClick={() => setEditStock(info.row.original)} title={translate["edit"]} role="button">
+                            <FontAwesomeIcon icon={faEdit} />
+                        </div>
+                        <div className={"edit"} onClick={() => setSellPortion(info.row.original)} title={translate["sell"]} role="button">
+                            <FontAwesomeIcon icon={faScaleBalanced} />
+                        </div>
                     </div>
                 </div>
             ),

@@ -60,7 +60,7 @@ const PaginatedTable = <T,>({ columns, data, rowCount, page, }: TableProps<T>) =
     }
     return (
         <TableContainer component={Paper}>
-            <Table aria-label="Sorted table">
+            <Table aria-label="Sorted table" className='sort-table'>
                 <TableHead>
                     {table.getHeaderGroups().map(headerGroup => (
                         <TableRow key={headerGroup.id}>

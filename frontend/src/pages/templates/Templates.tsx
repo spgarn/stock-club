@@ -21,17 +21,6 @@ import EditTemplateModal from "./components/EditTemplateModal";
 import Typography from "@mui/material/Typography";
 import useClubs from "../../hooks/useClubs";
 
-// const data: TemplateTypes[] = [{
-//     id: 1,
-//     title: "hej",
-//     markdown: "hejsan",
-//     createdAt: new Date(),
-//     updatedAt: new Date(),
-//     club: {
-//         id: 0,
-//         name: "test"
-//     }
-// }]
 const columnHelper = createColumnHelper<TemplateTypes>();
 export default function Templates() {
     const { clubId } = useClubs();
@@ -92,7 +81,7 @@ export default function Templates() {
         columnHelper.accessor('id', {
             header: "",
             cell: info => {
-                return <div>
+                return <div className="icon-container">
                     <div className={"edit"} onClick={() => setEditTemplate(info.row.original)} title={translate["edit"]} role="button">
                         <FontAwesomeIcon icon={faEdit} />
                     </div>

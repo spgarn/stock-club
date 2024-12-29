@@ -157,7 +157,7 @@ export const translate = {
     "sellPrice": "Säljpris",
     "empty_table": "Ingen data kunde hittas!",
     "adding_decision": "Lägger till nyhet..",
-    "soldAt": "Försäljningsdatum",
+    "soldAt": "Sälj. datum",
     "sell_date_required": "Säljdatum krävs",
     "currentPrice": "Nuvarande Pris",
     "yield": "Avkastning",
