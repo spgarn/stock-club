@@ -94,7 +94,7 @@ export default function AddDecisionModal({ clubId, handleClose, refetch }: { clu
 
 
                     <div className="align-center">
-                        <Button sx={{ marginTop: "10px" }} type="submit" variant="contained" disabled={loading}>{loading ? translate["adding_template"] : translate["add_template"]}</Button>
+                        <Button sx={{ marginTop: "10px" }} type="submit" variant="contained" disabled={loading}>{loading ? translate["adding_decision"] : translate["add_decision"]}</Button>
                     </div>
                 </form>
 

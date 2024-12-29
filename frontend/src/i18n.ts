@@ -137,10 +137,10 @@ export const translate = {
     "logged_out": "Du lyckades logga ut!",
     "you": "Du",
     "delete": "Ta bort",
-    "decisions": "Beslut",
+    "decisions": "Nyheter",
     "decision_created_success": "Beslut skapades!",
     "decision_title": "Beslut titel",
-    "add_decision": "Lägg till beslut",
+    "add_decision": "Lägg till nyhet",
     "suggestion_deleted_success": "Förslag borttaget!",
     "confirm_delete_suggestion": "Är du säker att du vill ta bort detta förslaget?",
     "confirm_delete_news": "Är du säker att du vill ta bort denna nyheten?",
@@ -154,7 +154,8 @@ export const translate = {
     "edit_stock": "Ändra innehav",
     "editing_stock": "Ändrar innehav..",
     "sellPrice": "Såld",
-    "empty_table": "Ingen data kunde hittas!"
+    "empty_table": "Ingen data kunde hittas!",
+    "adding_decision": "Lägger till nyhet.."
 }
 
 //Translate with fallback
