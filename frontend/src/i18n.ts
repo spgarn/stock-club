@@ -78,6 +78,7 @@ export const translate = {
     "meeting_time_required": "Mötestid krävs",
     "investment_date_required": "Datum för investering krävs",
     "stock_created_success": "Investering skapades!",
+    "stock_updated_success": "Investering uppdaterades!",
     "description": "Beskrivning",
     "agenda": "Dagordning",
     "agenda_required": "Dagordning krävs",
@@ -145,7 +146,15 @@ export const translate = {
     "confirm_delete_news": "Är du säker att du vill ta bort denna nyheten?",
     "news_deleted": "Nyhet borttagen!",
     "no_suggestions": "Det finns inget förslag just nu.",
-    "no_chats": "Det finns inga chat meddelande just nu."
+    "no_chats": "Det finns inga chat meddelande just nu.",
+    "sold_label": "Aktie är såld",
+    "sell_price_required": "Pris måste anges",
+    "sell_price": "Säljpris",
+    "sell_price_positive": "Säljpris måste vara positivt",
+    "edit_stock": "Ändra innehav",
+    "editing_stock": "Ändrar innehav..",
+    "sellPrice": "Såld",
+    "empty_table": "Ingen data kunde hittas!"
 }
 
 //Translate with fallback

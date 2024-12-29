@@ -4,42 +4,49 @@ import { translate, translateText } from "../../../i18n";
 import DialogContent from "@mui/material/DialogContent";
 import Button from "@mui/material/Button";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
-import api from "../../../api";
+import api, { StockHoldings } from "../../../api";
 import { toast } from "react-toastify";
 import TextField from "@mui/material/TextField";
 import BasicDateTimePicker from "../../../components/BasicDateTimePicker";
 import dayjs from "dayjs";
-import FormControlLabel from "@mui/material/FormControlLabel";
+import { NewInvestment } from "./AddStockModal";
 import Checkbox from "@mui/material/Checkbox";
+import FormControlLabel from "@mui/material/FormControlLabel";
 import portfolioStyles from "../portfolio.module.scss";
-export type NewInvestment = {
-    stockName: string;
-    investedAt: Date;
-    amount: number;
-    buyPrice: number;
-    sellPrice: number | null;
-    sold: boolean;
-}
+
 // };
-export default function AddStockModal({ handleClose, refetch }: { handleClose: () => void; refetch: () => void; }) {
+export default function EditStockModal({ handleClose, refetch, stock }: { handleClose: () => void; refetch: () => void; stock: StockHoldings }) {
     const {
         control,
         register,
         handleSubmit,
         formState: { errors },
+        reset
     } = useForm<NewInvestment>({
         defaultValues: {
             investedAt: new Date(Date.now())
         },
     });
+    useEffect(() => {
+        if (stock) {
+            reset({
+                stockName: stock.stockName,
+                investedAt: stock.investedAt,
+                amount: stock.amount,
+                buyPrice: stock.buyPrice,
+                sellPrice: stock.sellPrice,
+                sold: stock.sold
+            });
+        }
+    }, [stock, reset]);
     const [loading, setLoading] = useState(false);
     const onSubmit: SubmitHandler<NewInvestment> = async (data: NewInvestment) => {
         setLoading(true);
         try {
-            const res = await api.post<unknown>
-                ("/stocks/add", {
+            const res = await api.put<unknown>
+                ("/stocks/edit/" + stock.id, {
                     ...data,
                     stockId: "1",
                 }, {
@@ -49,7 +56,7 @@ export default function AddStockModal({ handleClose, refetch }: { handleClose: (
                     withCredentials: true
                 });
             const resData = res.data;
-            toast.success(translate["stock_created_success"]);
+            toast.success(translate["stock_updated_success"]);
             refetch();
             handleClose();
             console.log(resData);
@@ -70,16 +77,16 @@ export default function AddStockModal({ handleClose, refetch }: { handleClose: (
         <Dialog
             open={true}
             onClose={handleClose}
-            aria-labelledby="alert-dialog-title"
-            aria-describedby="alert-dialog-description"
+            aria-labelledby="Stock"
+            aria-describedby="Stock"
             fullWidth
             maxWidth="xs"
         >
             <BootstrapDialogTitle
-                id="alert-dialog-title"
+                id="edit_alert-dialog-title"
                 onClose={() => handleClose()}
             >
-                {translate["add_stock"]}
+                {translate["edit_stock"]}
             </BootstrapDialogTitle>
 
             <DialogContent>
@@ -87,7 +94,7 @@ export default function AddStockModal({ handleClose, refetch }: { handleClose: (
                     <TextField
                         fullWidth={true}
                         error={!!errors.stockName}
-                        id="meeting_title"
+                        id="edit_meeting_title"
                         label={translate["stock_name"]}
                         type="text"
                         variant="standard"
@@ -110,7 +117,7 @@ export default function AddStockModal({ handleClose, refetch }: { handleClose: (
                     <TextField
                         fullWidth={true}
                         error={!!errors.amount}
-                        id="meeting_location"
+                        id="edit_meeting_location"
                         label={translate["amount_of_stocks"]}
                         type="number"
                         variant="standard"
@@ -120,7 +127,7 @@ export default function AddStockModal({ handleClose, refetch }: { handleClose: (
                     <TextField
                         fullWidth={true}
                         error={!!errors.buyPrice}
-                        id="meeting_content"
+                        id="edit_meeting_content"
                         label={translate["price_per_stock"]}
                         type="number"
                         variant="standard"
@@ -170,7 +177,7 @@ export default function AddStockModal({ handleClose, refetch }: { handleClose: (
 
 
                     <div className="align-center">
-                        <Button type="submit" variant="contained" disabled={loading}>{loading ? translate["adding_stock"] : translate["add_stock"]}</Button>
+                        <Button type="submit" variant="contained" disabled={loading}>{loading ? translate["editing_stock"] : translate["edit_stock"]}</Button>
                     </div>
                 </form>
 

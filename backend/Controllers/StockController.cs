@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
+using System.Security.Cryptography.X509Certificates;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace club.Controllers
@@ -55,7 +56,7 @@ namespace club.Controllers
             _context.StockHolding.Add(new StockHolding
             {
                 Amount = stockDTO.Amount,
-                SellPrice = stockDTO.SellPrice,
+                SellPrice = stockDTO.Sold ? stockDTO.SellPrice : null,
                 BuyPrice = stockDTO.BuyPrice,
                 StockId = stockDTO.StockId,
                 StockName = stockDTO.StockName,
@@ -65,6 +66,37 @@ namespace club.Controllers
             });
             await _context.SaveChangesAsync();
             return CreatedAtAction(nameof(AddStock), user.Id);
+        }
+        [HttpPut]
+        [Authorize]
+        [Route("edit/{stockId}")]
+        public async Task<ActionResult<string>> EditStock(
+           [FromServices] MyDbContext _context, StockDTO stockDTO, int stockId)
+        {
+            var result = await GetCurrentUser(_context);
+            if (result.Result != null) // If it's an error result
+                return result.Result;
+            if (result.Value == null) return NotFound();
+            ApplicationUser user = result.Value;
+            var existingStock = _context.StockHolding.Where(stock => stock.Id == stockId && stock.User.Equals(user)).FirstOrDefault();
+            if (existingStock == null) return NotFound();
+            existingStock.Amount = stockDTO.Amount;
+            existingStock.BuyPrice = stockDTO.BuyPrice;
+            existingStock.StockId = stockDTO.StockId;
+            existingStock.StockName = stockDTO.StockName;
+            existingStock.Sold = stockDTO.Sold;
+            if (stockDTO.Sold)
+            {
+                existingStock.SellPrice = stockDTO.SellPrice;
+            }
+            else
+            {
+                existingStock.SellPrice = null;
+            }
+
+            _context.StockHolding.Update(existingStock);
+            await _context.SaveChangesAsync();
+            return CreatedAtAction(nameof(EditStock), user.Id);
         }
     }
 }

@@ -1,4 +1,5 @@
 
+import Typography from '@mui/material/Typography';
 import Paper from '@mui/material/Paper';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -12,6 +13,7 @@ import {
     getCoreRowModel,
     useReactTable,
 } from '@tanstack/react-table'
+import { translate } from '../i18n';
 
 interface TableProps<T> {
     columns: ColumnDef<T>[];
@@ -25,6 +27,11 @@ const BasicTable = <T,>({ columns, data }: TableProps<T>) => {
         columns,
         getCoreRowModel: getCoreRowModel(),
     });
+    if (data.length === 0) {
+        return <div className='align-center'>
+            <Typography variant='h5'>{translate["empty_table"]}</Typography>
+        </div>
+    }
     return (
         <TableContainer component={Paper}>
             <Table aria-label="simple table">

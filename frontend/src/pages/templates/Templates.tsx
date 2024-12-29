@@ -1,7 +1,6 @@
 
 import { useState } from "react";
 import { translate, translateText } from "../../i18n";
-import templateStyles from "./templates.module.scss";
 import {
     ColumnDef,
     createColumnHelper
@@ -94,10 +93,10 @@ export default function Templates() {
             header: "",
             cell: info => {
                 return <div>
-                    <div className={templateStyles.edit} onClick={() => setEditTemplate(info.row.original)} title={translate["edit"]} role="button">
+                    <div className={"edit"} onClick={() => setEditTemplate(info.row.original)} title={translate["edit"]} role="button">
                         <FontAwesomeIcon icon={faEdit} />
                     </div>
-                    <div className={templateStyles.delete} onClick={() => removeTemplate(info.renderValue() as number)} role="button" title={translate["remove"]}>
+                    <div className={"delete"} onClick={() => removeTemplate(info.renderValue() as number)} role="button" title={translate["remove"]}>
                         <FontAwesomeIcon icon={faTrash} />
                     </div>
 

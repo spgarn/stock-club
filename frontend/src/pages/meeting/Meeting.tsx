@@ -129,6 +129,7 @@ export default function Meeting() {
             {isMobile ? <div className={meetingStyles.mobileView}>
                 <div className={meetingStyles.toggleContainer}>
                     <ToggleButtonGroup
+                        size="small"
                         color="primary"
                         value={displayMethod}
                         exclusive

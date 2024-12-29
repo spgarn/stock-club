@@ -17,30 +17,3 @@
         gap: 5px;
     }
 }
-
-.edit {
-    display: inline;
-    font-size: 1.2em;
-    padding: 10px;
-    border-radius: 5px;
-    > * {
-        color: colors.$primary;
-    }
-}
-.edit:hover {
-    background-color: rgba(0, 0, 0, 0.1);
-    cursor: pointer;
-}
-
-.delete {
-    display: inline;
-    font-size: 1.2em;
-    padding: 10px;
-    border-radius: 5px;
-    > * {
-        color: colors.$danger;
-    }
-}
-.delete:hover {
-    background-color: rgba(0, 0, 0, 0.1);
-}

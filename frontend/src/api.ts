@@ -71,6 +71,7 @@ export type ClubDetails = Club & {
 }
 
 export type StockHoldings = {
+    sellPrice: number | null;
     id: number;
     stockName: string;
     investedAt: Date;

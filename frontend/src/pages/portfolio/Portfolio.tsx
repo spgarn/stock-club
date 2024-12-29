@@ -16,15 +16,9 @@ import Button from "@mui/material/Button";
 import AddStockModal from "./components/AddStockModal";
 import { useQuery } from "@tanstack/react-query";
 import Loading from "../../components/Loading";
-// const data: StockHoldings[] = [{
-//     id: 1,
-//     stockName: "Flat Capital",
-//     investedAt: new Date(Date.now()),
-//     buyPrice: 1,
-//     amount: 1,
-//     currentPrice: 1,
-//     sold: false
-// }]
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faEdit } from "@fortawesome/free-regular-svg-icons/faEdit";
+import EditStockModal from "./components/EditStockModal";
 const columnHelper = createColumnHelper<StockHoldings>();
 export default function Portfolio() {
     const { data, refetch } = useQuery({
@@ -32,16 +26,60 @@ export default function Portfolio() {
         queryFn: () => getStocks(),
     });
     const [addStockOpen, setAddStockOpen] = useState(false);
+    const [editStock, setEditStock] = useState<null | StockHoldings>(null);
+
     const [displayMethod, setDisplayMethod] = useState<"active_stocks" | "sold_stocks">("active_stocks");
     const [currencyDisplay, setCurrencyDisplay] = useState<"kr" | "percent">("kr");
     const {
-        totalAmount, totalValue, development
+        totalAmount, totalValue, development, currentStocks, soldStocks
     } = useMemo(() => {
-        return { totalAmount: 4, totalValue: 105495, development: 40.2 }
-    }, []);
+        if (!data) {
+            return { totalAmount: 0, totalValue: 0, development: 0, currentStocks: [], soldStocks: [] }
+        }
+        return { totalAmount: data.length, totalValue: 105495, development: 40.2, currentStocks: data.filter(stock => !stock.sold), soldStocks: data.filter(stock => stock.sold) }
+    }, [data]);
+
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const columns: ColumnDef<StockHoldings, any>[] = [
+    const columnsSold: ColumnDef<StockHoldings, any>[] = [
+        columnHelper.accessor('stockName', {
+            header: () => translate["stockName"],
+            cell: info => info.renderValue(),
+        }),
+        columnHelper.accessor('investedAt', {
+            header: () => translate["investedAt"],
+            cell: info => dayjs(info.renderValue() as Date).format("DD/MM/YYYY")
+        }),
+        columnHelper.accessor('buyPrice', {
+            header: () => translate["buyPrice"],
+            cell: info => info.renderValue(),
+        }),
+        columnHelper.accessor('amount', {
+            header: translate["amount"],
+            cell: info => info.renderValue(),
+        }),
+        columnHelper.accessor('currentPrice', {
+            header: translate["dev_since_buy"],
+            cell: info => info.renderValue(),
+        }),
+        columnHelper.accessor('sellPrice', {
+            header: translate["sellPrice"],
+            cell: info => info.renderValue(),
+        }),
+        columnHelper.accessor('id', {
+            header: "",
+            cell: info => {
+                return <div>
+                    <div className={"edit"} onClick={() => setEditStock(info.row.original)} title={translate["edit"]} role="button">
+                        <FontAwesomeIcon icon={faEdit} />
+                    </div>
+
+                </div>
+            },
+        }),
+    ];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const columnsCurrent: ColumnDef<StockHoldings, any>[] = [
         columnHelper.accessor('stockName', {
             header: () => translate["stockName"],
             cell: info => info.renderValue(),
@@ -63,8 +101,15 @@ export default function Portfolio() {
             cell: info => info.renderValue(),
         }),
         columnHelper.accessor('id', {
-            header: translate["action"],
-            cell: info => info.renderValue(),
+            header: "",
+            cell: info => {
+                return <div>
+                    <div className={"edit"} onClick={() => setEditStock(info.row.original)} title={translate["edit"]} role="button">
+                        <FontAwesomeIcon icon={faEdit} />
+                    </div>
+
+                </div>
+            },
         }),
     ];
     if (!data) {
@@ -110,9 +155,12 @@ export default function Portfolio() {
                     <p>{formatCurrency(development, false, 2, true)}%</p>
                 </div>
             </div>
-            <BasicTable columns={columns} data={data} />
+            {
+                displayMethod === "active_stocks" ? <BasicTable columns={columnsCurrent} data={currentStocks} /> : <BasicTable columns={columnsSold} data={soldStocks} />
+            }
             <Button sx={{ marginTop: "2rem" }} onClick={() => setAddStockOpen(true)}>{translate["add_investment"]}</Button>
             {addStockOpen && <AddStockModal refetch={refetch} handleClose={() => setAddStockOpen(false)} />}
+            {!!editStock && <EditStockModal refetch={refetch} handleClose={() => setEditStock(null)} stock={editStock} />}
 
         </div>
     )
