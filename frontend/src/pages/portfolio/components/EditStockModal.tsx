@@ -50,7 +50,6 @@ export default function EditStockModal({ handleClose, refetch, stock }: { handle
             const res = await api.put<unknown>
                 ("/stocks/edit/" + stock.id, {
                     ...data,
-                    stockId: "1",
                 }, {
                     headers: {
                         "Access-Control-Allow-Origin": "*"

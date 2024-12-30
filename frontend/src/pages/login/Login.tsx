@@ -48,7 +48,7 @@ export default function Login() {
     }
     return (
         <div className='auth-container'>
-            <form className='auth-panel box' onSubmit={handleSubmit(onSubmit)}>
+            <form autoComplete="on" className='auth-panel box' onSubmit={handleSubmit(onSubmit)}>
                 <Typography variant="h4">{translate["login"]}</Typography>
                 <TextField
                     autoComplete="current-email"

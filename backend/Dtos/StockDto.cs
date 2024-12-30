@@ -2,11 +2,9 @@
 
 namespace club.Dtos
 {
-    public class StockDTO
+    public class StockDto
     {
         public int? Id { get; set; }
-
-        public string StockId { get; set; } = null!;
 
         public string StockName { get; set; } = null!;
 

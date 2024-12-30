@@ -9,3 +9,7 @@ A portal for clubs to use
 ## Prod
 
 `docker-compose up --build`
+
+## Connect to database (connect to container first)
+
+`psql -U postgres -d club`

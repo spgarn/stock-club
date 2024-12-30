@@ -17,6 +17,7 @@ namespace club.Data
         public DbSet<Models.MeetingsSuggestionsUpvote> MeetingsSuggestionsUpvote { get; set; }
         public DbSet<Models.MeetingsSuggestionsDownvote> MeetingsSuggestionsDownvote { get; set; }
         public DbSet<Models.StockHolding> StockHolding { get; set; }
+        public DbSet<Models.Stock> Stock { get; set; }
         public DbSet<Models.ApplicationUser> User { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

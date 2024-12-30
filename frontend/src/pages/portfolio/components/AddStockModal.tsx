@@ -43,7 +43,6 @@ export default function AddStockModal({ handleClose, refetch }: { handleClose: (
             const res = await api.post<unknown>
                 ("/stocks/add", {
                     ...data,
-                    stockId: "1",
                 }, {
                     headers: {
                         "Access-Control-Allow-Origin": "*"

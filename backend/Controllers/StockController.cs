@@ -3,6 +3,7 @@ using club.Dtos;
 using club.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace club.Controllers
 {
@@ -13,83 +14,120 @@ namespace club.Controllers
         [HttpGet]
         [Authorize]
         [Route("all")]
-        public async Task<ActionResult<ICollection<StockDTO>>> GetStocks(
-           [FromServices] MyDbContext _context)
+        public async Task<ActionResult<ICollection<StockDto>>> GetStocks(
+           [FromServices] MyDbContext context)
         {
-            var result = await GetCurrentUser(_context);
+            var result = await GetCurrentUser(context);
             if (result.Result != null) // If it's an error result
                 return result.Result;
             if (result.Value == null) return NotFound();
-            ApplicationUser user = result.Value;
-
-            var stocks = _context.StockHolding.Where(stocks => stocks.User.Id == user.Id).OrderByDescending(stock => stock.Id).ToArray();
-
-            var tasks = stocks.Select(async club =>
-                new StockDTO
+            var user = result.Value;
+            if (user == null) return NotFound();
+            var stocks = context.StockHolding.Include(stock => stock.Stock).Where(stocks => stocks.User.Id == user.Id).OrderByDescending(stock => stock.Id).ToArray();
+            return Ok(stocks.Select(stock =>
+                new StockDto
                 {
-                    Id = club.Id,
-                    Amount = club.Amount,
-                    SellPrice = club.SellPrice,
-                    BuyPrice = club.BuyPrice,
-                    InvestedAt = club.InvestedAt,
-                    Sold = club.Sold,
-                    StockId = club.StockId,
-                    StockName = club.StockName,
-                    SoldAt = club.SoldAt,
-                    CurrentPrice = await YahooAPI.GetStock(club.StockName)
-                });
-
-            var results = await Task.WhenAll(tasks);
-            return Ok(results.ToList());
+                    Id = stock.Id,
+                    Amount = stock.Amount,
+                    SellPrice = stock.SellPrice,
+                    BuyPrice = stock.BuyPrice,
+                    InvestedAt = stock.InvestedAt,
+                    Sold = stock.Sold,
+                    StockName = stock.Stock.StockName,
+                    SoldAt = stock.SoldAt,
+                    CurrentPrice = stock.Stock.CurrentPrice//await YahooAPI.GetStock(club.StockName)
+                }).ToList());
         }
         [HttpPost]
         [Authorize]
         [Route("add")]
         public async Task<ActionResult<string>> AddStock(
-           [FromServices] MyDbContext _context, StockDTO stockDTO)
+           [FromServices] MyDbContext context, StockDto stockDto)
         {
-            var result = await GetCurrentUser(_context);
+            var result = await GetCurrentUser(context);
             if (result.Result != null) // If it's an error result
                 return result.Result;
-            if (result.Value == null) return NotFound();
-            ApplicationUser user = result.Value;
-            _context.StockHolding.Add(new StockHolding
+            if (result.Value == null) return NotFound("Cookie Not Found");
+            var user = result.Value;
+            if (user == null) return NotFound("User Not Found");
+            var stock = context.Stock.FirstOrDefault(stock => stock.StockName == stockDto.StockName);
+            if (stock == null)
             {
-                Amount = stockDTO.Amount,
-                SellPrice = stockDTO.Sold ? stockDTO.SellPrice : null,
-                BuyPrice = stockDTO.BuyPrice,
-                StockId = stockDTO.StockId,
-                StockName = stockDTO.StockName,
-                Sold = stockDTO.Sold,
-                InvestedAt = stockDTO.InvestedAt,
-                SoldAt = stockDTO.SoldAt,
-                User = user
+                var validPrice = await YahooAPI.GetStock(stockDto.StockName);
+                if (validPrice == null)
+                {
+                    return NotFound("Stock Not Found"); //Can't find it
+                }
+
+                stock = new Stock
+                {
+                    StockName = stockDto.StockName,
+                    CurrentPrice = validPrice.Value,
+                    Active = true,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                };
+                context.Stock.Add(stock);
+
+            }
+            context.StockHolding.Add(new StockHolding
+            {
+                Amount = stockDto.Amount,
+                SellPrice = stockDto.Sold ? stockDto.SellPrice : null,
+                BuyPrice = stockDto.BuyPrice,
+                StockName = stockDto.StockName,
+                Sold = stockDto.Sold,
+                InvestedAt = stockDto.InvestedAt,
+                SoldAt = stockDto.SoldAt,
+                User = user,
+                Stock = stock
             });
-            await _context.SaveChangesAsync();
+            await context.SaveChangesAsync();
             return CreatedAtAction(nameof(AddStock), user.Id);
         }
         [HttpPut]
         [Authorize]
         [Route("edit/{stockId}")]
         public async Task<ActionResult<string>> EditStock(
-           [FromServices] MyDbContext _context, StockDTO stockDTO, int stockId)
+           [FromServices] MyDbContext context, StockDto stockDto, int stockId)
         {
-            var result = await GetCurrentUser(_context);
+            var result = await GetCurrentUser(context);
             if (result.Result != null) // If it's an error result
                 return result.Result;
             if (result.Value == null) return NotFound();
-            ApplicationUser user = result.Value;
-            var existingStock = _context.StockHolding.Where(stock => stock.Id == stockId && stock.User.Equals(user)).FirstOrDefault();
-            if (existingStock == null) return NotFound();
-            existingStock.Amount = stockDTO.Amount;
-            existingStock.BuyPrice = stockDTO.BuyPrice;
-            existingStock.StockId = stockDTO.StockId;
-            existingStock.StockName = stockDTO.StockName;
-            existingStock.Sold = stockDTO.Sold;
-            if (stockDTO.Sold)
+            var user = result.Value;
+            if (user == null) return NotFound();
+            var stock = context.Stock.FirstOrDefault(stock => stock.StockName == stockDto.StockName);
+            if (stock == null)
             {
-                existingStock.SellPrice = stockDTO.SellPrice;
-                existingStock.SoldAt = stockDTO.SoldAt;
+                var validPrice = await YahooAPI.GetStock(stockDto.StockName);
+                if (validPrice == null)
+                {
+                    return NotFound("Stock Not Found"); //Can't find it
+                }
+
+                stock = new Stock
+                {
+                    StockName = stockDto.StockName,
+                    CurrentPrice = validPrice.Value,
+                    Active = true,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                };
+                context.Stock.Add(stock);
+
+            }
+            var existingStock = context.StockHolding.Include(stock => stock.Stock).FirstOrDefault(stock => stock.Id == stockId && stock.User.Equals(user));
+            if (existingStock == null) return NotFound();
+            existingStock.Amount = stockDto.Amount;
+            existingStock.BuyPrice = stockDto.BuyPrice;
+            existingStock.StockName = stockDto.StockName;
+            existingStock.Sold = stockDto.Sold;
+            existingStock.Stock = stock;
+            if (stockDto.Sold)
+            {
+                existingStock.SellPrice = stockDto.SellPrice;
+                existingStock.SoldAt = stockDto.SoldAt;
             }
             else
             {
@@ -97,8 +135,8 @@ namespace club.Controllers
                 existingStock.SoldAt = null;
             }
 
-            _context.StockHolding.Update(existingStock);
-            await _context.SaveChangesAsync();
+            context.StockHolding.Update(existingStock);
+            await context.SaveChangesAsync();
             return CreatedAtAction(nameof(EditStock), user.Id);
         }
 
@@ -106,37 +144,38 @@ namespace club.Controllers
         [Authorize]
         [Route("sellportion")]
         public async Task<ActionResult<string>> SellChunk(
-           [FromServices] MyDbContext _context, StockSplitForm stockDTO)
+           [FromServices] MyDbContext context, StockSplitForm stockDto)
         {
-            var result = await GetCurrentUser(_context);
+            var result = await GetCurrentUser(context);
             if (result.Result != null) // If it's an error result
                 return result.Result;
             if (result.Value == null) return NotFound();
-            ApplicationUser user = result.Value;
-            var existingStock = _context.StockHolding.Where(stock => stock.Id == stockDTO.Id && stock.User.Equals(user)).FirstOrDefault();
+            var user = result.Value;
+            if (user == null) return NotFound();
+            var existingStock = context.StockHolding.Include(stock => stock.Stock).FirstOrDefault(stock => stock.Id == stockDto.Id && stock.User.Equals(user));
             if (existingStock == null) return NotFound();
-            if (existingStock.Amount < stockDTO.Amount) return StatusCode(400); //Too many
+            if (existingStock.Amount < stockDto.Amount) return StatusCode(400); //Too many
 
             //Remove from current one
-            existingStock.Amount -= stockDTO.Amount;
+            existingStock.Amount -= stockDto.Amount;
 
             //Create a new from the amount split off
             var newSoldStock = new StockHolding
             {
-                Amount = stockDTO.Amount,
-                SellPrice = stockDTO.SellPrice,
+                Amount = stockDto.Amount,
+                SellPrice = stockDto.SellPrice,
                 BuyPrice = existingStock.BuyPrice,
-                StockId = existingStock.StockId,
                 StockName = existingStock.StockName,
                 Sold = true,
                 InvestedAt = existingStock.InvestedAt,
-                SoldAt = stockDTO.SoldAt,
-                User = user
+                SoldAt = stockDto.SoldAt,
+                User = user,
+                Stock = existingStock.Stock
             };
 
-            _context.StockHolding.Update(existingStock);
-            _context.StockHolding.Add(newSoldStock);
-            await _context.SaveChangesAsync();
+            context.StockHolding.Update(existingStock);
+            context.StockHolding.Add(newSoldStock);
+            await context.SaveChangesAsync();
             return CreatedAtAction(nameof(SellChunk), user.Id);
         }
 
@@ -144,18 +183,27 @@ namespace club.Controllers
         [Authorize]
         [Route("{id}")]
         public async Task<ActionResult<string>> DeleteStock(
-          [FromServices] MyDbContext _context, int id)
+          [FromServices] MyDbContext context, int id)
         {
-            var result = await GetCurrentUser(_context);
+            var result = await GetCurrentUser(context);
             if (result.Result != null) // If it's an error result
                 return result.Result;
             if (result.Value == null) return NotFound();
-            ApplicationUser user = result.Value;
+            var user = result.Value;
+            if (user == null) return NotFound();
             if (user.Clubs.Count == 0) return NotFound();
-            var existingStock = _context.StockHolding.Where(stock => stock.Id == id && stock.User.Equals(user)).FirstOrDefault();
+            var existingStock = context.StockHolding.FirstOrDefault(stock => stock.Id == id && stock.User.Equals(user));
             if (existingStock == null) return NotFound();
-            _context.StockHolding.Remove(existingStock);
-            await _context.SaveChangesAsync();
+            //Check if there is only 1 instance of this stock. If so delete it from Stock as well
+            var stock = context.Stock.Include(stock => stock.StockHoldings).FirstOrDefault(stock => stock.StockName == existingStock.StockName);
+            
+            //Delete stock holding
+            context.StockHolding.Remove(existingStock);
+            if (stock is { StockHoldings.Count: 1 })
+            {
+                context.Stock.Remove(stock);
+            }
+            await context.SaveChangesAsync();
             return CreatedAtAction(nameof(DeleteStock), user.Id);
         }
     }

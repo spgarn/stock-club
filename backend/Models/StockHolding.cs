@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace club.Models;
 
@@ -7,19 +8,20 @@ public partial class StockHolding
 {
     public int Id { get; set; }
 
-    public string StockId { get; set; } = null!;
-
-    public string StockName { get; set; } = null!;
+    public Stock Stock { get; set; } = null!;
+    
+    [MaxLength(50)]
+    public string? StockName { get; set; } //Optional
 
     public decimal BuyPrice { get; set; }
 
     public decimal? SellPrice { get; set; }
 
     public decimal Amount { get; set; }
+    
+    public decimal? OverridePrice { get; set; } //Used to override the price if that is needed
 
     public bool Sold { get; set; }
-
-    //public int UserId { get; set; }
 
     public DateTime CreatedAt { get; set; }
 
