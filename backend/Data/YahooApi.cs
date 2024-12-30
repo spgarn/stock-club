@@ -1,7 +1,7 @@
 ﻿using HtmlAgilityPack;
 namespace club.Data
 {
-    public static class YahooAPI
+    public static class YahooApi
     {
         private class CacheEntry
         {
@@ -26,8 +26,8 @@ namespace club.Data
             try
             {
                 // Define the stock symbol and URL
-                string url = $"https://finance.yahoo.com/quote/{stockSymbol}?p={stockSymbol}";
-                string stockPrice = await FetchStockPrice(url);
+                var url = $"https://finance.yahoo.com/quote/{stockSymbol}?p={stockSymbol}";
+                var stockPrice = await FetchStockPrice(url);
 
                 if (!string.IsNullOrEmpty(stockPrice))
                 {
@@ -54,21 +54,36 @@ namespace club.Data
             }
         }
 
-        private static async Task<string> FetchStockPrice(string url)
+        private static async Task<string?> FetchStockPrice(string url)
         {
-            // Create an HttpClient instance
-            using HttpClient client = new HttpClient();
-            // Set realistic headers to mimic a browser
+            using var client = new HttpClient();
             client.DefaultRequestHeaders.Add("User-Agent",
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
-            // Fetch the HTML content of the page
-            string htmlContent = await client.GetStringAsync(url);
-            // Load the HTML content into HtmlAgilityPack
+            var htmlContent = await client.GetStringAsync(url);
+
             var htmlDoc = new HtmlDocument();
             htmlDoc.LoadHtml(htmlContent);
-            // Use XPath to locate the stock price element
-            var stockPriceNode = htmlDoc.DocumentNode.SelectSingleNode("//fin-streamer[@data-field='regularMarketPrice']");
-            return stockPriceNode?.InnerText.Trim() ?? "";
+
+            // Check for errors or invalid stock symbols
+            var errorNode = htmlDoc.DocumentNode.SelectSingleNode("//div[contains(@class, 'error')]");
+            if (errorNode != null)
+            {
+                Console.WriteLine($"Error found on the page for stock symbol.");
+                return null;
+            }
+
+            var stockPriceNode = htmlDoc.DocumentNode.SelectSingleNode("//div[contains(@class, 'price')]//fin-streamer[@data-field='regularMarketPrice']");
+            if (stockPriceNode == null)
+            {
+                Console.WriteLine("Stock price element not found.");
+                return null;
+            }
+
+            var stockPrice = stockPriceNode.InnerText.Trim();
+            if (decimal.TryParse(stockPrice, out _)) return stockPrice;
+
+            Console.WriteLine($"Extracted stock price is not valid: {stockPrice}");
+            return null;
         }
     }
 }

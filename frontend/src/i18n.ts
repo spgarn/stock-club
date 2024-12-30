@@ -168,7 +168,8 @@ export const translate = {
     "sell_portion_desc": "kommer markeras som realiserat  och flyttas till listan Realiserade.",
     "stock_deleted": "Innehav borttaget",
     "amount_less_than_current": "Antal måste vara mindre än nuvarande",
-    "rows": "Rader"
+    "rows": "Rader",
+    "invalid_stock": "Denna aktien kunde inte hittas hos yahoo"
 }
 
 //Translate with fallback

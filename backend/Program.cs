@@ -7,6 +7,8 @@ using club;
 using Microsoft.AspNetCore.Http.Connections;
 using club.Controllers;
 using club.Hubs;
+using club.Jobs;
+using Quartz;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -59,6 +61,19 @@ builder.Services.AddAuthentication()
         options.SlidingExpiration = true;
     });
 builder.Services.AddIdentityCore<ApplicationUser>().AddRoles<IdentityRole>().AddEntityFrameworkStores<MyDbContext>().AddApiEndpoints();
+
+// Add Quartz for CRON
+builder.Services.AddQuartz(q =>
+{
+    // Define the job and trigger
+    q.AddJob<UpdateStockJob>(opts => opts.WithIdentity("UpdateStockJob"));
+    q.AddTrigger(opts => opts
+        .ForJob("UpdateStockJob")
+        .WithIdentity("UpdateStockTrigger")
+        .WithCronSchedule("0 * * ? * *")); // Every minute
+});
+builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
+
 
 var app = builder.Build();
 

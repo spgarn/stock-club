@@ -53,7 +53,7 @@ namespace club.Controllers
             var stock = context.Stock.FirstOrDefault(stock => stock.StockName == stockDto.StockName);
             if (stock == null)
             {
-                var validPrice = await YahooAPI.GetStock(stockDto.StockName);
+                var validPrice = await YahooApi.GetStock(stockDto.StockName);
                 if (validPrice == null)
                 {
                     return NotFound("Stock Not Found"); //Can't find it
@@ -100,7 +100,7 @@ namespace club.Controllers
             var stock = context.Stock.FirstOrDefault(stock => stock.StockName == stockDto.StockName);
             if (stock == null)
             {
-                var validPrice = await YahooAPI.GetStock(stockDto.StockName);
+                var validPrice = await YahooApi.GetStock(stockDto.StockName);
                 if (validPrice == null)
                 {
                     return NotFound("Stock Not Found"); //Can't find it

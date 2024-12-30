@@ -1,6 +1,6 @@
 import Dialog from "@mui/material/Dialog";
 import { BootstrapDialogTitle } from "../../../components/BootstrapDialogTitle";
-import { translate, translateText } from "../../../i18n";
+import { translate } from "../../../i18n";
 import DialogContent from "@mui/material/DialogContent";
 import Button from "@mui/material/Button";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
@@ -55,12 +55,10 @@ export default function AddStockModal({ handleClose, refetch }: { handleClose: (
             handleClose();
             console.log(resData);
         } catch (err) {
+            console.log(err);
             if (axios.isAxiosError(err)) {
-                if (err.response?.data) {
-                    toast.error(translateText(err.response?.data?.title, err.response?.data?.title));
-                } else {
-                    toast.error(err.message);
-                }
+
+                toast.error(translate["invalid_stock"])
             } else {
                 toast.error(translate["something_went_wrong"])
             }
