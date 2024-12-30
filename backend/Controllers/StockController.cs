@@ -78,7 +78,7 @@ namespace club.Controllers
                 StockName = stockDto.StockName,
                 Sold = stockDto.Sold,
                 InvestedAt = stockDto.InvestedAt,
-                SoldAt = stockDto.SoldAt,
+                SoldAt = stockDto.Sold ? stockDto.SoldAt ?? null : null,
                 User = user,
                 Stock = stock
             });
@@ -173,7 +173,14 @@ namespace club.Controllers
                 Stock = existingStock.Stock
             };
 
-            context.StockHolding.Update(existingStock);
+            if (existingStock.Amount <= 0)
+            {
+                context.StockHolding.Remove(existingStock);
+            }
+            else
+            {
+                context.StockHolding.Update(existingStock);
+            }
             context.StockHolding.Add(newSoldStock);
             await context.SaveChangesAsync();
             return CreatedAtAction(nameof(SellChunk), user.Id);
@@ -196,7 +203,7 @@ namespace club.Controllers
             if (existingStock == null) return NotFound();
             //Check if there is only 1 instance of this stock. If so delete it from Stock as well
             var stock = context.Stock.Include(stock => stock.StockHoldings).FirstOrDefault(stock => stock.StockName == existingStock.StockName);
-            
+
             //Delete stock holding
             context.StockHolding.Remove(existingStock);
             if (stock is { StockHoldings.Count: 1 })

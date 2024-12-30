@@ -6,6 +6,7 @@ import ToggleButton from "@mui/material/ToggleButton";
 import portfolioStyles from "./portfolio.module.scss";
 import { formatCurrency } from "../../funcs/funcs";
 import {
+    CellContext,
     ColumnDef,
     createColumnHelper
 } from '@tanstack/react-table'
@@ -38,7 +39,7 @@ export default function Portfolio() {
     const [editStock, setEditStock] = useState<null | StockHoldings>(null);
     const [sellPortion, setSellPortion] = useState<null | StockHoldings>(null);
     const [loading, setLoading] = useState(false);
-    const [displayMethod, setDisplayMethod] = useState<"active_stocks" | "sold_stocks">("active_stocks");
+    const [displayMethod, setDisplayMethod] = useState<"active_stocks" | "sold_stocks" | "all_stocks">("active_stocks");
     const [currencyDisplay, setCurrencyDisplay] = useState<"kr" | "percent">("kr");
     const {
         totalValue, totalAmount, development, list
@@ -51,6 +52,10 @@ export default function Portfolio() {
         const soldStocks = data.filter(stock => stock.sold);
 
         const initial = currentStocks.reduce((prev, stock) => prev + (stock.amount * stock.buyPrice), 0);
+        if (displayMethod === "all_stocks") {
+            const value = currentStocks.reduce((prev, stock) => prev + (stock.amount * (stock?.sellPrice ? Number(stock.sellPrice) : stock.currentPrice)), 0);
+            return { totalAmount: data.length, list: data, totalValue: value, development: ((value / initial - 1) * 100) }
+        }
         if (displayMethod === "active_stocks") {
             const currentValue = currentStocks.reduce((prev, stock) => prev + (stock.amount * stock.currentPrice), 0);
             return { totalAmount: currentStocks.length, list: currentStocks, totalValue: currentValue, development: ((currentValue / initial - 1) * 100) }
@@ -101,7 +106,7 @@ export default function Portfolio() {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const columnsSold: ColumnDef<StockHoldings, any>[] = useMemo(() => [
+    const columns: ColumnDef<StockHoldings, any>[] = useMemo(() => [
         columnHelper.accessor('stockName', {
             header: () => translate["stockName"],
             cell: info => <a href={`https://finance.yahoo.com/quote/${info.renderValue()}/`} className="clickable">{info.renderValue()}</a>,
@@ -110,143 +115,109 @@ export default function Portfolio() {
             header: () => translate["investedAt"],
             cell: info => dayjs(info.renderValue() as Date).format("DD/MM/YYYY")
         }),
-        columnHelper.accessor('soldAt', {
-            header: () => translate["soldAt"],
-            cell: info => dayjs(info.renderValue() as Date).format("DD/MM/YYYY")
-        }),
+        ...(displayMethod != "active_stocks" ? [ //Sold or ALL
+            columnHelper.accessor('soldAt', {
+                header: () => translate["soldAt"],
+                cell: info => info.renderValue() ? dayjs(info.renderValue() as Date).format("DD/MM/YYYY") : translate["not_sold"]
+            })
+        ] : []),
         columnHelper.accessor('buyPrice', {
             header: () => translate["buyPrice"],
-            cell: info => formatCurrency(info.renderValue(), true, 2),
+            cell: info => formatCurrency(info.renderValue(), true, 3),
         }),
         columnHelper.accessor('amount', {
             header: translate["amount"],
             cell: info => formatCurrency(info.renderValue(), false, 2),
         }),
-        columnHelper.accessor('sellPrice', {
-            header: translate["sellPrice"],
-            cell: info => formatCurrency(info.renderValue(), true, 2),
-        }),
-        {
-            id: 'yield',
-            header: translate["yield"],
-            enableSorting: true,
-            accessorFn: (original) => Number(original.sellPrice) - Number(original.buyPrice),
-            cell: info => {
-                const original = info.row.original;
-                const buyPrice = original.buyPrice;
-                const sellPrice = Number(original.sellPrice);
+        ...(displayMethod != "active_stocks" ? [ //Sold or ALL
+            columnHelper.accessor('sellPrice', {
+                header: translate["sellPrice"],
+                cell: info => info.renderValue() ? formatCurrency(Number(info.renderValue()), true, 3) : translate["not_sold"],
+            })
+        ] : []),
+        ...(displayMethod != "sold_stocks" ? [ //Active or ALL
+            columnHelper.accessor('currentPrice', {
+                header: translate["currentPrice"],
+                cell: info => formatCurrency(Number(info.renderValue()), true, 3),
+            })
+        ] : []),
+        ...(displayMethod != "active_stocks" ? [ //Active or ALL
+            {
+                id: 'yield',
+                header: translate["yield"],
+                enableSorting: true,
+                accessorFn: (original: StockHoldings) => Number(original.sellPrice) - Number(original.buyPrice),
+                cell: (info: CellContext<StockHoldings, never>) => {
+                    const original = info.row.original;
+                    const buyPrice = original.buyPrice;
+                    const sellPrice = Number(original.sellPrice);
 
-                if (currencyDisplay === "percent") {
-                    const percent = 100 * ((sellPrice / buyPrice) - 1);
-                    return <span className={percent >= 0 ? portfolioStyles.positiveBubble : portfolioStyles.negativeBubble}>
-                        {formatCurrency(percent, false, 2, true)} %</span>;
-                }
-                const value = sellPrice - buyPrice;
-                return <span className={value >= 0 ? portfolioStyles.positive : portfolioStyles.negative}>
-                    {formatCurrency(value, true, 2, true)}</span>; // Ensure to return the value
-            },
-        },
+                    if (currencyDisplay === "percent") {
+                        const percent = 100 * ((sellPrice / buyPrice) - 1);
+                        return <span className={percent >= 0 ? portfolioStyles.positiveBubble : portfolioStyles.negativeBubble}>
+                            {formatCurrency(percent, false, 2, true)} %</span>;
+                    }
+                    const value = sellPrice - buyPrice;
+                    return <span className={value >= 0 ? portfolioStyles.positive : portfolioStyles.negative}>
+                        {formatCurrency(value, true, 2, true)}</span>; // Ensure to return the value
+                },
+            }
+        ] : []),
+        ...(displayMethod != "sold_stocks" ? [ //Active or ALL
+            {
+                id: 'devSinceBuy',
+                header: translate["dev_since_buy"],
+                accessorFn: (original: StockHoldings) => Number(original.currentPrice) - Number(original.buyPrice),
+                enableSorting: true,
+                cell: (info: CellContext<StockHoldings, never>) => {
+                    const original = info.row.original;
+                    const buyPrice = original.buyPrice;
+                    const currentPrice = Number(original.currentPrice);
+
+                    if (currencyDisplay === "percent") {
+                        const percent = 100 * ((currentPrice / buyPrice) - 1);
+                        return <span className={percent >= 0 ? portfolioStyles.positiveBubble : portfolioStyles.negativeBubble}>{formatCurrency(percent, false, 2, true)} %</span>;
+                    }
+                    const value = currentPrice - buyPrice;
+                    return <span className={value >= 0 ? portfolioStyles.positive : portfolioStyles.negative}>{formatCurrency(value, true, 2, true)}</span>; // Ensure to return the value
+                },
+            }
+        ] : []),
         {
             id: 'value',
             enableSorting: true,
-            accessorFn: (original) => Number(original.currentPrice) * Number(original.amount),
+            accessorFn: (original) => Number(original?.sellPrice ?? original.currentPrice) * Number(original.amount),
             header: translate["value"],
             cell: info => {
                 const original = info.row.original;
-                const soldPrice = Number(original.sellPrice);
+                const price = Number(original?.sellPrice ?? original.currentPrice);
                 const amount = Number(original.amount);
-                const value = soldPrice * amount;
+                const value = price * amount;
                 return <p>{formatCurrency(value, true, 2, false)}</p>;
             },
         },
         columnHelper.accessor('id', {
             header: "",
             enableSorting: false,
-            cell: info => (
-                <div>
+            cell: info => {
+                const original = info.row.original;
+                return <div>
                     <div className="icon-container">
-                        <div className={"edit"} onClick={() => setEditStock(info.row.original)} title={translate["edit"]} role="button">
+                        <div className={"edit"} onClick={() => setEditStock(original)} title={translate["edit"]} role="button">
                             <FontAwesomeIcon icon={faEdit} />
                         </div>
-                        <div className={"delete"} onClick={() => removeStock(info.renderValue() as number)} role="button" title={translate["remove"]}>
+                        {original.sold ? <div className={"delete"} onClick={() => removeStock(info.renderValue() as number)} role="button" title={translate["remove"]}>
                             <FontAwesomeIcon icon={faTrash} />
-                        </div>
-                    </div>
-                </div>
-            ),
-        }),
-    ], [currencyDisplay]);
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const columnsCurrent: ColumnDef<StockHoldings, any>[] = useMemo(() => [
-        columnHelper.accessor('stockName', {
-            header: () => translate["stockName"],
-            cell: info => <a href={`https://finance.yahoo.com/quote/${info.renderValue()}/`} className="clickable">{info.renderValue()}</a>,
-        }),
-        columnHelper.accessor('investedAt', {
-            header: () => translate["investedAt"],
-            cell: info => dayjs(info.renderValue() as Date).format("DD/MM/YYYY")
-        }),
-        columnHelper.accessor('buyPrice', {
-            header: () => translate["buyPrice"],
-            cell: info => formatCurrency(info.renderValue(), true, 2),
-        }),
-        columnHelper.accessor('amount', {
-            header: translate["amount"],
-            cell: info => formatCurrency(info.renderValue(), false, 2),
-        }),
-        columnHelper.accessor('currentPrice', {
-            header: translate["currentPrice"],
-            cell: info => formatCurrency(info.renderValue(), true, 2),
-        }),
-        {
-            id: 'devSinceBuy',
-            header: translate["dev_since_buy"],
-            accessorFn: (original) => Number(original.currentPrice) - Number(original.buyPrice),
-            enableSorting: true,
-            cell: info => {
-                const original = info.row.original;
-                const buyPrice = original.buyPrice;
-                const currentPrice = Number(original.currentPrice);
-
-                if (currencyDisplay === "percent") {
-                    const percent = 100 * ((currentPrice / buyPrice) - 1);
-                    return <span className={percent >= 0 ? portfolioStyles.positiveBubble : portfolioStyles.negativeBubble}>{formatCurrency(percent, false, 2, true)} %</span>;
-                }
-                const value = currentPrice - buyPrice;
-                return <span className={value >= 0 ? portfolioStyles.positive : portfolioStyles.negative}>{formatCurrency(value, true, 2, true)}</span>; // Ensure to return the value
-            },
-        },
-        {
-            id: 'value',
-            accessorFn: (original) => Number(original.currentPrice) * Number(original.amount),
-            header: translate["value"],
-            enableSorting: true,
-            cell: info => {
-                const original = info.row.original;
-                const currentPrice = Number(original.currentPrice);
-                const amount = Number(original.amount);
-                const value = currentPrice * amount;
-                return <p>{formatCurrency(value, true, 2, false)}</p>; // Ensure to return the value
-            },
-        },
-        columnHelper.accessor('id', {
-            header: "",
-            enableSorting: false,
-            cell: info => (
-                <div>
-                    <div className="icon-container">
-                        <div className={"edit"} onClick={() => setEditStock(info.row.original)} title={translate["edit"]} role="button">
-                            <FontAwesomeIcon icon={faEdit} />
-                        </div>
-                        <div className={"edit"} onClick={() => setSellPortion(info.row.original)} title={translate["sell"]} role="button">
+                        </div> : <div className={"edit"} onClick={() => setSellPortion(info.row.original)} title={translate["sell"]} role="button">
                             <FontAwesomeIcon icon={faScaleBalanced} />
-                        </div>
+                        </div>}
                     </div>
                 </div>
-            ),
+            }
+
+            ,
         }),
-    ], [currencyDisplay]);
+    ], [currencyDisplay, displayMethod]);
     const maxPages = Math.ceil(list.length / rowCount);
     if (!data) {
         return <div>
@@ -262,9 +233,11 @@ export default function Portfolio() {
                     exclusive
                     onChange={(_v, r) => setDisplayMethod(r)}
                     aria-label="Display Type"
+                    size="small"
                 >
-                    <ToggleButton value="active_stocks">{translate["active_stocks"]}</ToggleButton>
-                    <ToggleButton value="sold_stocks">{translate["sold_stocks"]}</ToggleButton>
+                    <ToggleButton size="small" value="active_stocks">{translate["active_stocks"]}</ToggleButton>
+                    <ToggleButton size="small" value="sold_stocks">{translate["sold_stocks"]}</ToggleButton>
+                    <ToggleButton size="small" value="all_stocks">{translate["all_stocks"]}</ToggleButton>
                 </ToggleButtonGroup>
                 <ToggleButtonGroup
                     color="primary"
@@ -272,9 +245,10 @@ export default function Portfolio() {
                     exclusive
                     onChange={(_v, r) => setCurrencyDisplay(r)}
                     aria-label="Currency"
+                    size="small"
                 >
-                    <ToggleButton value="percent">%</ToggleButton>
-                    <ToggleButton value="kr">kr</ToggleButton>
+                    <ToggleButton size="small" value="percent">%</ToggleButton>
+                    <ToggleButton size="small" value="kr">kr</ToggleButton>
                 </ToggleButtonGroup>
             </div>
             <div className={portfolioStyles.overview}>
@@ -301,7 +275,7 @@ export default function Portfolio() {
                 </div>
             </div>
 
-            <PaginatedTable columns={displayMethod === "active_stocks" ? columnsCurrent : columnsSold} data={list} page={page} rowCount={rowCount} />
+            <PaginatedTable columns={columns} data={list} page={page} rowCount={rowCount} />
             {addStockOpen && <AddStockModal refetch={refetch} handleClose={() => setAddStockOpen(false)} />}
             {!!editStock && <EditStockModal refetch={refetch} handleClose={() => setEditStock(null)} stock={editStock} />}
             {!!sellPortion && <SellPortionModal refetch={refetch} handleClose={() => setSellPortion(null)} stock={sellPortion} />}

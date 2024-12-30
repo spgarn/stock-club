@@ -56,6 +56,7 @@ export const translate = {
     "upvote": "Rösta upp",
     "downvote": "Rösta ned",
     "sold_stocks": "Realiserade",
+    "all_stocks": "Alla",
     "active_stocks": "Befintliga",
     "total_stocks": "Antal innehav",
     "total_value": "Totalt värde",
@@ -169,7 +170,8 @@ export const translate = {
     "stock_deleted": "Innehav borttaget",
     "amount_less_than_current": "Antal måste vara mindre än nuvarande",
     "rows": "Rader",
-    "invalid_stock": "Denna aktien kunde inte hittas hos yahoo"
+    "invalid_stock": "Denna aktien kunde inte hittas hos yahoo",
+    "not_sold": "Ej Såld"
 }
 
 //Translate with fallback

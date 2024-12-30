@@ -100,7 +100,7 @@ export default function SellPortionModal({ handleClose, refetch, stock }: { hand
                             type="text"
                             variant="standard"
                             helperText={errors.amount ? errors?.amount.message : " "}
-                            {...register("amount", { required: true, validate: (value) => Number(value) < stock.amount || translate["amount_less_than_current"] })}
+                            {...register("amount", { required: true, validate: (value) => Number(value) <= stock.amount || translate["amount_less_than_current"] })}
                         />
                         <p>/ {formatCurrency(stock.amount, false, 0, false)}</p>
                     </div>
