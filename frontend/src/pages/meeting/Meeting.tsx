@@ -1,4 +1,10 @@
-import { Button, ToggleButton, ToggleButtonGroup, Typography } from "@mui/material";
+import Button from "@mui/material/Button";
+import FormControl from "@mui/material/FormControl";
+import MenuItem from "@mui/material/MenuItem";
+import Select from "@mui/material/Select";
+import ToggleButton from "@mui/material/ToggleButton";
+import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
+import Typography from "@mui/material/Typography";
 import { useParams } from "react-router-dom";
 import meetingStyles from "./meeting.module.scss";
 import { translate } from "../../i18n";
@@ -19,6 +25,8 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import useWindowDimensions from "../../hooks/useWindowDimensions";
 import Wrapper from "./components/Wrapper";
+
+const options = ['agenda', 'meeting_protocol', 'proposals', 'chat'];
 
 export default function Meeting() {
     const [displayMethod, setDisplayMethod] = useState<"agenda" | "meeting_protocol" | "proposals" | "chat">("agenda");
@@ -106,7 +114,18 @@ export default function Meeting() {
             setMeetingProtocols(meeting.meetingProtocol);
             setChats(meeting.meetingChats);
         }
-    }, [meeting])
+    }, [meeting]);
+
+    const handleChange = (_event: unknown, value: string) => {
+        if (value !== null) {
+            setDisplayMethod(value as typeof displayMethod);
+        }
+    };
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const handleSelectChange = (event: any) => {
+        setDisplayMethod(event.target.value as typeof displayMethod);
+    };
     if (!id) {
         return <div>
             <ErrorMessage error="Not Found" />
@@ -115,6 +134,7 @@ export default function Meeting() {
     if (!clubData || !meeting || !clubDetails || !user) {
         return <Loading />
     }
+
     return (
         <div>
             <div className="content-header">
@@ -128,19 +148,38 @@ export default function Meeting() {
             </div>
             {isMobile ? <div className={meetingStyles.mobileView}>
                 <div className={meetingStyles.toggleContainer}>
-                    <ToggleButtonGroup
+
+                    {(width ?? 0) < 450 ? <FormControl fullWidth size="small">
+                        <Select
+                            value={displayMethod}
+                            onChange={handleSelectChange}
+                            sx={{
+                                minWidth: 120,
+                                '& .MuiSelect-select': {
+                                    py: 1
+                                }
+                            }}
+                        >
+                            {options.map((option) => (
+                                <MenuItem key={option} value={option}>
+                                    {translate[option as keyof (typeof translate)]}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl> : <ToggleButtonGroup
                         size="small"
                         color="primary"
                         value={displayMethod}
                         exclusive
-                        onChange={(_v, r) => setDisplayMethod(r)}
+                        onChange={handleChange}
                         aria-label="Display Type"
                     >
-                        <ToggleButton value="agenda">{translate["agenda"]}</ToggleButton>
-                        <ToggleButton value="meeting_protocol">{translate["meeting_protocols"]}</ToggleButton>
-                        <ToggleButton value="proposals">{translate["proposals"]}</ToggleButton>
-                        <ToggleButton value="chat">{translate["chat"]}</ToggleButton>
-                    </ToggleButtonGroup>
+                        {options.map((option) => (
+                            <ToggleButton key={option} value={option}>
+                                {translate[option as keyof (typeof translate)]}
+                            </ToggleButton>
+                        ))}
+                    </ToggleButtonGroup>}
                 </div>
                 {displayMethod === "agenda" && <Wrapper title={translate["agenda"]}>
                     <TipTapEditor content={agenda} label={translate["agenda"]} onChange={sendAgenda} />

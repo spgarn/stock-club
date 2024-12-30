@@ -122,6 +122,7 @@ export const translate = {
     "confirm_delete_user": "Är du säker att du vill ta bort denna användaren?",
     "confirm_delete_stock": "Är du säker att du vill ta bort detta innehavet?",
     "meeting_protocols": "Mötesprotokoll",
+    "meeting_protocol": "Mötesprotokoll",
     "choose_agenda_template": "Välj dagordning mall (valfri)",
     "choose_meeting_protocol_template": "Välj mötesprotokoll mall (valfri)",
     "chat": "Chatt",
