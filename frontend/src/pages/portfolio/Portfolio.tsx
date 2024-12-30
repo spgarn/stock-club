@@ -104,7 +104,7 @@ export default function Portfolio() {
     const columnsSold: ColumnDef<StockHoldings, any>[] = useMemo(() => [
         columnHelper.accessor('stockName', {
             header: () => translate["stockName"],
-            cell: info => info.renderValue(),
+            cell: info => <a href={`https://finance.yahoo.com/quote/${info.renderValue()}/`} className="clickable">{info.renderValue()}</a>,
         }),
         columnHelper.accessor('investedAt', {
             header: () => translate["investedAt"],
@@ -181,7 +181,7 @@ export default function Portfolio() {
     const columnsCurrent: ColumnDef<StockHoldings, any>[] = useMemo(() => [
         columnHelper.accessor('stockName', {
             header: () => translate["stockName"],
-            cell: info => info.renderValue(),
+            cell: info => <a href={`https://finance.yahoo.com/quote/${info.renderValue()}/`} className="clickable">{info.renderValue()}</a>,
         }),
         columnHelper.accessor('investedAt', {
             header: () => translate["investedAt"],
