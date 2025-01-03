@@ -13,3 +13,9 @@ A portal for clubs to use
 ## Connect to database (connect to container first)
 
 `psql -U postgres -d club`
+
+## Setup Domain, run first then remove --dry-run
+
+## https://phoenixnap.com/kb/letsencrypt-docker
+
+`docker compose run --rm certbot certonly --webroot --webroot-path /var/www/certbot/ --dry-run -d aktiesparklubb.se`

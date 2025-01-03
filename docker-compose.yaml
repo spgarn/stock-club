@@ -11,8 +11,9 @@ services:
       - frontend
       - backend
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf  # Mount your nginx configuration
-      - ./nginx/certs:/etc/nginx/certs  # Mount the certs directory
+     - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+     - ./certbot/www:/var/www/certbot/:ro
+     - ./certbot/conf/:/etc/nginx/ssl/:ro
 
   frontend:
     build:
@@ -47,6 +48,11 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+  certbot:
+    image: certbot/certbot:latest
+    volumes:
+      - ./certbot/www/:/var/www/certbot/:rw
+      - ./certbot/conf/:/etc/letsencrypt/:rw
 
 volumes:
   pgdata:
