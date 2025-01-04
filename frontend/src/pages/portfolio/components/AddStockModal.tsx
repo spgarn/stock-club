@@ -14,6 +14,7 @@ import dayjs from "dayjs";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Checkbox from "@mui/material/Checkbox";
 import portfolioStyles from "../portfolio.module.scss";
+import useClubs from "../../../hooks/useClubs";
 export type NewInvestment = {
     stockName: string;
     investedAt: Date;
@@ -25,6 +26,7 @@ export type NewInvestment = {
 }
 // };
 export default function AddStockModal({ handleClose, refetch }: { handleClose: () => void; refetch: () => void; }) {
+    const { clubId } = useClubs();
     const {
         control,
         register,
@@ -41,7 +43,7 @@ export default function AddStockModal({ handleClose, refetch }: { handleClose: (
         setLoading(true);
         try {
             const res = await api.post<unknown>
-                ("/stocks/add", {
+                ("/stocks/add/" + clubId, {
                     ...data,
                 }, {
                     headers: {

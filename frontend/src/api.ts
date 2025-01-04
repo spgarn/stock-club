@@ -153,9 +153,9 @@ export const getTemplates = async (clubId: number) => {
 }
 
 
-export const getStocks = async (userId: string, clubId: number) => {
+export const getStocks = async (clubId: number) => {
     const response = await api.get<StockHoldings[]>(
-        `/stocks/user/${userId}/club/${clubId}`,
+        `/stocks/all/${clubId}`,
         {
             headers: {
                 "Access-Control-Allow-Origin": "*"

@@ -15,9 +15,11 @@ import { NewInvestment } from "./AddStockModal";
 import Checkbox from "@mui/material/Checkbox";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import portfolioStyles from "../portfolio.module.scss";
+import useClubs from "../../../hooks/useClubs";
 
 // };
 export default function EditStockModal({ handleClose, refetch, stock }: { handleClose: () => void; refetch: () => void; stock: StockHoldings }) {
+    const { clubId } = useClubs();
     const {
         control,
         register,
@@ -48,7 +50,7 @@ export default function EditStockModal({ handleClose, refetch, stock }: { handle
         setLoading(true);
         try {
             const res = await api.put<unknown>
-                ("/stocks/edit/" + stock.id, {
+                ("/stocks/edit/" + stock.id + "/club/" + clubId, {
                     ...data,
                 }, {
                     headers: {

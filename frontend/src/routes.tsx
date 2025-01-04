@@ -36,14 +36,14 @@ export const publicRoutes = createHashRouter(
                         </Suspense>
                     }
                 />
-                <Route
-                    path='portfolio/:userid'
+                {/* <Route
+                    path='portfolio/:meetingid'
                     element={
                         <Suspense fallback={<></>}>
                             <Portfolio />
                         </Suspense>
                     }
-                />
+                /> */}
                 <Route
                     path='portfolio'
                     element={

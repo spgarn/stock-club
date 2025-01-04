@@ -30,4 +30,6 @@ public partial class StockHolding
     public DateTime? SoldAt { get; set; }
 
     public virtual ApplicationUser User { get; set; } = null!;
+    
+    public virtual Club Club { get; set; } = null!;
 }

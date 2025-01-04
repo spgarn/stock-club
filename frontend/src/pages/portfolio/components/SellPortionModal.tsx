@@ -13,6 +13,7 @@ import BasicDateTimePicker from "../../../components/BasicDateTimePicker";
 import dayjs from "dayjs";
 import portfolioStyles from "../portfolio.module.scss";
 import { formatCurrency } from "../../../funcs/funcs";
+import useClubs from "../../../hooks/useClubs";
 
 type SellChunk = {
     amount: number;
@@ -20,6 +21,7 @@ type SellChunk = {
     soldAt: Date;
 }
 export default function SellPortionModal({ handleClose, refetch, stock }: { handleClose: () => void; refetch: () => void; stock: StockHoldings }) {
+    const { clubId } = useClubs();
     const {
         control,
         register,
@@ -45,7 +47,7 @@ export default function SellPortionModal({ handleClose, refetch, stock }: { hand
         setLoading(true);
         try {
             const res = await api.put<unknown>
-                ("/stocks/sellportion", {
+                ("/stocks/sellportion/club/" + clubId, {
                     id: stock.id,
                     ...data,
                 }, {

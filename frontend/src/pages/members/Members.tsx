@@ -18,7 +18,6 @@ import { toast } from "react-toastify";
 import Typography from "@mui/material/Typography";
 import useClubs from "../../hooks/useClubs";
 import { TextField } from "@mui/material";
-import { NavLink } from "react-router-dom";
 
 const columnHelper = createColumnHelper<User>();
 export default function Members() {
@@ -104,7 +103,7 @@ export default function Members() {
             header: () => translate["name"],
             cell: (info) => {
                 const original = info.row.original;
-                return <NavLink to={`/club/portfolio/${original.id}`}>{original.firstName} {original.lastName}</NavLink>
+                return <p>{original.firstName} {original.lastName}</p>
             }
         }),
         columnHelper.accessor("email", {
