@@ -11,6 +11,12 @@ export default function useClubs() {
     const clubId = selectedClubId ? selectedClubId : (clubs && clubs.length > 0 ? clubs[0].id : 0);
 
     const activeClub = clubs?.find(club => club.id === clubId);
+    const pickClub = (id: number) => {
+        setSelectedClubId(id);
+        setTimeout(async () => {
+            window.location.reload(); //It may be simple, but it works. How often do u switch betweebn clubs anyway?
+        }, 500);
+    }
 
-    return { clubs, clubId, refetchClubs, setSelectedClubId, error, activeClub }
+    return { clubs, clubId, refetchClubs, selectedClubId, setSelectedClubId, error, activeClub, pickClub }
 }

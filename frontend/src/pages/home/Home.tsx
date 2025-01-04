@@ -45,6 +45,7 @@ export default function Home() {
             prevMeetings: meetings.filter(meeting => dayjs(meeting.meetingTime).isBefore(dayjs()) || dayjs(meeting.meetingTime).isSame(dayjs()))
         }
     }, [data?.meetings]);
+
     if (!clubData || !data || !user) {
         return <Loading />
     }
@@ -82,7 +83,6 @@ export default function Home() {
 
             {addSuggestionOpen && <AddSuggestionModal clubId={id} refetch={refetchClubAndMeeting} handleClose={() => setAddSuggestionOpen(false)} />}
             {addMeetingOpen && <AddMeetingModal clubId={id} refetch={refetchClubAndMeeting} handleClose={() => setAddMeetingOpen(false)} />}
-
         </div>
     )
 }

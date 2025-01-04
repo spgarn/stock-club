@@ -2,15 +2,17 @@ import { Outlet, NavLink } from 'react-router-dom'
 import { useAppContext } from '../contexts/useAppContext';
 import NoPermission from './NoPermission';
 import { translate } from '../i18n';
-import { Typography } from '@mui/material';
-import { useEffect } from 'react';
+import { Button, Typography } from '@mui/material';
+import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import ErrorMessage from './ErrorMessage';
 import useClubs from '../hooks/useClubs';
+import ConfirmClub from './ConfirmClub';
 
 export default function ClubLayout() {
     const { user, logout } = useAppContext();
-    const { clubs: data, error, activeClub: latestClub } = useClubs();
+    const { clubs: data, error, activeClub: latestClub, pickClub, clubId } = useClubs();
+    const [confirmClub, setConfirmClub] = useState(false);
     console.log(error);
     useEffect(() => {
         console.log(error);
@@ -30,7 +32,10 @@ export default function ClubLayout() {
     return (
         <div className='container'>
             <header>
-                <Typography variant='h4'>{latestClub?.name ?? "Loading Club..."}</Typography>
+                <div className='content-header'>
+                    <Typography variant='h4'>{latestClub?.name ?? "Loading Club..."}</Typography>
+                    {(data ?? []).length > 1 ? <Button onClick={() => setConfirmClub(true)}>{translate["change_club"]}</Button> : <div></div>}
+                </div>
                 <nav className='main-nav'>
                     <div className="inner-nav">
                         <NavLink
@@ -77,6 +82,7 @@ export default function ClubLayout() {
             <main className='mt-12'>
                 <Outlet />
             </main>
+            {confirmClub && !!data && <ConfirmClub clubs={data} pickClub={pickClub} handleClose={() => setConfirmClub(false)} clubId={clubId} />}
         </div>
     )
 }

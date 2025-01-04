@@ -174,7 +174,11 @@ export const translate = {
     "invalid_stock": "Denna aktien kunde inte hittas hos yahoo",
     "not_sold": "Ej Såld",
     "members": "Medlemmar",
-    "name": "Namn"
+    "name": "Namn",
+    "confirm": "Bekräfta",
+    "choose_club": "Välj klubb",
+    "change_club": "Byt klubb",
+    "chosen": "Vald"
 }
 
 //Translate with fallback

@@ -5,7 +5,6 @@ import { Typography } from '@mui/material';
 import { NavLink } from 'react-router-dom';
 
 export default function MeetingBox({ meeting }: { meeting: Meeting }) {
-    console.log(meeting);
     const time = dayjs(meeting.meetingTime);
     return (
         <NavLink to={"/club/meeting/" + meeting.id} className={homeStyles.meeting}>
