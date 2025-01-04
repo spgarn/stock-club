@@ -11,7 +11,7 @@ namespace club.Controllers
     [Route("stocks")]
     public class StockController : ExtendedController
     {
-        [HttpGet]
+        /*[HttpGet]
         [Authorize]
         [Route("all")]
         public async Task<ActionResult<ICollection<StockDto>>> GetStocks(
@@ -36,6 +36,36 @@ namespace club.Controllers
                     StockName = stock.Stock.StockName,
                     SoldAt = stock.SoldAt,
                     CurrentPrice = stock.Stock.CurrentPrice//await YahooAPI.GetStock(club.StockName)
+                }).ToList());
+        }*/
+        [HttpGet]
+        [Authorize]
+        [Route("user/{userId}/club/{clubId}")]
+        public async Task<ActionResult<ICollection<StockDto>>> GetStocksByUser(
+            [FromServices] MyDbContext context, string userId, int clubId)
+        {
+            var result = await GetCurrentUser(context);
+            if (result.Result != null) // If it's an error result
+                return result.Result;
+            if (result.Value == null) return NotFound();
+            var user = result.Value;
+            if (user == null) return NotFound();
+            var club = user.Clubs.FirstOrDefault(club => club.Id == clubId);
+            if (club == null) return NotFound();
+            var stocks = context.StockHolding.Include(stock => stock.Stock).Include(s => s.User)
+                .Where(stocks => stocks.User.Clubs.FirstOrDefault(c => c.Id == club.Id) != null && stocks.User.Id == userId).OrderByDescending(stock => stock.Id).ToArray();
+            return Ok(stocks.Select(stock =>
+                new StockDto
+                {
+                    Id = stock.Id,
+                    Amount = stock.Amount,
+                    SellPrice = stock.SellPrice,
+                    BuyPrice = stock.BuyPrice,
+                    InvestedAt = stock.InvestedAt,
+                    Sold = stock.Sold,
+                    StockName = stock.Stock.StockName,
+                    SoldAt = stock.SoldAt,
+                    CurrentPrice = stock.Stock.CurrentPrice
                 }).ToList());
         }
         [HttpPost]

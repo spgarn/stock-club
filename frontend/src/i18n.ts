@@ -172,7 +172,9 @@ export const translate = {
     "amount_less_than_current": "Antal måste vara mindre än nuvarande",
     "rows": "Rader",
     "invalid_stock": "Denna aktien kunde inte hittas hos yahoo",
-    "not_sold": "Ej Såld"
+    "not_sold": "Ej Såld",
+    "members": "Medlemmar",
+    "name": "Namn"
 }
 
 //Translate with fallback

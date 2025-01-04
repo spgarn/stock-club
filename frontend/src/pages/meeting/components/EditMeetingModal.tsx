@@ -27,8 +27,10 @@ import TipTapEditor from "../../../components/TipTapEditor";
 import { useQuery } from "@tanstack/react-query";
 import Autocomplete from "@mui/material/Autocomplete";
 import { NewMeeting } from "../../home/components/AddMeetingModal";
+import useClubs from "../../../hooks/useClubs";
 // };
 export default function EditMeetingModal({ handleClose, refetch, meeting }: { handleClose: () => void; refetch: () => void; meeting: MeetingExtended }) {
+    const { clubId } = useClubs();
     const {
         control,
         register,
@@ -54,8 +56,8 @@ export default function EditMeetingModal({ handleClose, refetch, meeting }: { ha
         }
     }, [meeting, reset]);
     const { data: templates } = useQuery({
-        queryKey: ['club-templates'],
-        queryFn: () => getTemplates(),
+        queryKey: ['club-templates', clubId],
+        queryFn: () => getTemplates(clubId),
     });
     const [loading, setLoading] = useState(false);
     const onSubmit: SubmitHandler<NewMeeting> = async (data: NewMeeting) => {

@@ -13,8 +13,7 @@ import Portfolio from './pages/portfolio/Portfolio';
 import News from './pages/decisions/Decisions';
 import Templates from './pages/templates/Templates';
 import Meeting from './pages/meeting/Meeting';
-import UserManagement from './pages/userManagement/UserManagement';
-import AdminRoute from './components/AdminRoute';
+import Members from './pages/members/Members';
 
 
 export const publicRoutes = createHashRouter(
@@ -34,6 +33,14 @@ export const publicRoutes = createHashRouter(
                     element={
                         <Suspense fallback={<></>}>
                             <Home />
+                        </Suspense>
+                    }
+                />
+                <Route
+                    path='portfolio/:userid'
+                    element={
+                        <Suspense fallback={<></>}>
+                            <Portfolio />
                         </Suspense>
                     }
                 />
@@ -69,16 +76,14 @@ export const publicRoutes = createHashRouter(
                         </Suspense>
                     }
                 />
-                <Route path='admin' element={<AdminRoute />}>
-                    <Route
-                        path='usermanagement'
-                        element={
-                            <Suspense fallback={<></>}>
-                                <UserManagement />
-                            </Suspense>
-                        }
-                    />
-                </Route>
+                <Route
+                    path='members'
+                    element={
+                        <Suspense fallback={<></>}>
+                            <Members />
+                        </Suspense>
+                    }
+                />
             </Route>
 
             <Route

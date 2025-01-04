@@ -36,8 +36,8 @@ export default function AddMeetingModal({ handleClose, refetch, clubId }: { hand
         },
     });
     const { data: templates } = useQuery({
-        queryKey: ['club-templates'],
-        queryFn: () => getTemplates(),
+        queryKey: ['club-templates', clubId],
+        queryFn: () => getTemplates(clubId),
     });
     const [loading, setLoading] = useState(false);
     const onSubmit: SubmitHandler<NewMeeting> = async (data: NewMeeting) => {

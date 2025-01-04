@@ -10,7 +10,7 @@ import {
     ColumnDef,
     createColumnHelper
 } from '@tanstack/react-table'
-import api, { getStocks, StockHoldings } from "../../api";
+import api, { getStocks, getUser, getUserById, StockHoldings } from "../../api";
 import dayjs from "dayjs";
 import Button from "@mui/material/Button";
 import AddStockModal from "./components/AddStockModal";
@@ -27,11 +27,27 @@ import axios from "axios";
 import RowSelect from "../../components/RowSelect";
 import Pagination from "@mui/material/Pagination";
 import PaginatedTable from "../../components/PaginatedTable";
+import { useParams } from "react-router-dom";
+import useClubs from "../../hooks/useClubs";
 const columnHelper = createColumnHelper<StockHoldings>();
 export default function Portfolio() {
+    const { data: user } = useQuery({
+        queryKey: ['user'],
+        queryFn: () => getUser(),
+    });
+    const { clubId } = useClubs();
+
+    const { userid } = useParams();
+    const isOwner = !userid || user?.id === userid;
+    const userId = userid ?? user?.id;
+    const { data: stockUser } = useQuery({
+        queryKey: ['user', userId],
+        queryFn: () => getUserById(userId),
+    });
+    console.log(userId);
     const { data, refetch } = useQuery({
-        queryKey: ['club-stocks-user'],
-        queryFn: () => getStocks(),
+        queryKey: ['club-stocks', userId, clubId],
+        queryFn: () => getStocks(String(userId), clubId),
     });
     const [rowCount, setRowCount] = useState(10);
     const [page, setPage] = useState(1);
@@ -188,7 +204,7 @@ export default function Portfolio() {
             enableSorting: true,
             accessorFn: (original) => Number(original?.sellPrice ?? original.currentPrice) * Number(original.amount),
             header: translate["value"],
-            cell: info => {
+            cell: (info: CellContext<StockHoldings, never>) => {
                 const original = info.row.original;
                 const price = Number(original?.sellPrice ?? original.currentPrice);
                 const amount = Number(original.amount);
@@ -196,7 +212,7 @@ export default function Portfolio() {
                 return <p>{formatCurrency(value, true, 2, false)}</p>;
             },
         },
-        columnHelper.accessor('id', {
+        ...(isOwner ? [columnHelper.accessor('id', {
             header: "",
             enableSorting: false,
             cell: info => {
@@ -213,11 +229,9 @@ export default function Portfolio() {
                         </div>}
                     </div>
                 </div>
-            }
-
-            ,
-        }),
-    ], [currencyDisplay, displayMethod]);
+            },
+        })] : []),
+    ], [currencyDisplay, displayMethod, isOwner]);
     const maxPages = Math.ceil(list.length / rowCount);
     if (!data) {
         return <div>
@@ -266,7 +280,7 @@ export default function Portfolio() {
                 </div>
             </div>
             <div className={portfolioStyles.actionContainer}>
-                <Button onClick={() => setAddStockOpen(true)}>{translate["add_investment"]}</Button>
+                {isOwner ? <Button onClick={() => setAddStockOpen(true)}>{translate["add_investment"]}</Button> : <div>{!!stockUser && <>{stockUser.firstName} {stockUser.lastName}</>}</div>}
                 <div>
                     <RowSelect
                         value={rowCount}

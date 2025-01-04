@@ -14,7 +14,7 @@ namespace club.Controllers
     [Route("usermanagement")]
     public class UserManagementController : ExtendedController
     {
-        [HttpGet]
+        /*[HttpGet]
         [Authorize(Roles = "Admin")]
         [Route("all_not_in_club/{clubId}")]
         public async Task<ActionResult<ICollection<UserDTO>>> GetAllUsersNotInClub([FromServices] MyDbContext context, int clubId)
@@ -38,10 +38,11 @@ namespace club.Controllers
                 Id = user.Id,
                 UserName = user.UserName,
             }));
-        }
+        }*/
 
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        /*[Authorize(Roles = "Admin")]*/
+        [Authorize]
         [Route("all_in_club/{clubId}")]
         public async Task<ActionResult<ICollection<UserDTO>>> GetAllUsersInClub([FromServices] MyDbContext context, int clubId)
         {
@@ -51,10 +52,10 @@ namespace club.Controllers
             if (result.Value == null) return NotFound();
             ApplicationUser user = result.Value;
 
-            var activeClub = user.Clubs.Where(Club => Club.Id == clubId).FirstOrDefault();
+            var activeClub = user.Clubs.FirstOrDefault(club => club.Id == clubId);
             if (activeClub == null) return NotFound();
 
-            var users = context.Users.Where(dbUser => dbUser.Clubs.Where(userClub => activeClub.Id == userClub.Id).Count() > 0).OrderByDescending(user => user.Id).ToArray();
+            var users = context.Users.Where(dbUser => dbUser.Clubs.Count(userClub => activeClub.Id == userClub.Id) > 0).OrderByDescending(user => user.Id).ToArray();
 
             return Ok(users.Select(user => new UserDTO
             {
@@ -78,10 +79,10 @@ namespace club.Controllers
                 return result.Result;
             if (result.Value == null) return NotFound();
             ApplicationUser user = result.Value;
-            var activeClub = user.Clubs.Where(Club => Club.Id == clubId).FirstOrDefault();
+            var activeClub = user.Clubs.FirstOrDefault(club => club.Id == clubId);
             if (activeClub == null) return NotFound();
 
-            var newUser = await _context.Users.Where(dbUser => dbUser.Email == data.email && dbUser.Clubs.Where(userClub => activeClub.Id == userClub.Id).Count() == 0).FirstOrDefaultAsync();
+            var newUser = await _context.Users.Where(dbUser => dbUser.Email == data.email && dbUser.Clubs.Count(userClub => activeClub.Id == userClub.Id) == 0).FirstOrDefaultAsync();
             if (newUser == null)
             {
                 return NotFound();
@@ -102,10 +103,10 @@ namespace club.Controllers
                 return result.Result;
             if (result.Value == null) return NotFound();
             ApplicationUser user = result.Value;
-            var activeClub = user.Clubs.Where(Club => Club.Id == clubId).FirstOrDefault();
+            var activeClub = user.Clubs.FirstOrDefault(club => club.Id == clubId);
             if (activeClub == null) return NotFound();
 
-            var newUser = await _context.Users.Include(user => user.Clubs).Where(dbUser => dbUser.Id == userId && dbUser.Clubs.Where(userClub => activeClub.Id == userClub.Id).Count() > 0).FirstOrDefaultAsync();
+            var newUser = await _context.Users.Include(user => user.Clubs).Where(dbUser => dbUser.Id == userId && dbUser.Clubs.Count(userClub => activeClub.Id == userClub.Id) > 0).FirstOrDefaultAsync();
             if (newUser == null)
             {
                 return NotFound();

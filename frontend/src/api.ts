@@ -139,9 +139,9 @@ export const getDecisions = async () => {
 }
 
 
-export const getTemplates = async () => {
+export const getTemplates = async (clubId: number) => {
     const response = await api.get<Templates[]>(
-        '/templates/all',
+        '/templates/all/' + clubId,
         {
             headers: {
                 "Access-Control-Allow-Origin": "*"
@@ -153,9 +153,9 @@ export const getTemplates = async () => {
 }
 
 
-export const getStocks = async () => {
+export const getStocks = async (userId: string, clubId: number) => {
     const response = await api.get<StockHoldings[]>(
-        '/stocks/all',
+        `/stocks/user/${userId}/club/${clubId}`,
         {
             headers: {
                 "Access-Control-Allow-Origin": "*"
@@ -220,6 +220,19 @@ export const getClubs = async () => {
 export const getUser = async () => {
     const response = await api.get<User>(
         '/user/info',
+        {
+            headers: {
+                "Access-Control-Allow-Origin": "*"
+            },
+            withCredentials: true
+        }
+    )
+    return response.data;
+}
+export const getUserById = async (id: string | undefined) => {
+    if (!id) return null;
+    const response = await api.get<User>(
+        '/user/' + id + '/info',
         {
             headers: {
                 "Access-Control-Allow-Origin": "*"

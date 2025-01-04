@@ -25,8 +25,8 @@ const columnHelper = createColumnHelper<TemplateTypes>();
 export default function Templates() {
     const { clubId } = useClubs();
     const { data, refetch } = useQuery({
-        queryKey: ['club-templates'],
-        queryFn: () => getTemplates(),
+        queryKey: ['club-templates', clubId],
+        queryFn: () => getTemplates(clubId),
     });
     const [loading, setLoading] = useState(false);
 

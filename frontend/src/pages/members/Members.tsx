@@ -18,26 +18,17 @@ import { toast } from "react-toastify";
 import Typography from "@mui/material/Typography";
 import useClubs from "../../hooks/useClubs";
 import { TextField } from "@mui/material";
+import { NavLink } from "react-router-dom";
 
-// const data: TemplateTypes[] = [{
-//     id: 1,
-//     title: "hej",
-//     markdown: "hejsan",
-//     createdAt: new Date(),
-//     updatedAt: new Date(),
-//     club: {
-//         id: 0,
-//         name: "test"
-//     }
-// }]
 const columnHelper = createColumnHelper<User>();
-export default function UserManagement() {
+export default function Members() {
     const [email, setEmail] = useState("");
     const { clubId } = useClubs();
     const { data: user } = useQuery({
         queryKey: ['user'],
         queryFn: () => getUser(),
     });
+    const isAdmin = !!user?.admin;
     const { data: usersInClub, refetch } = useQuery({
         queryKey: ['usermanagement-in-club', clubId],
         queryFn: () => getUsersInClub(clubId),
@@ -109,19 +100,18 @@ export default function UserManagement() {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const columns: ColumnDef<User, any>[] = [
+        columnHelper.accessor("id", {
+            header: () => translate["name"],
+            cell: (info) => {
+                const original = info.row.original;
+                return <NavLink to={`/club/portfolio/${original.id}`}>{original.firstName} {original.lastName}</NavLink>
+            }
+        }),
         columnHelper.accessor("email", {
             header: () => translate["email"],
             cell: info => info.renderValue(),
         }),
-        columnHelper.accessor("firstName", {
-            header: () => translate["firstName"],
-            cell: info => info.renderValue()
-        }),
-        columnHelper.accessor("lastName", {
-            header: () => translate["lastName"],
-            cell: info => info.renderValue()
-        }),
-        columnHelper.accessor('id', {
+        ...(isAdmin ? [columnHelper.accessor('id', {
             header: "",
             cell: info => {
                 return <div>
@@ -131,7 +121,7 @@ export default function UserManagement() {
 
                 </div>
             },
-        }),
+        })] : []),
     ];
     if (!usersInClub) {
         return <div>
@@ -141,11 +131,11 @@ export default function UserManagement() {
     return (
         <div>
             <div className="content-header">
-                <Typography variant="h5">{translate["users"]}</Typography>
-                <div className="flexGap">
+                <Typography variant="h5">{translate["members"]}</Typography>
+                {isAdmin ? <div className="flexGap">
                     <TextField disabled={loading} value={email} onChange={(v) => setEmail(v.target.value)} label={translate["enter_email"]} />
                     <Button disabled={loading} variant="contained" onClick={addUser}>{translate["add_user"]}</Button>
-                </div>
+                </div> : <div></div>}
 
             </div>
             <BasicTable columns={columns} data={usersInClub} />

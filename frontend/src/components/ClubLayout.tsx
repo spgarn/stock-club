@@ -7,16 +7,10 @@ import { useEffect } from 'react';
 import { toast } from 'react-toastify';
 import ErrorMessage from './ErrorMessage';
 import useClubs from '../hooks/useClubs';
-import { useQuery } from '@tanstack/react-query';
-import { getUser } from '../api';
 
 export default function ClubLayout() {
     const { user, logout } = useAppContext();
     const { clubs: data, error, activeClub: latestClub } = useClubs();
-    const { data: userDetails } = useQuery({
-        queryKey: ['user'],
-        queryFn: () => getUser(),
-    });
     console.log(error);
     useEffect(() => {
         console.log(error);
@@ -64,12 +58,12 @@ export default function ClubLayout() {
                         >
                             {translate["templates"]}
                         </NavLink>
-                        {userDetails?.admin && <NavLink
-                            to={"/club/admin/usermanagement"}
+                        <NavLink
+                            to={"/club/members"}
                             className={({ isActive }) => (isActive ? "active" : "")}
                         >
-                            {translate["usermanagement"]}
-                        </NavLink>}
+                            {translate["members"]}
+                        </NavLink>
                         <p
                             role='button'
                             onClick={logout}

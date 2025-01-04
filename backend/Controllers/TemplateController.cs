@@ -16,17 +16,19 @@ namespace club.Controllers
     {
         [HttpGet]
         [Authorize]
-        [Route("all")]
+        [Route("all/{clubId}")]
         public async Task<ActionResult<ICollection<TemplateDTO>>> GetProtocols(
-           [FromServices] MyDbContext _context)
+           [FromServices] MyDbContext _context, int clubId)
         {
             var result = await GetCurrentUser(_context);
             if (result.Result != null) // If it's an error result
                 return result.Result;
             if (result.Value == null) return NotFound();
             ApplicationUser user = result.Value;
+            var club = user.Clubs.FirstOrDefault(club => club.Id == clubId);
+            if (club == null) return NotFound();
 
-            var protocols = _context.ClubTemplates.Where(template => user.Clubs.Select(c => c.Id).Contains(template.Club.Id)).OrderByDescending(template => template.Id).ToArray();
+            var protocols = _context.ClubTemplates.Where(template => template.Club.Id == club.Id).OrderByDescending(template => template.Id).ToArray();
 
             return Ok(protocols.Select(protocol =>
                  new TemplateDTO
@@ -50,7 +52,7 @@ namespace club.Controllers
             if (result.Value == null) return NotFound();
             ApplicationUser user = result.Value;
             if (user.Clubs.Count == 0) return NotFound();
-            var club = user.Clubs.Where(club => club.Id == clubId).FirstOrDefault();
+            var club = user.Clubs.FirstOrDefault(club => club.Id == clubId);
             if (club == null) return NotFound();
             _context.ClubTemplates.Add(new ClubTemplates
             {
