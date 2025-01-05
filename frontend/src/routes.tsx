@@ -14,6 +14,7 @@ import News from './pages/decisions/Decisions';
 import Templates from './pages/templates/Templates';
 import Meeting from './pages/meeting/Meeting';
 import Members from './pages/members/Members';
+import ResetPassword from './pages/resetpassword/ResetPassword';
 
 
 export const publicRoutes = createHashRouter(
@@ -99,6 +100,14 @@ export const publicRoutes = createHashRouter(
                 element={
                     <Suspense fallback={<></>}>
                         <Register />
+                    </Suspense>
+                }
+            />
+            <Route
+                path='/reset-password'
+                element={
+                    <Suspense fallback={<></>}>
+                        <ResetPassword />
                     </Suspense>
                 }
             />

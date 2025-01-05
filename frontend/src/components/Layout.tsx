@@ -10,7 +10,7 @@ export default function Layout() {
         if (user !== undefined) {
             if (user && !location.pathname.startsWith("/club/")) {
                 navigate("/club/home");
-            } else if (!user && location.pathname != "/register" && location.pathname != "/login") {
+            } else if (!user && location.pathname != "/reset-password" && location.pathname != "/register" && location.pathname != "/login") {
                 navigate("/login");
             }
         }

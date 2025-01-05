@@ -2,6 +2,10 @@
 
 A portal for clubs to use
 
+# Add secret
+
+`Make .env file and add SendGrid secret`
+
 ## Dev (with vite hot reload)
 
 `docker-compose -f docker-compose.dev.yaml up --build`

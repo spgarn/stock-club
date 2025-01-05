@@ -178,7 +178,15 @@ export const translate = {
     "confirm": "Bekräfta",
     "choose_club": "Välj klubb",
     "change_club": "Byt klubb",
-    "chosen": "Vald"
+    "chosen": "Vald",
+    "confirming": "Bekräftar",
+    "forgot_password": "Glömt lösenord?",
+    "recover_password": "Återställ lösenord",
+    "enter_mail": "Du måste skriva in mejl först.",
+    "mail_success": "Mejl har skickats",
+    "reset_password": "Återställ lösenord",
+    "reset_success": "Lösenordet har återställts!",
+    "password_required": "Passord krävs"
 }
 
 //Translate with fallback

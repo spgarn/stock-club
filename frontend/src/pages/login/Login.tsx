@@ -17,7 +17,8 @@ export default function Login() {
     const {
         register,
         handleSubmit,
-        formState: { errors },
+        formState: { errors, },
+        getValues
     } = useForm<Inputs>();
     const onSubmit: SubmitHandler<Inputs> = async (data: Inputs) => {
         setLoading(true);
@@ -32,6 +33,37 @@ export default function Login() {
             const resData = res.data;
             toast.success(translate["login_success"]);
             login({ email: data.email, userName: data.email });
+            console.log(resData);
+        } catch (err) {
+            if (axios.isAxiosError(err)) {
+                if (err.response?.data) {
+                    toast.error(translateText(err.response?.data?.title, err.response?.data?.title));
+                } else {
+                    toast.error(err.message);
+                }
+            } else {
+                toast.error(translate["something_went_wrong"])
+            }
+        }
+        setLoading(false);
+    }
+
+    const recoverPassword = async () => {
+        const email = getValues("email");
+        if (!email) {
+            return toast.error(translate["enter_mail"])
+        }
+        setLoading(true);
+        try {
+            const res = await api.post<unknown>
+                ("/forgotPassword", { email }, {
+                    headers: {
+                        "Access-Control-Allow-Origin": "*"
+                    },
+                    withCredentials: true
+                });
+            const resData = res.data;
+            toast.success(translate["mail_success"]);
             console.log(resData);
         } catch (err) {
             if (axios.isAxiosError(err)) {
@@ -73,6 +105,7 @@ export default function Login() {
                     {...register("password", { required: true })}
                 />
                 <Typography>{translate["dont_have_account"]} <NavLink to="/register">{translate["register_here"]}</NavLink></Typography>
+                <Typography>{translate["forgot_password"]} <Button onClick={recoverPassword}>{translate["recover_password"]}</Button></Typography>
                 <div>
                     <Button type="submit" variant="contained" disabled={loading}>{loading ? translate["loggingIn"] : translate["login"]}</Button>
                 </div>

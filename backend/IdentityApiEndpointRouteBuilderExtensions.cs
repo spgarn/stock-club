@@ -8,6 +8,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Text.Encodings.Web;
 using club.Dtos;
+using club.Services;
 using Microsoft.AspNetCore.Authentication.BearerToken;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -18,6 +19,7 @@ using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using SendGrid.Helpers.Mail;
 
 namespace club;
 
@@ -46,6 +48,7 @@ public static class IdentityApiEndpointRouteBuilderExtensions
         var timeProvider = endpoints.ServiceProvider.GetRequiredService<TimeProvider>();
         var bearerTokenOptions = endpoints.ServiceProvider.GetRequiredService<IOptionsMonitor<BearerTokenOptions>>();
         var emailSender = endpoints.ServiceProvider.GetRequiredService<IEmailSender<TUser>>();
+        var emailSenderGeneric = endpoints.ServiceProvider.GetRequiredService<EmailSender>();
         var linkGenerator = endpoints.ServiceProvider.GetRequiredService<LinkGenerator>();
 
         // We'll figure out a unique endpoint name based on the final route pattern during endpoint generation.
@@ -205,18 +208,38 @@ public static class IdentityApiEndpointRouteBuilderExtensions
             return TypedResults.Ok();
         });
 
-        routeGroup.MapPost("/forgotPassword", async Task<Results<Ok, ValidationProblem>>
+        routeGroup.MapPost("/forgotPassword", async Task<Results<Ok, BadRequest, ValidationProblem>>
             ([FromBody] ForgotPasswordRequest resetRequest, [FromServices] IServiceProvider sp) =>
         {
             var userManager = sp.GetRequiredService<UserManager<TUser>>();
             var user = await userManager.FindByEmailAsync(resetRequest.Email);
-
-            if (user is not null && await userManager.IsEmailConfirmedAsync(user))
+            if (user is not null) //|| !(await userManager.IsEmailConfirmedAsync(user))
             {
                 var code = await userManager.GeneratePasswordResetTokenAsync(user);
                 code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-
-                await emailSender.SendPasswordResetCodeAsync(user, resetRequest.Email, HtmlEncoder.Default.Encode(code));
+                Console.WriteLine("Sending");
+                //await emailSender.SendPasswordResetCodeAsync(user, resetRequest.Email, HtmlEncoder.Default.Encode(code));
+                var resetLink = $"https://aktiesparklubb.se/#/reset-password?code={code}&mail={resetRequest.Email}";
+                try
+                {
+                    //await emailSender.SendPasswordResetLinkAsync(user, resetRequest.Email, $"https://aktiesparklubb.se/reset-password?code={code}&mail={resetRequest.Email}");
+                    var subject = "Reset Your Password";
+                    var htmlContent = $@"
+        <p>Please reset your password by clicking 
+        <a href='{resetLink}' target='_blank'>here</a>.</p>";
+    
+                    
+                    await emailSenderGeneric.SendEmailAsync(
+                        resetRequest.Email,
+                        subject,
+                        htmlContent
+                    );
+                }
+                catch (System.Exception errorHandler)
+                {
+                    Console.WriteLine(errorHandler.Message);
+                    return TypedResults.BadRequest();
+                }
             }
 
             // Don't reveal that the user does not exist or is not confirmed, so don't return a 200 if we would have
@@ -231,7 +254,7 @@ public static class IdentityApiEndpointRouteBuilderExtensions
 
             var user = await userManager.FindByEmailAsync(resetRequest.Email);
 
-            if (user is null || !(await userManager.IsEmailConfirmedAsync(user)))
+            if (user is null) //|| !(await userManager.IsEmailConfirmedAsync(user))
             {
                 // Don't reveal that the user does not exist or is not confirmed, so don't return a 200 if we would have
                 // returned a 400 for an invalid code given a valid user email.

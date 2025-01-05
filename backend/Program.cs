@@ -8,6 +8,9 @@ using Microsoft.AspNetCore.Http.Connections;
 using club.Controllers;
 using club.Hubs;
 using club.Jobs;
+using club.Services;
+using Microsoft.AspNetCore.Identity.UI.Services;
+using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
 using Quartz;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -29,7 +32,6 @@ builder.Services.AddSwaggerGen(options =>
     options.OperationFilter<SecurityRequirementsOperationFilter>();
 }
 );
-
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("reactApp", policyBuilder =>
@@ -39,6 +41,10 @@ builder.Services.AddCors(options =>
         policyBuilder.AllowAnyMethod();
         policyBuilder.AllowCredentials();
     });
+});
+builder.Services.Configure<AuthMessageSenderOptions>(options =>
+{
+    options.SendGridKey = Environment.GetEnvironmentVariable("SENDGRID_API_KEY");
 });
 builder.Services.AddSignalR(); //WebSockets
 var connectionString = builder.Configuration.GetConnectionString("PostgresConnection");
@@ -73,7 +79,9 @@ builder.Services.AddQuartz(q =>
         .WithCronSchedule("0 * * ? * *")); // Every minute
 });
 builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
-
+builder.Services.AddTransient<IEmailSender, EmailSender>();
+builder.Services.AddTransient<EmailSender, EmailSender>();
+builder.Services.Configure<AuthMessageSenderOptions>(builder.Configuration);
 
 var app = builder.Build();
 
