@@ -9,12 +9,12 @@ import axios from "axios";
 import api from "../../../api";
 import { toast } from "react-toastify";
 import TextField from "@mui/material/TextField";
-import BasicDateTimePicker from "../../../components/BasicDateTimePicker";
 import dayjs from "dayjs";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Checkbox from "@mui/material/Checkbox";
 import portfolioStyles from "../portfolio.module.scss";
 import useClubs from "../../../hooks/useClubs";
+import BasicDatePicker from "../../../components/BasicDatePicker";
 export type NewInvestment = {
     stockName: string;
     investedAt: Date;
@@ -100,7 +100,7 @@ export default function AddStockModal({ handleClose, refetch }: { handleClose: (
                         control={control}
                         rules={{ required: translate["investment_date_required"] }}
                         render={({ field: { onChange, value } }) => (
-                            <BasicDateTimePicker
+                            <BasicDatePicker
                                 error={errors.investedAt ? errors?.investedAt.message : undefined}
                                 label={translate["investment_date"]}
                                 value={dayjs(value)}
@@ -170,7 +170,7 @@ export default function AddStockModal({ handleClose, refetch }: { handleClose: (
                                             control={control}
                                             rules={{ required: translate["sell_date_required"] }}
                                             render={({ field: { onChange, value } }) => (
-                                                <BasicDateTimePicker
+                                                <BasicDatePicker
                                                     error={errors.soldAt ? errors?.soldAt.message : undefined}
                                                     label={translate["soldAt"]}
                                                     value={dayjs(value ?? new Date(Date.now()))}

@@ -124,7 +124,7 @@ export default function TipTapEditor({ content, label, onChange }: { content: st
                     Underline,
                     Image
                 ]}
-                content={content}
+                content={content?.length > 0 ? content : "<p>&nbsp;</p>".repeat(8)}
                 renderControls={() => (
                     <MenuControlsContainer>
                         <p>{label}</p>
