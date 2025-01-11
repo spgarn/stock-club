@@ -25,7 +25,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import useWindowDimensions from "../../hooks/useWindowDimensions";
 import Wrapper from "./components/Wrapper";
-
+import DOMPurify from 'dompurify';
 const options = ['agenda', 'meeting_protocol', 'proposals', 'chat'];
 
 export default function Meeting() {
@@ -196,10 +196,12 @@ export default function Meeting() {
             </div> : <div className={meetingStyles.desktopView}>
                 <div className={meetingStyles.left}>
                     <Wrapper title={translate["agenda"]}>
-                        <TipTapEditor content={agenda} label={translate["agenda"]} onChange={sendAgenda} />
+                        <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(agenda) }} />
+
                     </Wrapper>
                     <Wrapper title={translate["meeting_protocols"]}>
-                        <TipTapEditor content={meetingProtocols} label={translate["meeting_protocols"]} onChange={sendMeetingProtocol} />
+                        <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(meetingProtocols) }} />
+
                     </Wrapper>
                 </div>
                 <div className={meetingStyles.right}>
