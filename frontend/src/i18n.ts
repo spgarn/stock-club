@@ -186,7 +186,9 @@ export const translate = {
     "mail_success": "Mejl har skickats",
     "reset_password": "Återställ lösenord",
     "reset_success": "Lösenordet har återställts!",
-    "password_required": "Passord krävs"
+    "password_required": "Passord krävs",
+    "new": "Nya",
+    "old": "Gamla"
 }
 
 //Translate with fallback

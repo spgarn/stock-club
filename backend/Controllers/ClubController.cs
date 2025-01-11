@@ -91,6 +91,7 @@ namespace club.Controllers
                    Title = suggestion.Title,
                    Description = suggestion.Description,
                    CreatedAt = suggestion.CreatedAt,
+                   Completed = suggestion.Completed,
                    User = new UserDTO
                    {
                        Id = suggestion.User.Id,
@@ -133,7 +134,7 @@ namespace club.Controllers
             {
                 return NotFound();
             }
-            var club = user.Clubs.Where(club => club.Id == clubId).FirstOrDefault();
+            var club = user.Clubs.FirstOrDefault(club => club.Id == clubId);
             if (club == null) return NotFound();
             var meetingSuggestion = new MeetingsSuggestion();
             meetingSuggestion.Title = suggestionDTO.Title;
@@ -144,6 +145,30 @@ namespace club.Controllers
             _context.MeetingsSuggestion.Add(meetingSuggestion);
             await _context.SaveChangesAsync();
             return CreatedAtAction(nameof(AddProposal), user.Id);
+        }
+        
+        [HttpPost]
+        [Authorize]
+        [Route("togglesuggestion/{suggestionId}")]
+        public async Task<ActionResult<string>> ToggleSuggestionComplete(
+            [FromServices] MyDbContext context, int suggestionId)
+        {
+            var result = await GetCurrentUser(context);
+            if (result.Result != null) // If it's an error result
+                return result.Result;
+            if (result.Value == null) return NotFound();
+            ApplicationUser user = result.Value;
+
+            if (user.Clubs.IsNullOrEmpty())
+            {
+                return NotFound();
+            }
+            var meetingSuggestion = context.MeetingsSuggestion.FirstOrDefault(m => m.Id == suggestionId && user.Clubs.Select(c => c.Id).Contains(m.Club.Id));
+            if (meetingSuggestion == null) return NotFound();
+            meetingSuggestion.Completed = !meetingSuggestion.Completed;
+            context.MeetingsSuggestion.Update(meetingSuggestion);
+            await context.SaveChangesAsync();
+            return CreatedAtAction(nameof(ToggleSuggestionComplete), user.Id);
         }
 
         [HttpDelete]

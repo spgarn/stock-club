@@ -13,7 +13,7 @@ namespace club.Dtos
         public virtual UserDTO User { get; set; } = null!;
 
         public DateTime CreatedAt { get; set; }
-
+        public bool Completed { get; set; }
         public virtual ICollection<MeetingSuggestionUpvoteDTO> MeetingsSuggestionsUpvotes { get; set; } = new List<MeetingSuggestionUpvoteDTO>();
         public virtual ICollection<MeetingSuggestionDownvoteDTO> MeetingsSuggestionsDownvotes { get; set; } = new List<MeetingSuggestionDownvoteDTO>();
 

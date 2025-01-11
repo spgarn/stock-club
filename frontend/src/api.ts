@@ -59,6 +59,7 @@ export type MeetingSuggestion = {
     title: string;
     description: string;
     createdAt: Date;
+    completed: boolean | null;
     meetingsSuggestionsUpvotes: MeetingSuggestionRate[];
     meetingsSuggestionsDownvotes: MeetingSuggestionRate[];
     user: User;

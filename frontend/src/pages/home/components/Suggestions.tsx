@@ -39,6 +39,37 @@ export default function Suggestions({ user, refetch, meetingsSuggestions }: { us
         }
         setIsUpvoting(false);
     }
+    const toggleActive = async (suggestionId: number) => {
+        if (isUpvoting) return;
+
+        setIsUpvoting(true);
+        try {
+            const res = await api.post<unknown>
+                (`/club/togglesuggestion/${suggestionId}`, {
+
+                }, {
+                    headers: {
+                        "Access-Control-Allow-Origin": "*"
+                    },
+                    withCredentials: true
+                });
+            const resData = res.data;
+            //toast.success(translate["react_created_success"]);
+            refetch();
+            console.log(resData);
+        } catch (err) {
+            if (axios.isAxiosError(err)) {
+                if (err.response?.data) {
+                    toast.error(translateText(err.response?.data?.title, err.response?.data?.title));
+                } else {
+                    toast.error(err.message);
+                }
+            } else {
+                toast.error(translate["something_went_wrong"])
+            }
+        }
+        setIsUpvoting(false);
+    }
     const removeSuggestion = async (suggestionId: number) => {
         if (isUpvoting) return;
         if (!confirm(translate["confirm_delete_suggestion"])) return;
@@ -71,7 +102,7 @@ export default function Suggestions({ user, refetch, meetingsSuggestions }: { us
     return (
         <div className="content-box">
             {meetingsSuggestions.length === 0 && <p className='text-center p-1'>{translate["no_suggestions"]}</p>}
-            {meetingsSuggestions.map(suggestion => <Suggestion user={user} react={react} suggestion={suggestion} key={suggestion.id} removeSuggestion={removeSuggestion} />)}
+            {meetingsSuggestions.map(suggestion => <Suggestion user={user} react={react} toggleActive={toggleActive} suggestion={suggestion} key={suggestion.id} removeSuggestion={removeSuggestion} />)}
         </div>
     )
 }

@@ -63,7 +63,7 @@ builder.Services.AddAuthentication()
         options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
         // Add these for cross-origin scenarios
         options.Cookie.HttpOnly = true;
-        options.ExpireTimeSpan = TimeSpan.FromDays(1);
+        options.ExpireTimeSpan = TimeSpan.FromDays(365);
         options.SlidingExpiration = true;
     });
 builder.Services.AddIdentityCore<ApplicationUser>().AddRoles<IdentityRole>().AddEntityFrameworkStores<MyDbContext>().AddApiEndpoints();
