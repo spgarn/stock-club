@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using club.Services;
 
 namespace club.Models;
 
@@ -8,6 +9,9 @@ public partial class Club
     public int Id { get; set; }
 
     public string Name { get; set; } = null!;
+    
+    [SqlDefaultValue(DefaultValue = "false")]
+    public bool PublicInvestments { get; set; }
 
     public virtual ICollection<Meeting> Meetings { get; set; } = new List<Meeting>();
 

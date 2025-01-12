@@ -6,6 +6,8 @@ namespace club.Dtos
     {
         public int Id { get; set; }
         public string Name { get; set; }
+        
+        public bool PublicInvestments { get; set; }
 
         public ICollection<MeetingDTO> Meetings { get; set; } = new List<MeetingDTO>();
 

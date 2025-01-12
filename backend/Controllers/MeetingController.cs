@@ -20,21 +20,21 @@ namespace club.Controllers
         [HttpGet]
         [Authorize]
         [Route("get/{id}")]
-        public async Task<ActionResult<String>> GetMeeting(
-     [FromServices] MyDbContext _context, int id)
+        public async Task<ActionResult<string>> GetMeeting(
+     [FromServices] MyDbContext context, int id)
         {
-            var result = await GetCurrentUser(_context);
+            var result = await GetCurrentUser(context);
             if (result.Result != null) // If it's an error result
                 return result.Result;
             if (result.Value == null) return NotFound();
-            ApplicationUser user = result.Value;
+            var user = result.Value;
 
             if (user.Clubs.IsNullOrEmpty())
             {
                 return NotFound();
             }
             var userClubIds = user.Clubs.Select(c => c.Id).ToList();
-            var meeting = await _context.Meeting
+            var meeting = await context.Meeting
                 .Include(v => v.MeetingChats)
                 .ThenInclude(v => v.User)
                 .FirstOrDefaultAsync(x => x.Id == id && userClubIds.Contains(x.Club.Id));
@@ -75,21 +75,21 @@ namespace club.Controllers
         [HttpPost]
         [Authorize]
         [Route("{clubId}")]
-        public async Task<ActionResult<String>> AddMeeting(AddMeeting meetingDTO,
-           [FromServices] MyDbContext _context, int clubId)
+        public async Task<ActionResult<string>> AddMeeting(AddMeeting meetingDTO,
+           [FromServices] MyDbContext context, int clubId)
         {
-            var result = await GetCurrentUser(_context);
+            var result = await GetCurrentUser(context);
             if (result.Result != null) // If it's an error result
                 return result.Result;
             if (result.Value == null) return NotFound();
-            ApplicationUser user = result.Value;
+            var user = result.Value;
 
             if (user.Clubs.IsNullOrEmpty())
             {
                 return NotFound();
             }
 
-            var club = user.Clubs.Where(club => club.Id == clubId).FirstOrDefault();
+            var club = user.Clubs.FirstOrDefault(club => club.Id == clubId);
             if (club == null) return NotFound();
 
             var meeting = new Meeting
@@ -103,29 +103,29 @@ namespace club.Controllers
                 Club = club,
             };
 
-            _context.Meeting.Add(meeting);
-            await _context.SaveChangesAsync();
+            context.Meeting.Add(meeting);
+            await context.SaveChangesAsync();
             return CreatedAtAction(nameof(AddMeeting), user.Id);
         }
         [HttpPut]
         [Authorize]
         [Route("{id}")]
-        public async Task<ActionResult<String>> EditMeeting(AddMeeting meetingDTO,
-           [FromServices] MyDbContext _context, int id)
+        public async Task<ActionResult<string>> EditMeeting(AddMeeting meetingDTO,
+           [FromServices] MyDbContext context, int id)
 
         {
-            var result = await GetCurrentUser(_context);
+            var result = await GetCurrentUser(context);
             if (result.Result != null) // If it's an error result
                 return result.Result;
             if (result.Value == null) return NotFound();
-            ApplicationUser user = result.Value;
+            var user = result.Value;
 
             if (user.Clubs.IsNullOrEmpty())
             {
                 return NotFound();
             }
 
-            var meeting = await _context.Meeting.Where(meeting => meeting.Id == id && user.Clubs.Select(c => c.Id).Contains(meeting.Club.Id)).FirstOrDefaultAsync();
+            var meeting = await context.Meeting.Where(meeting => meeting.Id == id && user.Clubs.Select(c => c.Id).Contains(meeting.Club.Id)).FirstOrDefaultAsync();
             if (meeting == null) return NotFound();
 
             meeting.Name = meetingDTO.Name;
@@ -135,25 +135,25 @@ namespace club.Controllers
             meeting.Agenda = meetingDTO.Agenda;
             meeting.MeetingProtocol = meetingDTO.MeetingProtocol;
 
-            _context.Meeting.Update(meeting);
-            await _context.SaveChangesAsync();
+            context.Meeting.Update(meeting);
+            await context.SaveChangesAsync();
             return CreatedAtAction(nameof(EditMeeting), user.Id);
         }
 
         [HttpPut]
         [Authorize]
         [Route("toggle/{id}")]
-        public async Task<ActionResult<String>> ToggleEndMeeting(
-          [FromServices] MyDbContext _context, int id)
+        public async Task<ActionResult<string>> ToggleEndMeeting(
+          [FromServices] MyDbContext context, int id)
 
         {
-            var result = await GetCurrentUser(_context);
+            var result = await GetCurrentUser(context);
             if (result.Result != null) // If it's an error result
                 return result.Result;
             if (result.Value == null) return NotFound();
-            ApplicationUser user = result.Value;
+            var user = result.Value;
 
-            var meeting = await _context.Meeting.Where(meeting => meeting.Id == id && user.Clubs.Select(c => c.Id).Contains(meeting.Club.Id)).FirstOrDefaultAsync();
+            var meeting = await context.Meeting.Where(meeting => meeting.Id == id && user.Clubs.Select(c => c.Id).Contains(meeting.Club.Id)).FirstOrDefaultAsync();
             if (meeting == null) return NotFound();
 
             if (meeting.EndedAt == null)
@@ -165,8 +165,8 @@ namespace club.Controllers
                 meeting.EndedAt = null;
             }
 
-            _context.Meeting.Update(meeting);
-            await _context.SaveChangesAsync();
+            context.Meeting.Update(meeting);
+            await context.SaveChangesAsync();
             return CreatedAtAction(nameof(ToggleEndMeeting), user.Id);
         }
     }

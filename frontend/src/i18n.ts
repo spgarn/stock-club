@@ -188,7 +188,11 @@ export const translate = {
     "reset_success": "Lösenordet har återställts!",
     "password_required": "Passord krävs",
     "new": "Nya",
-    "old": "Gamla"
+    "old": "Gamla",
+    "edit_club": "Redigera Klubb",
+    "editing_club": "Redigerar Klubb..",
+    "public_investment": "Publika investeringar",
+    "club_edited_success": "Klubb redigerades!"
 }
 
 //Translate with fallback

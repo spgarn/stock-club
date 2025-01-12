@@ -12,17 +12,19 @@ import { useQuery } from "@tanstack/react-query";
 import Loading from "../../components/Loading";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrash } from "@fortawesome/free-solid-svg-icons/faTrash";
-import api, { getUser, getUsersInClub, User } from "../../api";
+import api, { Club, getUser, getUsersInClub, User } from "../../api";
 import axios from "axios";
 import { toast } from "react-toastify";
 import Typography from "@mui/material/Typography";
 import useClubs from "../../hooks/useClubs";
 import { TextField } from "@mui/material";
+import EditClub from "./components/EditClub";
 
 const columnHelper = createColumnHelper<User>();
 export default function Members() {
+    const [showEditClub, setShowEditClub] = useState<null | Club>(null);
     const [email, setEmail] = useState("");
-    const { clubId } = useClubs();
+    const { clubId, activeClub, refetchClubs } = useClubs();
     const { data: user } = useQuery({
         queryKey: ['user'],
         queryFn: () => getUser(),
@@ -138,7 +140,8 @@ export default function Members() {
 
             </div>
             <BasicTable columns={columns} data={usersInClub} />
-
+            {isAdmin && !!activeClub && <Button sx={{ marginTop: "1rem" }} onClick={() => setShowEditClub(activeClub)}>{translate["edit_club"]}</Button>}
+            {!!showEditClub && <EditClub refetch={refetchClubs} handleClose={() => setShowEditClub(null)} club={showEditClub} />}
 
         </div>
     )

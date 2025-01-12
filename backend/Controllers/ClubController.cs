@@ -19,18 +19,19 @@ namespace club.Controllers
         [HttpGet]
         [Authorize]
         public async Task<ActionResult<IEnumerable<Club>>> GetUserClubs(
-            [FromServices] MyDbContext _context)
+            [FromServices] MyDbContext context)
         {
-            var result = await GetCurrentUser(_context);
+            var result = await GetCurrentUser(context);
             if (result.Result != null) // If it's an error result
                 return result.Result;
             if (result.Value == null) return NotFound();
-            ApplicationUser user = result.Value;
+            var user = result.Value;
 
             return Ok(user.Clubs.Select(club => new ClubDto
             {
                 Id = club.Id,
-                Name = club.Name
+                Name = club.Name,
+                PublicInvestments = club.PublicInvestments,
             }).ToList());
         }
 
@@ -38,16 +39,16 @@ namespace club.Controllers
         [Authorize]
         [Route("{id}/info")]
         public async Task<ActionResult<IEnumerable<ClubDto>>> GetClubSuggestions(int id,
-    [FromServices] MyDbContext _context)
+    [FromServices] MyDbContext context)
         {
-            var result = await GetCurrentUser(_context);
+            var result = await GetCurrentUser(context);
             if (result.Result != null) // If it's an error result
                 return result.Result;
             if (result.Value == null) return NotFound();
-            ApplicationUser user = result.Value;
+            var user = result.Value;
 
             // Fetch the club and its users, suggestions, meetings
-            var club = await _context.Club
+            var club = await context.Club
                 .Include(u => u.Users)
                 .Include(u => u.Meetings)
                 .Include(u => u.MeetingsSuggestions)
@@ -75,6 +76,7 @@ namespace club.Controllers
             {
                 Id = club.Id,
                 Name = club.Name,
+                PublicInvestments = club.PublicInvestments,
                 Meetings = club.Meetings.Select(meeting =>
                  new MeetingDTO
                  {
@@ -117,18 +119,38 @@ namespace club.Controllers
 
             return Ok(clubDto);
         }
+        
+        [HttpPut]
+        [Authorize(Roles = "Admin")]
+        [Route("edit/{clubId}")]
+        public async Task<ActionResult<string>> EditClub(
+            [FromServices] MyDbContext context, EditClubForm data, int clubId)
+        {
+            var result = await GetCurrentUser(context);
+            if (result.Result != null) // If it's an error result
+                return result.Result;
+            if (result.Value == null) return NotFound();
+            var user = result.Value;
+            var activeClub = user.Clubs.FirstOrDefault(club => club.Id == clubId);
+            if (activeClub == null) return NotFound();
+            activeClub.Name = data.Name;
+            activeClub.PublicInvestments = data.PublicInvestments;
+            context.Club.Update(activeClub);
+            await context.SaveChangesAsync();
+            return CreatedAtAction(nameof(EditClub), user.Id);
+        }
 
         [HttpPost]
         [Authorize]
         [Route("suggestion/{clubId}")]
-        public async Task<ActionResult<String>> AddProposal(AddSuggestion suggestionDTO,
-           [FromServices] MyDbContext _context, int clubId)
+        public async Task<ActionResult<string>> AddProposal(AddSuggestion suggestionDTO,
+           [FromServices] MyDbContext context, int clubId)
         {
-            var result = await GetCurrentUser(_context);
+            var result = await GetCurrentUser(context);
             if (result.Result != null) // If it's an error result
                 return result.Result;
             if (result.Value == null) return NotFound();
-            ApplicationUser user = result.Value;
+            var user = result.Value;
 
             if (user.Clubs.IsNullOrEmpty())
             {
@@ -142,8 +164,8 @@ namespace club.Controllers
             meetingSuggestion.Club = club;
             meetingSuggestion.User = user;
 
-            _context.MeetingsSuggestion.Add(meetingSuggestion);
-            await _context.SaveChangesAsync();
+            context.MeetingsSuggestion.Add(meetingSuggestion);
+            await context.SaveChangesAsync();
             return CreatedAtAction(nameof(AddProposal), user.Id);
         }
         
