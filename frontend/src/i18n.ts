@@ -192,7 +192,9 @@ export const translate = {
     "edit_club": "Redigera Klubb",
     "editing_club": "Redigerar Klubb..",
     "public_investment": "Publika investeringar",
-    "club_edited_success": "Klubb redigerades!"
+    "club_edited_success": "Klubb redigerades!",
+    "override_price": "Åsidosätt nuvarande pris",
+    "leave_empty_for_automatic": "Lämna tom för automatiskt pris"
 }
 
 //Translate with fallback

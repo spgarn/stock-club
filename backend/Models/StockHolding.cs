@@ -8,10 +8,10 @@ public partial class StockHolding
 {
     public int Id { get; set; }
 
-    public Stock Stock { get; set; } = null!;
+    public Stock? Stock { get; set; }
     
     [MaxLength(50)]
-    public string? StockName { get; set; } //Optional
+    public required string StockName { get; set; }
 
     public decimal BuyPrice { get; set; }
 

@@ -59,31 +59,40 @@ namespace club.Data
             using var client = new HttpClient();
             client.DefaultRequestHeaders.Add("User-Agent",
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
-            var htmlContent = await client.GetStringAsync(url);
-
-            var htmlDoc = new HtmlDocument();
-            htmlDoc.LoadHtml(htmlContent);
-
-            // Check for errors or invalid stock symbols
-            var errorNode = htmlDoc.DocumentNode.SelectSingleNode("//div[contains(@class, 'error')]");
-            if (errorNode != null)
+    
+            try
             {
-                Console.WriteLine($"Error found on the page for stock symbol.");
+                var htmlContent = await client.GetStringAsync(url);
+                var htmlDoc = new HtmlDocument();
+                htmlDoc.LoadHtml(htmlContent);
+
+                // Look for the price using the data-testid attribute
+                var stockPriceNode = htmlDoc.DocumentNode.SelectSingleNode("//span[@data-testid='qsp-price']");
+                if (stockPriceNode == null)
+                {
+                    Console.WriteLine("Stock price element not found.");
+                    return null;
+                }
+
+                var stockPrice = stockPriceNode.InnerText.Trim();
+                if (decimal.TryParse(stockPrice, out var price))
+                {
+                    return price.ToString();
+                }
+
+                Console.WriteLine($"Extracted stock price is not valid: {stockPrice}");
                 return null;
             }
-
-            var stockPriceNode = htmlDoc.DocumentNode.SelectSingleNode("//div[contains(@class, 'price')]//fin-streamer[@data-field='regularMarketPrice']");
-            if (stockPriceNode == null)
+            catch (HttpRequestException ex)
             {
-                Console.WriteLine("Stock price element not found.");
+                Console.WriteLine($"Failed to fetch data: {ex.Message}");
                 return null;
             }
-
-            var stockPrice = stockPriceNode.InnerText.Trim();
-            if (decimal.TryParse(stockPrice, out _)) return stockPrice;
-
-            Console.WriteLine($"Extracted stock price is not valid: {stockPrice}");
-            return null;
+            catch (Exception ex)
+            {
+                Console.WriteLine($"An error occurred: {ex.Message}");
+                return null;
+            }
         }
     }
 }

@@ -36,41 +36,12 @@ namespace club.Controllers
                     BuyPrice = stock.BuyPrice,
                     InvestedAt = stock.InvestedAt,
                     Sold = stock.Sold,
-                    StockName = stock.Stock.StockName,
-                    SoldAt = stock.SoldAt,
-                    CurrentPrice = stock.Stock.CurrentPrice//await YahooAPI.GetStock(club.StockName)
+                    StockName = stock.StockName,
+                    SoldAt = stock?.SoldAt,
+                    CurrentPrice = stock?.Stock != null ? stock.Stock.CurrentPrice : (stock?.OverridePrice ?? 0), //await YahooAPI.GetStock(club.StockName)
+                    OverridePrice = stock?.OverridePrice,
                 }).ToList());
         }
-        /*[HttpGet]
-        [Authorize]
-        [Route("user/{userId}/club/{clubId}")]
-        public async Task<ActionResult<ICollection<StockDto>>> GetStocksByUser(
-            [FromServices] MyDbContext context, string userId, int clubId)
-        {
-            var result = await GetCurrentUser(context);
-            if (result.Result != null) // If it's an error result
-                return result.Result;
-            if (result.Value == null) return NotFound();
-            var user = result.Value;
-            if (user == null) return NotFound();
-            var club = user.Clubs.FirstOrDefault(club => club.Id == clubId);
-            if (club == null) return NotFound();
-            var stocks = context.StockHolding.Include(stock => stock.Stock).Include(s => s.User)
-                .Where(stocks => stocks.User.Clubs.FirstOrDefault(c => c.Id == club.Id) != null && stocks.User.Id == userId).OrderByDescending(stock => stock.Id).ToArray();
-            return Ok(stocks.Select(stock =>
-                new StockDto
-                {
-                    Id = stock.Id,
-                    Amount = stock.Amount,
-                    SellPrice = stock.SellPrice,
-                    BuyPrice = stock.BuyPrice,
-                    InvestedAt = stock.InvestedAt,
-                    Sold = stock.Sold,
-                    StockName = stock.Stock.StockName,
-                    SoldAt = stock.SoldAt,
-                    CurrentPrice = stock.Stock.CurrentPrice
-                }).ToList());
-        }*/
         [HttpPost]
         [Authorize]
         [Route("add/{clubId}")]
@@ -86,7 +57,7 @@ namespace club.Controllers
             var club = user.Clubs.FirstOrDefault(c => c.Id == clubId);
             if (club == null) return NotFound();
             var stock = context.Stock.FirstOrDefault(stock => stock.StockName == stockDto.StockName);
-            if (stock == null)
+            if (stock == null && stockDto.OverridePrice == null)
             {
                 var validPrice = await YahooApi.GetStock(stockDto.StockName);
                 if (validPrice == null)
@@ -116,7 +87,8 @@ namespace club.Controllers
                 SoldAt = stockDto.Sold ? stockDto.SoldAt ?? null : null,
                 User = user,
                 Stock = stock,
-                Club = club
+                Club = club,
+                OverridePrice = stockDto.OverridePrice
             });
             await context.SaveChangesAsync();
             return CreatedAtAction(nameof(AddStock), user.Id);
@@ -136,7 +108,7 @@ namespace club.Controllers
             var club = user.Clubs.FirstOrDefault(c => c.Id == clubId);
             if (club == null) return NotFound();
             var stock = context.Stock.FirstOrDefault(stock => stock.StockName == stockDto.StockName);
-            if (stock == null)
+            if (stock == null && stockDto.OverridePrice == null)
             {
                 var validPrice = await YahooApi.GetStock(stockDto.StockName);
                 if (validPrice == null)
@@ -162,6 +134,7 @@ namespace club.Controllers
             existingStock.StockName = stockDto.StockName;
             existingStock.Sold = stockDto.Sold;
             existingStock.Stock = stock;
+            existingStock.OverridePrice = stockDto.OverridePrice;
             if (stockDto.Sold)
             {
                 existingStock.SellPrice = stockDto.SellPrice;
@@ -211,7 +184,8 @@ namespace club.Controllers
                 SoldAt = stockDto.SoldAt,
                 User = user,
                 Stock = existingStock.Stock,
-                Club = club
+                Club = club,
+                OverridePrice = existingStock.OverridePrice
             };
 
             if (existingStock.Amount <= 0)

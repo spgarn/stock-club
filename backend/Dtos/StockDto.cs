@@ -13,6 +13,8 @@ namespace club.Dtos
         public decimal? SellPrice { get; set; }
 
         public decimal? CurrentPrice { get; set; }
+        
+        public decimal? OverridePrice { get; set; }
 
         public decimal Amount { get; set; }
 

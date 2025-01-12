@@ -23,6 +23,7 @@ export type NewInvestment = {
     sellPrice: number | null;
     sold: boolean;
     soldAt: Date | null;
+    overridePrice: string | null
 }
 // };
 export default function AddStockModal({ handleClose, refetch }: { handleClose: () => void; refetch: () => void; }) {
@@ -42,9 +43,11 @@ export default function AddStockModal({ handleClose, refetch }: { handleClose: (
     const onSubmit: SubmitHandler<NewInvestment> = async (data: NewInvestment) => {
         setLoading(true);
         try {
+            const override_price = data.overridePrice;
             const res = await api.post<unknown>
                 ("/stocks/add/" + clubId, {
                     ...data,
+                    overridePrice: override_price && override_price.length > 0 ? Number(override_price) : undefined
                 }, {
                     headers: {
                         "Access-Control-Allow-Origin": "*"
@@ -128,6 +131,17 @@ export default function AddStockModal({ handleClose, refetch }: { handleClose: (
                         helperText={errors.buyPrice ? errors?.buyPrice.message : " "}
                         {...register("buyPrice", { required: true })}
                         rows={4}
+                    />
+
+                    <TextField
+                        fullWidth={true}
+                        error={!!errors.amount}
+                        id="override_price"
+                        label={translate["override_price"]}
+                        type="text"
+                        variant="standard"
+                        helperText={errors.amount ? errors?.amount.message : translate["leave_empty_for_automatic"]}
+                        {...register("overridePrice", { required: false })}
                     />
 
                     <Controller

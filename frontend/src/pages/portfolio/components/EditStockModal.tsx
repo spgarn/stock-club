@@ -41,17 +41,21 @@ export default function EditStockModal({ handleClose, refetch, stock }: { handle
                 buyPrice: stock.buyPrice,
                 sellPrice: stock.sellPrice ?? stock.currentPrice,
                 sold: stock.sold,
-                soldAt: new Date(Date.now())
+                soldAt: new Date(Date.now()),
+                overridePrice: stock.overridePrice ? String(stock.overridePrice) : null
             });
         }
     }, [stock, reset]);
     const [loading, setLoading] = useState(false);
     const onSubmit: SubmitHandler<NewInvestment> = async (data: NewInvestment) => {
         setLoading(true);
+        const override_price = data.overridePrice;
         try {
             const res = await api.put<unknown>
                 ("/stocks/edit/" + stock.id + "/club/" + clubId, {
                     ...data,
+                    overridePrice: override_price && override_price.length > 0 ? Number(override_price) : undefined
+
                 }, {
                     headers: {
                         "Access-Control-Allow-Origin": "*"
@@ -138,7 +142,16 @@ export default function EditStockModal({ handleClose, refetch, stock }: { handle
                         {...register("buyPrice", { required: true })}
                         rows={4}
                     />
-
+                    <TextField
+                        fullWidth={true}
+                        error={!!errors.amount}
+                        id="override_price"
+                        label={translate["override_price"]}
+                        type="text"
+                        variant="standard"
+                        helperText={errors.amount ? errors?.amount.message : translate["leave_empty_for_automatic"]}
+                        {...register("overridePrice", { required: true })}
+                    />
                     <Controller
                         name="sold"
                         control={control}
