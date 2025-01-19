@@ -28,6 +28,7 @@ import RowSelect from "../../components/RowSelect";
 import Pagination from "@mui/material/Pagination";
 import PaginatedTable from "../../components/PaginatedTable";
 import useClubs from "../../hooks/useClubs";
+import ImportModal from "./components/ImportModal";
 const columnHelper = createColumnHelper<StockHoldings>();
 export default function Portfolio() {
     const { clubId } = useClubs();
@@ -38,6 +39,7 @@ export default function Portfolio() {
     const [rowCount, setRowCount] = useState(10);
     const [page, setPage] = useState(1);
     const [addStockOpen, setAddStockOpen] = useState(false);
+    const [importModal, setImportModal] = useState(false);
     const [editStock, setEditStock] = useState<null | StockHoldings>(null);
     const [sellPortion, setSellPortion] = useState<null | StockHoldings>(null);
     const [loading, setLoading] = useState(false);
@@ -276,9 +278,12 @@ export default function Portfolio() {
             </div>
 
             <PaginatedTable columns={columns} data={list} page={page} rowCount={rowCount} />
+            <Button onClick={() => setImportModal(true)}>{translate["import_csv"]}</Button>
             {addStockOpen && <AddStockModal refetch={refetch} handleClose={() => setAddStockOpen(false)} />}
             {!!editStock && <EditStockModal refetch={refetch} handleClose={() => setEditStock(null)} stock={editStock} />}
             {!!sellPortion && <SellPortionModal refetch={refetch} handleClose={() => setSellPortion(null)} stock={sellPortion} />}
+            {importModal && <ImportModal refetch={refetch} handleClose={() => setImportModal(false)} />}
+
             <div className="pagination-container">
                 <Pagination size="small" color="primary" count={maxPages} page={page} onChange={(_e, v) => setPage(v)} />
             </div>

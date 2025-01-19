@@ -194,7 +194,9 @@ export const translate = {
     "public_investment": "Publika investeringar",
     "club_edited_success": "Klubb redigerades!",
     "override_price": "Åsidosätt nuvarande pris",
-    "leave_empty_for_automatic": "Lämna tom för automatiskt pris"
+    "leave_empty_for_automatic": "Lämna tom för automatiskt pris",
+    "choose_csv_file": "Välj CSV fil",
+    "import_csv": "Importera CSV"
 }
 
 //Translate with fallback
