@@ -12,11 +12,11 @@ interface ParseResult<T> {
 }
 
 // Generic type for CSV row data
-interface CSVRow {
+export interface CSVRow {
     [key: string]: string | number;
 }
 
-const CSVParser: React.FC = () => {
+const CSVParser = ({ parseData }: { parseData: (data: CSVRow[]) => void }) => {
     const handleFileChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
 
@@ -24,6 +24,7 @@ const CSVParser: React.FC = () => {
             Papa.parse<CSVRow>(file, {
                 complete: (results: ParseResult<CSVRow>) => {
                     console.log('Parsed CSV data:', results.data);
+                    parseData(results.data);
 
                     // Handle any parsing errors
                     if (results.errors.length > 0) {

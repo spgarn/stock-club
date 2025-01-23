@@ -196,7 +196,13 @@ export const translate = {
     "override_price": "Åsidosätt nuvarande pris",
     "leave_empty_for_automatic": "Lämna tom för automatiskt pris",
     "choose_csv_file": "Välj CSV fil",
-    "import_csv": "Importera CSV"
+    "import_csv": "Importera CSV",
+    "csv_import_date": "Datum",
+    "csv_import_transaction_type": "Transaktion typ",
+    "csv_import_price": "Pris",
+    "csv_import_quantity": "Antal",
+    "csv_import_ISIN": "ISIN",
+    "csv_import_diff": "Differens",
 }
 
 //Translate with fallback

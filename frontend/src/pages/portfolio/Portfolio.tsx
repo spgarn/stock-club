@@ -278,7 +278,6 @@ export default function Portfolio() {
             </div>
 
             <PaginatedTable columns={columns} data={list} page={page} rowCount={rowCount} />
-            <Button onClick={() => setImportModal(true)}>{translate["import_csv"]}</Button>
             {addStockOpen && <AddStockModal refetch={refetch} handleClose={() => setAddStockOpen(false)} />}
             {!!editStock && <EditStockModal refetch={refetch} handleClose={() => setEditStock(null)} stock={editStock} />}
             {!!sellPortion && <SellPortionModal refetch={refetch} handleClose={() => setSellPortion(null)} stock={sellPortion} />}
@@ -287,6 +286,7 @@ export default function Portfolio() {
             <div className="pagination-container">
                 <Pagination size="small" color="primary" count={maxPages} page={page} onChange={(_e, v) => setPage(v)} />
             </div>
+            <Button onClick={() => setImportModal(true)}>{translate["import_csv"]}</Button>
         </div>
     )
 }

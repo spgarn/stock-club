@@ -3,43 +3,20 @@ import { BootstrapDialogTitle } from "../../../components/BootstrapDialogTitle";
 import { translate } from "../../../i18n";
 import DialogContent from "@mui/material/DialogContent";
 import useClubs from "../../../hooks/useClubs";
-import CSVParser from "../../../components/CSVParser";
+import CSVParser, { CSVRow } from "../../../components/CSVParser";
+import LineMatcher, { Connection } from "../../../components/LineMatcher";
+import { useState } from "react";
 
-
+const STATIC_KEYS = ["csv_import_date", "csv_import_transaction_type", "csv_import_price", "csv_import_quantity", "csv_import_ISIN", "csv_import_diff"]
 export default function ImportModal({ handleClose, refetch }: { handleClose: () => void; refetch: () => void; }) {
     const { clubId } = useClubs();
+    const [{ keys, values, connections, data }, setTable] = useState<{ keys: string[], values: string[], connections: Connection[], data: CSVRow[] }>({ keys: STATIC_KEYS, values: [], connections: [], data: [] })
 
-    // const onSubmit: SubmitHandler<SellChunk> = async (data: SellChunk) => {
-    //     setLoading(true);
-    //     try {
-    //         const res = await api.put<unknown>
-    //             ("/stocks/sellportion/club/" + clubId, {
-    //                 id: stock.id,
-    //                 ...data,
-    //             }, {
-    //                 headers: {
-    //                     "Access-Control-Allow-Origin": "*"
-    //                 },
-    //                 withCredentials: true
-    //             });
-    //         const resData = res.data;
-    //         toast.success(translate["stock_updated_success"]);
-    //         refetch();
-    //         handleClose();
-    //         console.log(resData);
-    //     } catch (err) {
-    //         if (axios.isAxiosError(err)) {
-    //             if (err.response?.data) {
-    //                 toast.error(translateText(err.response?.data?.title, err.response?.data?.title));
-    //             } else {
-    //                 toast.error(err.message);
-    //             }
-    //         } else {
-    //             toast.error(translate["something_went_wrong"])
-    //         }
-    //     }
-    //     setLoading(false);
-    // }
+    const parseData = (data: CSVRow[]) => {
+        console.log(data);
+        setTable({ keys, values: data.map(data => String(data[0])), data: data, connections: [] })
+    }
+
     return (
         <Dialog
             open={true}
@@ -57,7 +34,23 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
             </BootstrapDialogTitle>
 
             <DialogContent>
-                <CSVParser />
+                <CSVParser parseData={parseData} />
+                {/* <Container sx={{ height: 300 }}>
+                    <ReactFlow
+                        nodes={nodes}
+                        edges={edges}
+                        onNodesChange={onNodesChange}
+                        onEdgesChange={onEdgesChange}
+                        onConnect={onConnect}
+                        defaultEdgeOptions={edgeOptions}
+                        fitView
+                    >
+                        <Background />
+                        <Controls />
+                        <MiniMap />
+                    </ReactFlow>
+                </Container> */}
+                <LineMatcher keys={keys} values={values} connections={connections} setConnections={(connections) => setTable(t => ({ ...t, connections }))} />
             </DialogContent>
         </Dialog>
     )
