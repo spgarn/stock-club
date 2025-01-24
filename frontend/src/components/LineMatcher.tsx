@@ -2,6 +2,7 @@ import React, { useState, useRef, useLayoutEffect } from 'react';
 import { styled } from '@mui/material/styles';
 import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
+import { translateText } from '../i18n';
 
 export interface Connection {
     start: string;
@@ -80,9 +81,12 @@ const LineMatcher: React.FC<LineMatcherProps> = ({ className, keys, values, conn
     const [, forceUpdate] = useState({});
 
     const colors = {
-        'Column A': '#1976d2',
-        'Column B': '#2e7d32',
-        'Column C': '#7b1fa2',
+        'csv_import_date': '#0277BD',        // Vivid blue
+        'csv_import_transaction_type': '#2E7D32', // Green (kept same)
+        'csv_import_price': '#9C27B0',       // Deep purple
+        'csv_import_quantity': '#D81B60',    // Vibrant pink
+        'csv_import_ISIN': '#FFA726',        // Orange
+        'csv_import_diff': '#5D4037',        // Dark brown
     };
 
     // Force update on window resize to recalculate lines
@@ -93,11 +97,14 @@ const LineMatcher: React.FC<LineMatcherProps> = ({ className, keys, values, conn
     }, []);
 
     const handleButtonClick = (id: string, isKey: boolean) => {
+        console.log(activeButton, id);
         if (!activeButton) {
             setActiveButton(id);
         } else if (activeButton !== id) {
             const [first, second] = isKey ? [id, activeButton] : [activeButton, id];
+            console.log(first, second);
             if (keys.includes(first) && values.includes(second)) {
+                console.log("Adding connection")
                 const filteredConnections = connections.filter(conn => conn.start !== first);
                 setConnections([
                     ...filteredConnections,
@@ -134,6 +141,8 @@ const LineMatcher: React.FC<LineMatcherProps> = ({ className, keys, values, conn
         // Force initial render of lines
         forceUpdate({});
     }, [connections]);
+
+    console.log(values, keys);
 
     return (
         <Container ref={containerRef} className={className}>
@@ -174,24 +183,24 @@ const LineMatcher: React.FC<LineMatcherProps> = ({ className, keys, values, conn
                             isDisabled={!!activeButton && activeButton !== key}
                             onClick={() => handleButtonClick(key, true)}
                         >
-                            {key}
+                            {translateText(key, key)}
                         </StyledButton>
                     ))}
                 </Column>
 
                 <Column>
-                    {values.map(value => (
-                        <StyledButton
+                    {values.map(value => {
+                        return <StyledButton
                             key={value}
                             id={value}
                             variant="contained"
                             isActive={activeButton === value}
-                            isDisabled={!!activeButton && activeButton !== value}
+                            isDisabled={!!activeButton && activeButton == value}
                             onClick={() => handleButtonClick(value, false)}
                         >
                             {value}
                         </StyledButton>
-                    ))}
+                    })}
 
                     {activeButton && <Button onClick={() => deleteLine(activeButton)}>Trash</Button>}
                 </Column>
