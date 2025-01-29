@@ -7,6 +7,7 @@ import CSVParser, { CSVRow } from "../../../components/CSVParser";
 import LineMatcher, { Connection } from "../../../components/LineMatcher";
 import { useMemo, useState } from "react";
 import { StockHoldings } from "../../../api";
+import StockPreview from "./StockPreview";
 
 const STATIC_KEYS = ["csv_import_date", "csv_import_transaction_type", "csv_import_price", "csv_import_quantity", "csv_import_ISIN", "csv_import_diff"]
 type Action = {
@@ -135,6 +136,8 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
                     </ReactFlow>
                 </Container> */}
                 <LineMatcher keys={keys} values={values} connections={connections} setConnections={(connections) => setTable(t => ({ ...t, connections }))} />
+
+                <StockPreview list={[]} />
             </DialogContent>
         </Dialog>
     )
