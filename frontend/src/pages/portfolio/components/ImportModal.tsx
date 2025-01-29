@@ -4,7 +4,7 @@ import { translate } from "../../../i18n";
 import DialogContent from "@mui/material/DialogContent";
 import useClubs from "../../../hooks/useClubs";
 import CSVParser, { CSVRow } from "../../../components/CSVParser";
-import LineMatcher, { Connection } from "../../../components/LineMatcher";
+import LineMatcher, { colors, Connection } from "../../../components/LineMatcher";
 import { useMemo, useState } from "react";
 import { StockHoldings } from "../../../api";
 import StockPreview from "./StockPreview";
@@ -22,6 +22,53 @@ type AggregatedData = {
     csv_import_ISIN: string;
 }
 
+const getConnection = (key: string, col: string) => {
+    return {
+        start: key,
+        end: col,
+        color: colors[key as keyof typeof colors]
+    };
+}
+
+const bindDefaultConnections = (columns: string[]) => {
+    return columns.reduce((prev, col) => {
+        //Datum;Konto;Typ av transaktion;Värdepapper/beskrivning;Antal;Kurs;Belopp;Transaktionsvaluta;Courtage (SEK);Valutakurs;Instrumentvaluta;ISIN;Resultat
+        switch (col) {
+            case "Datum": {
+                const key = "csv_import_date";
+                prev.push(getConnection(key, col))
+                break;
+            }
+            case "Typ av transaktion": {
+                const key = "csv_import_transaction_type";
+                prev.push(getConnection(key, col))
+                break;
+            }
+            case "Antal": {
+                const key = "csv_import_quantity";
+                prev.push(getConnection(key, col))
+                break;
+            }
+            case "Belopp": {
+                const key = "csv_import_price";
+                prev.push(getConnection(key, col))
+                break;
+            }
+            case "ISIN": {
+                const key = "csv_import_ISIN";
+                prev.push(getConnection(key, col))
+                break;
+            }
+            case "Resultat": {
+                const key = "csv_import_diff";
+                prev.push(getConnection(key, col))
+                break;
+            }
+        }
+        return prev;
+    }, [] as Connection[])
+}
+
 export default function ImportModal({ handleClose, refetch }: { handleClose: () => void; refetch: () => void; }) {
     const { clubId } = useClubs();
     // const [aggregatedData, setAggregatedData] = useState<AggregatedData[]>([]);
@@ -31,7 +78,9 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
     const parseData = (data: CSVRow[]) => {
         console.log(data);
         console.log(Object.keys(data[0]));
-        setTable({ keys, values: Object.keys(data[0]), data: data, connections: [] })
+        const columns = Object.keys(data[0]);
+        const connections = bindDefaultConnections(columns);
+        setTable({ keys, values: columns, data: data, connections })
     }
 
     const interpretedData = useMemo(() => {
@@ -77,8 +126,7 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
             return agg;
         }, [] as AggregatedData[]);
 
-        const buys = [];
-        const sells = [];
+        const stocks: StockHoldings[] = [];
         const sumBy = (actions: Action[], type: string) => {
             const { date, price, amount, count } = actions.reduce((prev, v) => {
                 if (v.csv_import_transaction_type === type) {
@@ -95,11 +143,46 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
             return { date, price: price / count, amount: amount / count }
         }
         for (const data of aggregated) {
+            //buy: 10 amount
             const buys = sumBy(data.actions, "Köp");
+            //sell: 3 amount
             const sells = sumBy(data.actions, "Sälj");
 
-            //Take buys and try to "sell" as many as possible taking amount into account.
+            const effectiveBuysAmount = buys.amount - sells.amount; //10-3 = 7 still remaining in bought cat
+
+            const effectiveSellsAmount = sells.amount;
+
+            if (effectiveBuysAmount > 0) {
+                stocks.push({
+                    sellPrice: null,
+                    id: 0,
+                    stockName: data.csv_import_ISIN,
+                    investedAt: buys.date,
+                    buyPrice: buys.price,
+                    amount: effectiveBuysAmount,
+                    currentPrice: 0,
+                    sold: false,
+                    soldAt: null,
+                    overridePrice: null
+                })
+            }
+
+            if (effectiveSellsAmount > 0) {
+                stocks.push({
+                    sellPrice: sells.price,
+                    id: 0,
+                    stockName: data.csv_import_ISIN,
+                    investedAt: buys.date,
+                    buyPrice: buys.price,
+                    amount: effectiveSellsAmount,
+                    currentPrice: 0,
+                    sold: true,
+                    soldAt: sells.date,
+                    overridePrice: null
+                })
+            }
         }
+        console.log(stocks);
     }, [table])
 
     return (

@@ -75,19 +75,21 @@ const SvgLayer = styled('svg')({
     zIndex: 0
 });
 
+export const colors = {
+    'csv_import_date': '#0277BD',        // Vivid blue
+    'csv_import_transaction_type': '#2E7D32', // Green (kept same)
+    'csv_import_price': '#9C27B0',       // Deep purple
+    'csv_import_quantity': '#D81B60',    // Vibrant pink
+    'csv_import_ISIN': '#FFA726',        // Orange
+    'csv_import_diff': '#5D4037',        // Dark brown
+};
+
 const LineMatcher: React.FC<LineMatcherProps> = ({ className, keys, values, connections, setConnections }) => {
     const [activeButton, setActiveButton] = useState<string | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const [, forceUpdate] = useState({});
 
-    const colors = {
-        'csv_import_date': '#0277BD',        // Vivid blue
-        'csv_import_transaction_type': '#2E7D32', // Green (kept same)
-        'csv_import_price': '#9C27B0',       // Deep purple
-        'csv_import_quantity': '#D81B60',    // Vibrant pink
-        'csv_import_ISIN': '#FFA726',        // Orange
-        'csv_import_diff': '#5D4037',        // Dark brown
-    };
+
 
     // Force update on window resize to recalculate lines
     useLayoutEffect(() => {
