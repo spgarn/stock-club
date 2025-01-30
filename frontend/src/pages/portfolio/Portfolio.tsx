@@ -1,5 +1,5 @@
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { translate, translateText } from "../../i18n";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import ToggleButton from "@mui/material/ToggleButton";
@@ -20,6 +20,7 @@ import ImportModal from "./components/ImportModal";
 import api, { getStocks, StockHoldings } from "../../api";
 import RenderStocks from "./components/RenderStocks";
 import DisplayToggle from "./components/DisplayToggle";
+import useStocks from "./components/useStocks";
 export default function Portfolio() {
     const { clubId } = useClubs();
     const { data, refetch } = useQuery({
@@ -37,31 +38,7 @@ export default function Portfolio() {
     const [currencyDisplay, setCurrencyDisplay] = useState<"kr" | "percent">("kr");
     const {
         totalValue, totalAmount, development, list
-    } = useMemo(() => {
-        setPage(1);
-        if (!data) {
-            return { totalAmount: 0, list: [], totalValue: 0, development: 0 }
-        }
-        const currentStocks = data.filter(stock => !stock.sold);
-        const soldStocks = data.filter(stock => stock.sold);
-
-        const initial = currentStocks.reduce((prev, stock) => prev + (stock.amount * stock.buyPrice), 0);
-        if (displayMethod === "all_stocks") {
-            const value = currentStocks.reduce((prev, stock) => prev + (stock.amount * (stock?.sellPrice ? Number(stock.sellPrice) : stock.currentPrice)), 0);
-            return { totalAmount: data.length, list: data, totalValue: value, development: ((value / initial - 1) * 100) }
-        }
-        if (displayMethod === "active_stocks") {
-            const currentValue = currentStocks.reduce((prev, stock) => prev + (stock.amount * stock.currentPrice), 0);
-            return { totalAmount: currentStocks.length, list: currentStocks, totalValue: currentValue, development: ((currentValue / initial - 1) * 100) }
-
-
-        } else {
-            //Not active
-            const soldValue = soldStocks.reduce((prev, stock) => prev + (stock.amount * Number(stock.sellPrice)), 0);
-            return { totalAmount: soldStocks.length, totalValue: soldValue, list: soldStocks, development: ((soldValue / initial - 1) * 100) }
-
-        }
-    }, [data, displayMethod]);
+    } = useStocks(data, displayMethod, setPage);
 
     const changeRow = (row: number) => {
         setRowCount(row);
@@ -99,7 +76,7 @@ export default function Portfolio() {
         setLoading(false);
     }
 
-   
+
     const maxPages = Math.ceil(list.length / rowCount);
     if (!data) {
         return <div>
@@ -109,7 +86,7 @@ export default function Portfolio() {
     return (
         <div>
             <div className={portfolioStyles.header}>
-                <DisplayToggle displayMethod={displayMethod} setDisplayMethod={setDisplayMethod}/>
+                <DisplayToggle displayMethod={displayMethod} setDisplayMethod={setDisplayMethod} />
                 <ToggleButtonGroup
                     color="primary"
                     value={currencyDisplay}
@@ -146,7 +123,7 @@ export default function Portfolio() {
                 </div>
             </div>
 
-            <RenderStocks list={list} page={page} rowCount={rowCount} currencyDisplay={currencyDisplay} displayMethod={displayMethod} removeStock={removeStock} setEditStock={setEditStock} setSellPortion={setSellPortion}/>
+            <RenderStocks list={list} page={page} rowCount={rowCount} currencyDisplay={currencyDisplay} displayMethod={displayMethod} removeStock={removeStock} setEditStock={setEditStock} setSellPortion={setSellPortion} />
             {addStockOpen && <AddStockModal refetch={refetch} handleClose={() => setAddStockOpen(false)} />}
             {!!editStock && <EditStockModal refetch={refetch} handleClose={() => setEditStock(null)} stock={editStock} />}
             {!!sellPortion && <SellPortionModal refetch={refetch} handleClose={() => setSellPortion(null)} stock={sellPortion} />}

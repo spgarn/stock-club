@@ -9,7 +9,7 @@ import {
     ColumnDef,
     createColumnHelper
 } from '@tanstack/react-table'
-import  { StockHoldings } from "../../../api";
+import { StockHoldings } from "../../../api";
 import dayjs from "dayjs";
 import { formatCurrency } from "../../../funcs/funcs";
 import { translate } from "../../../i18n";
@@ -19,9 +19,9 @@ import portfolioStyles from "../portfolio.module.scss";
 
 const columnHelper = createColumnHelper<StockHoldings>();
 
-type IProps = { list: StockHoldings[], page: number, rowCount: number, currencyDisplay: "kr" | "percent", displayMethod: "active_stocks" | "sold_stocks" | "all_stocks", removeStock: (id: number) => void, setEditStock: (v: StockHoldings) => void, setSellPortion: (v: StockHoldings) => void }
+type IProps = { list: StockHoldings[], page: number, rowCount: number, currencyDisplay: "kr" | "percent", displayMethod: "active_stocks" | "sold_stocks" | "all_stocks", removeStock: (id: number) => void, setEditStock: (v: StockHoldings) => void, setSellPortion: (v: StockHoldings) => void, withLivePrice?: boolean; }
 
-export default function RenderStocks({ list, page, rowCount, currencyDisplay, displayMethod, removeStock, setEditStock, setSellPortion }: IProps) {
+export default function RenderStocks({ list, page, rowCount, currencyDisplay, displayMethod, removeStock, setEditStock, setSellPortion, withLivePrice = true }: IProps) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const columns: ColumnDef<StockHoldings, any>[] = useMemo(() => [
         columnHelper.accessor('stockName', {
@@ -80,7 +80,7 @@ export default function RenderStocks({ list, page, rowCount, currencyDisplay, di
                 },
             }
         ] : []),
-        ...(displayMethod != "sold_stocks" ? [ //Active or ALL
+        ...(displayMethod != "sold_stocks" && withLivePrice ? [ //Active or ALL
             {
                 id: 'devSinceBuy',
                 header: translate["dev_since_buy"],
@@ -132,7 +132,7 @@ export default function RenderStocks({ list, page, rowCount, currencyDisplay, di
                 </div>
             },
         })
-    ], [currencyDisplay, displayMethod]);
+    ], [currencyDisplay, displayMethod, withLivePrice]);
 
     return <PaginatedTable columns={columns} data={list} page={page} rowCount={rowCount} />
 }

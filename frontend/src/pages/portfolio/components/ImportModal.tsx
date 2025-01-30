@@ -8,6 +8,7 @@ import LineMatcher, { colors, Connection } from "../../../components/LineMatcher
 import { useMemo, useState } from "react";
 import { StockHoldings } from "../../../api";
 import StockPreview from "./StockPreview";
+import { convertToNumber } from "../../../funcs/funcs";
 
 const STATIC_KEYS = ["csv_import_date", "csv_import_transaction_type", "csv_import_price", "csv_import_quantity", "csv_import_ISIN", "csv_import_diff"]
 type Action = {
@@ -73,7 +74,7 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
     const { clubId } = useClubs();
     // const [aggregatedData, setAggregatedData] = useState<AggregatedData[]>([]);
     const [table, setTable] = useState<{ keys: string[], values: string[], connections: Connection[], data: CSVRow[] }>({ keys: STATIC_KEYS, values: [], connections: [], data: [] })
-    const { keys, values, connections, data } = table;
+    const { keys, values, connections } = table;
     console.log(connections);
     const parseData = (data: CSVRow[]) => {
         console.log(data);
@@ -85,6 +86,8 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
 
     const interpretedData = useMemo(() => {
         if (connections.length < 6) return [];
+        console.log("Interpreting data");
+        console.log(table.data);
         const aggregated = table.data.reduce((agg, row) => {
             //Map the keys to the data
             const [csv_import_date, csv_import_transaction_type, csv_import_price, csv_import_quantity, csv_import_ISIN, csv_import_diff] = STATIC_KEYS.map(key => {
@@ -92,7 +95,7 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
                 if (conn === undefined) return null;
                 return row[conn.end]
             })
-            if (!csv_import_date || !csv_import_transaction_type || !csv_import_price || !csv_import_quantity || !csv_import_ISIN || !csv_import_diff) return agg;
+            if (!csv_import_date || !csv_import_transaction_type || !csv_import_price || !csv_import_quantity || !csv_import_ISIN) return agg;
             const existing = agg.findIndex(v => v.csv_import_ISIN == csv_import_ISIN);
             if (existing < 0) {
                 //Add
@@ -100,8 +103,8 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
                     actions: [{
                         csv_import_date: new Date(String(csv_import_date)),
                         csv_import_transaction_type: String(csv_import_transaction_type),
-                        csv_import_price: Number(csv_import_price),
-                        csv_import_quantity: Number(csv_import_quantity),
+                        csv_import_price: Math.abs(convertToNumber(csv_import_price)),
+                        csv_import_quantity: Math.abs(convertToNumber(csv_import_quantity)),
                         csv_import_diff: String(csv_import_diff)
                     }],
                     csv_import_ISIN: String(csv_import_ISIN),
@@ -116,8 +119,8 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
                         {
                             csv_import_date: new Date(String(csv_import_date)),
                             csv_import_transaction_type: String(csv_import_transaction_type),
-                            csv_import_price: Number(csv_import_price),
-                            csv_import_quantity: Number(csv_import_quantity),
+                            csv_import_price: Math.abs(convertToNumber(csv_import_price)),
+                            csv_import_quantity: Math.abs(convertToNumber(csv_import_quantity)),
                             csv_import_diff: String(csv_import_diff)
                         }
                     ]
@@ -182,8 +185,9 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
                 })
             }
         }
-        console.log(stocks);
-    }, [table])
+        return stocks;
+
+    }, [connections.length, table.connections, table.data])
 
     return (
         <Dialog
@@ -220,7 +224,7 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
                 </Container> */}
                 <LineMatcher keys={keys} values={values} connections={connections} setConnections={(connections) => setTable(t => ({ ...t, connections }))} />
 
-                <StockPreview list={[]} />
+                <StockPreview data={interpretedData} />
             </DialogContent>
         </Dialog>
     )

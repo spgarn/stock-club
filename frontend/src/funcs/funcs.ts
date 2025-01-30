@@ -14,3 +14,8 @@ export const refetchClubAndMeeting = () => {
     queryClient.invalidateQueries({ queryKey: ['club-details'] });
     queryClient.invalidateQueries({ queryKey: ['club-meeting'] });
 }
+
+//Take any number-ish type and make it js number
+export const convertToNumber = (num: string | number) => {
+    return Number(String(num).replace(/\s/g, "").replace(",", "."))
+}
