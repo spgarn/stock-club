@@ -11,8 +11,9 @@ import StockPreview from "./StockPreview";
 import { convertToNumber } from "../../../funcs/funcs";
 import ModalNav from "./ModalNav";
 import Button from "@mui/material/Button";
-import axios from "axios";
 import { toast } from "react-toastify";
+import { LinearProgressWithLabel } from "./LinearProgressWithLabel";
+import Box from "@mui/material/Box";
 
 const STATIC_KEYS = ["csv_import_date", "csv_import_transaction_type", "csv_import_price", "csv_import_quantity", "csv_import_ISIN", "csv_import_diff"]
 type Action = {
@@ -101,6 +102,7 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
     const { clubId } = useClubs();
     const [scanning, setScanning] = useState(false);
     const [page, setPage] = useState(1);
+    const [progressBar, setProgressbar] = useState([0, 0]);
     const [ISIN_Relations, set_ISIN_Relations] = useState(new Map<string, { shortname: string, symbol: string }>());
     // const [aggregatedData, setAggregatedData] = useState<AggregatedData[]>([]);
     const [table, setTable] = useState<{ keys: string[], values: string[], connections: Connection[], data: CSVRow[] }>({ keys: STATIC_KEYS, values: [], connections: [], data: [] })
@@ -291,7 +293,12 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
     const stocks = interpretedData.map(d => ({ ...d, stockName: ISIN_Relations.get(d.stockName)?.symbol ?? d.stockName }));
 
     const addStocks = async () => {
+        setPage(5);
+        setProgressbar([0, stocks.length]);
+        let i = 0;
         for (const data of stocks) {
+            i++;
+            setProgressbar([i, stocks.length]);
             try {
                 const res = await api.post<unknown>
                     ("/stocks/add/" + clubId, {
@@ -308,6 +315,7 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
                 console.error(err);
             }
         }
+        setProgressbar([0, 0]);
         toast.success(translate["stock_created_success"]);
         refetch();
         handleClose();
@@ -330,10 +338,12 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
 
             <DialogContent>
                 <ModalNav page={page} setPage={setPage} maxPage={maxPage()} finishPage={4} onFinish={() => addStocks()} />
+                {progressBar[1] != 0 && <LinearProgressWithLabel value={Math.round(((progressBar[0] / progressBar[1]) * 100))} />}
                 {page === 1 && <CSVParser parseData={parseData} />}
                 {page === 2 && <LineMatcher keys={keys} values={values} connections={connections} setConnections={(connections) => setTable(t => ({ ...t, connections }))} />}
                 {page === 3 && <div>
-                    <Button onClick={() => scan()} disabled={scanning}>{scanning ? `${translate["scanning"]}... ${ISIN_Relations.size} / ${totalISIN}` : translate["convert_ISIN"]}</Button>
+                    <Box sx={{ display: "flex", justifyContent: "center" }}>{ISIN_Relations.size != totalISIN && <Button onClick={() => scan()} disabled={scanning}>{scanning ? `${translate["scanning"]}... ${ISIN_Relations.size} / ${totalISIN}` : translate["convert_ISIN"]}</Button>}
+                    </Box>
                     <StockPreview data={stocks} />
                 </div>}
 
