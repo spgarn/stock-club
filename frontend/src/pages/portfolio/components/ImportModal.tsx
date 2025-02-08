@@ -12,6 +12,7 @@ import { convertToNumber } from "../../../funcs/funcs";
 import ModalNav from "./ModalNav";
 import Button from "@mui/material/Button";
 import axios from "axios";
+import { toast } from "react-toastify";
 
 const STATIC_KEYS = ["csv_import_date", "csv_import_transaction_type", "csv_import_price", "csv_import_quantity", "csv_import_ISIN", "csv_import_diff"]
 type Action = {
@@ -285,6 +286,32 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
 
         }, 1000);
     }
+    console.log(page);
+
+    const stocks = interpretedData.map(d => ({ ...d, stockName: ISIN_Relations.get(d.stockName)?.symbol ?? d.stockName }));
+
+    const addStocks = async () => {
+        for (const data of stocks) {
+            try {
+                const res = await api.post<unknown>
+                    ("/stocks/add/" + clubId, {
+                        ...data,
+                    }, {
+                        headers: {
+                            "Access-Control-Allow-Origin": "*"
+                        },
+                        withCredentials: true
+                    });
+                const resData = res.data;
+                console.log(resData);
+            } catch (err) {
+                console.error(err);
+            }
+        }
+        toast.success(translate["stock_created_success"]);
+        refetch();
+        handleClose();
+    }
     return (
         <Dialog
             open={true}
@@ -302,12 +329,12 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
             </BootstrapDialogTitle>
 
             <DialogContent>
-                <ModalNav page={page} setPage={setPage} maxPage={maxPage()} finishPage={4} onFinish={() => console.log("finish")} />
+                <ModalNav page={page} setPage={setPage} maxPage={maxPage()} finishPage={4} onFinish={() => addStocks()} />
                 {page === 1 && <CSVParser parseData={parseData} />}
                 {page === 2 && <LineMatcher keys={keys} values={values} connections={connections} setConnections={(connections) => setTable(t => ({ ...t, connections }))} />}
                 {page === 3 && <div>
                     <Button onClick={() => scan()} disabled={scanning}>{scanning ? `${translate["scanning"]}... ${ISIN_Relations.size} / ${totalISIN}` : translate["convert_ISIN"]}</Button>
-                    <StockPreview data={interpretedData.map(d => ({ ...d, stockName: ISIN_Relations.get(d.stockName)?.symbol ?? d.stockName }))} />
+                    <StockPreview data={stocks} />
                 </div>}
 
             </DialogContent>
