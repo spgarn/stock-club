@@ -82,6 +82,7 @@ builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
 builder.Services.AddTransient<IEmailSender, EmailSender>();
 builder.Services.AddTransient<EmailSender, EmailSender>();
 builder.Services.Configure<AuthMessageSenderOptions>(builder.Configuration);
+builder.Services.AddHttpClient();
 
 var app = builder.Build();
 

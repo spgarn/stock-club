@@ -6,9 +6,12 @@ import useClubs from "../../../hooks/useClubs";
 import CSVParser, { CSVRow } from "../../../components/CSVParser";
 import LineMatcher, { colors, Connection } from "../../../components/LineMatcher";
 import { useMemo, useState } from "react";
-import { StockHoldings } from "../../../api";
+import api, { StockHoldings } from "../../../api";
 import StockPreview from "./StockPreview";
 import { convertToNumber } from "../../../funcs/funcs";
+import ModalNav from "./ModalNav";
+import Button from "@mui/material/Button";
+import axios from "axios";
 
 const STATIC_KEYS = ["csv_import_date", "csv_import_transaction_type", "csv_import_price", "csv_import_quantity", "csv_import_ISIN", "csv_import_diff"]
 type Action = {
@@ -21,6 +24,29 @@ type Action = {
 type AggregatedData = {
     actions: Action[]
     csv_import_ISIN: string;
+}
+
+type YahooISINResponse = {
+    explains: [],
+    count: number;
+    quotes: {
+        exchange: string;
+        shortname: string;
+        quoteType: string;
+        symbol: string;
+        index: string;
+        score: number;
+        typeDisp: string;
+        exchDisp: string;
+        sector: string;
+        desctorDisp: string;
+        industry: string;
+        industryDisp: string;
+        isYahooFinance: boolean;
+    }[];
+    news: [],
+    nav: [],
+    lists: []
 }
 
 const getConnection = (key: string, col: string) => {
@@ -72,6 +98,9 @@ const bindDefaultConnections = (columns: string[]) => {
 
 export default function ImportModal({ handleClose, refetch }: { handleClose: () => void; refetch: () => void; }) {
     const { clubId } = useClubs();
+    const [scanning, setScanning] = useState(false);
+    const [page, setPage] = useState(1);
+    const [ISIN_Relations, set_ISIN_Relations] = useState(new Map<string, { shortname: string, symbol: string }>());
     // const [aggregatedData, setAggregatedData] = useState<AggregatedData[]>([]);
     const [table, setTable] = useState<{ keys: string[], values: string[], connections: Connection[], data: CSVRow[] }>({ keys: STATIC_KEYS, values: [], connections: [], data: [] })
     const { keys, values, connections } = table;
@@ -82,6 +111,12 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
         const columns = Object.keys(data[0]);
         const connections = bindDefaultConnections(columns);
         setTable({ keys, values: columns, data: data, connections })
+
+        if (columns.length > 0) {
+            setPage(2);
+        } else {
+            alert(translate["no_columns"])
+        }
     }
 
     const interpretedData = useMemo(() => {
@@ -187,8 +222,69 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
         }
         return stocks;
 
-    }, [connections.length, table.connections, table.data])
+    }, [connections.length, table.connections, table.data]);
 
+    //How many ISIN tags there are which have not been connected
+    const totalISIN = new Set(interpretedData.map(d => d.stockName)).size
+    const diff = totalISIN - ISIN_Relations.size;
+    const maxPage = () => {
+        if (values.length > 0) {
+            if (connections.length >= keys.length) {
+                if (diff == 0) {
+                    return 4;
+                }
+                return 3;
+            }
+            return 2;
+
+        }
+        return 1;
+
+    }
+
+    const scan = () => {
+        if (scanning) return;
+        setScanning(true);
+        console.log(interpretedData.map(d => d.stockName));
+        const list = new Set(interpretedData.map(d => d.stockName));
+        console.log(list);
+        //Scan through and index all
+        const interval = setInterval(async () => {
+            const next = list.entries().next().value;
+            if (next) {
+                const [key] = next;
+                list.delete(key);
+
+                const res = await api.get<YahooISINResponse>(`/yahoo/info?ISIN=${key}`, {
+                    headers: {
+                        "Access-Control-Allow-Origin": "*"
+                    },
+                    withCredentials: true
+                });
+                const data = res.data;
+                console.log(data);
+                if (data && data.count > 0) {
+                    const quote = data.quotes[0];
+                    const symbol = quote.symbol;
+                    set_ISIN_Relations(existing => {
+                        existing.set(key, { shortname: quote.shortname, symbol: symbol })
+                        return new Map(existing);
+                    })
+                } else {
+                    set_ISIN_Relations(existing => {
+                        existing.set(key, { shortname: key, symbol: key })
+                        return new Map(existing);
+                    })
+                }
+
+
+            } else {
+                clearInterval(interval);
+            }
+
+
+        }, 1000);
+    }
     return (
         <Dialog
             open={true}
@@ -206,25 +302,14 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
             </BootstrapDialogTitle>
 
             <DialogContent>
-                <CSVParser parseData={parseData} />
-                {/* <Container sx={{ height: 300 }}>
-                    <ReactFlow
-                        nodes={nodes}
-                        edges={edges}
-                        onNodesChange={onNodesChange}
-                        onEdgesChange={onEdgesChange}
-                        onConnect={onConnect}
-                        defaultEdgeOptions={edgeOptions}
-                        fitView
-                    >
-                        <Background />
-                        <Controls />
-                        <MiniMap />
-                    </ReactFlow>
-                </Container> */}
-                <LineMatcher keys={keys} values={values} connections={connections} setConnections={(connections) => setTable(t => ({ ...t, connections }))} />
+                <ModalNav page={page} setPage={setPage} maxPage={maxPage()} finishPage={4} onFinish={() => console.log("finish")} />
+                {page === 1 && <CSVParser parseData={parseData} />}
+                {page === 2 && <LineMatcher keys={keys} values={values} connections={connections} setConnections={(connections) => setTable(t => ({ ...t, connections }))} />}
+                {page === 3 && <div>
+                    <Button onClick={() => scan()} disabled={scanning}>{scanning ? `${translate["scanning"]}... ${ISIN_Relations.size} / ${totalISIN}` : translate["convert_ISIN"]}</Button>
+                    <StockPreview data={interpretedData.map(d => ({ ...d, stockName: ISIN_Relations.get(d.stockName)?.symbol ?? d.stockName }))} />
+                </div>}
 
-                <StockPreview data={interpretedData} />
             </DialogContent>
         </Dialog>
     )

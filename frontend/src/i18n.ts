@@ -203,6 +203,12 @@ export const translate = {
     "csv_import_quantity": "Antal",
     "csv_import_ISIN": "ISIN",
     "csv_import_diff": "Differens",
+    "back": "Tillbaka",
+    "next": "Nästa",
+    "no_columns": "Inga kolumner hittades",
+    "convert_ISIN": "Konvertera ISIN",
+    "scanning": "Skannar",
+    "finish": "Slutför"
 }
 
 //Translate with fallback

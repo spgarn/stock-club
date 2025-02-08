@@ -14,7 +14,7 @@ export default function StockPreview({ data }: IProps) {
     } = useStocks(data, displayMethod, setPage);
     const maxPages = Math.ceil(list.length / 10);
     return <div>
-        <div>
+        <div className="p-1">
             <DisplayToggle displayMethod={displayMethod} setDisplayMethod={setDisplayMethod} />
         </div>
         <RenderStocks list={list} page={page} rowCount={10} currencyDisplay={"kr"} displayMethod={displayMethod} removeStock={() => console.log("remove")} setEditStock={() => console.log("edit")} setSellPortion={() => console.log("sell")} withLivePrice={false} />
