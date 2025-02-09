@@ -248,9 +248,7 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
     const scan = () => {
         if (scanning) return;
         setScanning(true);
-        console.log(interpretedData.map(d => d.stockName));
         const list = new Set(interpretedData.map(d => d.stockName));
-        console.log(list);
         //Scan through and index all
         const interval = setInterval(async () => {
             const next = list.entries().next().value;
@@ -265,7 +263,6 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
                     withCredentials: true
                 });
                 const data = res.data;
-                console.log(data);
                 if (data && data.count > 0) {
                     const quote = data.quotes[0];
                     const symbol = quote.symbol;
@@ -288,7 +285,6 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
 
         }, 1000);
     }
-    console.log(page);
 
     const stocks = interpretedData.map(d => ({ ...d, stockName: ISIN_Relations.get(d.stockName)?.symbol ?? d.stockName }));
 
@@ -313,6 +309,7 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
                 console.log(resData);
             } catch (err) {
                 console.error(err);
+                toast.error(String(err))
             }
         }
         setProgressbar([0, 0]);
