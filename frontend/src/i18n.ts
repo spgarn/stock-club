@@ -191,7 +191,7 @@ export const translate = {
     "old": "Gamla",
     "edit_club": "Redigera Klubb",
     "editing_club": "Redigerar Klubb..",
-    "public_investment": "Publika investeringar",
+    "public_investment": "Publik portfölj",
     "club_edited_success": "Klubb redigerades!",
     "override_price": "Åsidosätt nuvarande pris",
     "leave_empty_for_automatic": "Lämna tom för automatiskt pris",

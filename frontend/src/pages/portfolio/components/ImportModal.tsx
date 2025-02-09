@@ -309,6 +309,7 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
                 console.log(resData);
             } catch (err) {
                 console.error(err);
+                console.error(data);
                 toast.error(String(err))
             }
         }
