@@ -1,16 +1,17 @@
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
-import { Dayjs } from "dayjs";
+// import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+// import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+// import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
+// import { renderTimeViewClock } from "@mui/x-date-pickers/timeViewRenderers";
+import dayjs, { Dayjs } from "dayjs";
 import { DateOrTimeView } from "@mui/x-date-pickers/models";
-import { renderTimeViewClock } from "@mui/x-date-pickers/timeViewRenderers";
-
+import Box from "@mui/material/Box";
+import TextField from "@mui/material/TextField";
 export default function BasicDateTimePicker({
     value,
     onChange,
     label,
     error,
-    views = ['year', 'day', 'hours', 'minutes']
+    // views = ['year', 'day', 'hours', 'minutes']
 }: {
     value: Dayjs | null;
     onChange: (newDate: Dayjs | null) => void;
@@ -21,7 +22,7 @@ export default function BasicDateTimePicker({
     return (
         <div className="pt-1">
             <p className="error text-right">{!!error && error}</p>
-            <div className="align-left">
+            {/* <div className="align-left">
                 <LocalizationProvider dateAdapter={AdapterDayjs}>
                     <DateTimePicker
                         orientation="landscape"
@@ -37,7 +38,20 @@ export default function BasicDateTimePicker({
                         }}
                     />
                 </LocalizationProvider>
-            </div>
+            </div> */}
+            <Box>
+                <TextField
+                    type="datetime-local"
+                    onChange={(e) => {
+                        // e.target.value will contain the selected date/time
+                        onChange(dayjs(e.target.value))
+                    }}
+                    // Format the dayjs value to ISO string and slice to remove seconds/timezone
+                    value={value ? value.format('YYYY-MM-DDTHH:mm') : ''}
+                    label={label}
+                />
+            </Box>
+
         </div>
     );
 }
