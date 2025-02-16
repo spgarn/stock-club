@@ -1,11 +1,11 @@
 import { Button, ToggleButton, ToggleButtonGroup } from "@mui/material";
 import { translate } from "../../i18n";
 import homeStyles from "./home.module.scss";
-import { getClubDetails, getUser } from "../../api";
+import api, { getClubDetails, getUser } from "../../api";
 import {
     useQuery,
 } from '@tanstack/react-query'
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import AddSuggestionModal from "./components/AddSuggestionModal";
 import Loading from "../../components/Loading";
 import AddMeetingModal from "./components/AddMeetingModal";
@@ -18,6 +18,17 @@ import PreviousMeetings from "./components/PreviousMeetings";
 import Proposals from "./components/Proposals";
 
 export default function Home() {
+
+    // useEffect(() => {
+    //     api.get("/emails")
+    //       .then(response => {
+    //         console.log(response.data);
+    //       })
+    //       .catch(error => {
+    //         console.error("Error fetching emails:", error);
+    //       });
+    //   }, []);
+    
 
     const { clubId: id, clubs: clubData } = useClubs();
     const [addSuggestionOpen, setAddSuggestionOpen] = useState(false);

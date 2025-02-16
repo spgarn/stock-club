@@ -31,6 +31,8 @@ services:
       - ASPNETCORE_URLS=http://+:8080
       - ConnectionStrings__DefaultConnection=Host=db;Database=club;Username=postgres;Password=23jka2jk3na2ujk3ss
       - SENDGRID_API_KEY=${SENDGRID_API_KEY}
+      - IMAP_USERNAME=${IMAP_USERNAME}
+      - IMAP_PASSWORD=${IMAP_PASSWORD}
     depends_on:
       - db
   db:

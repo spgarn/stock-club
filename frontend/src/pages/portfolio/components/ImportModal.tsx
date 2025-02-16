@@ -23,11 +23,11 @@ type Action = {
     csv_import_price: number;
     csv_import_quantity: number;
     csv_import_diff: string;
-    csv_import_name: string;
 };
 type AggregatedData = {
     actions: Action[]
     csv_import_ISIN: string;
+    csv_import_name: string;
 }
 
 type YahooISINResponse = {
@@ -152,9 +152,9 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
                         csv_import_price: Math.abs(convertToNumber(csv_import_price)),
                         csv_import_quantity: Math.abs(convertToNumber(csv_import_quantity)),
                         csv_import_diff: String(csv_import_diff),
-                        csv_import_name: String(csv_import_name)
                     }],
                     csv_import_ISIN: String(csv_import_ISIN),
+                    csv_import_name: String(csv_import_name)
                 })
             } else {
                 const prev = agg[existing];
@@ -169,7 +169,6 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
                             csv_import_price: Math.abs(convertToNumber(csv_import_price)),
                             csv_import_quantity: Math.abs(convertToNumber(csv_import_quantity)),
                             csv_import_diff: String(csv_import_diff),
-                            csv_import_name: String(csv_import_name)
                         }
                     ]
                 })
@@ -218,7 +217,8 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
                     currentPrice: 0,
                     sold: false,
                     soldAt: null,
-                    overridePrice: null
+                    overridePrice: null,
+                    avanzaName: data.csv_import_name
                 })
             }
 
@@ -233,7 +233,8 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
                     currentPrice: 0,
                     sold: true,
                     soldAt: sells.date,
-                    overridePrice: null
+                    overridePrice: null,
+                    avanzaName: data.csv_import_name
                 })
             }
         }
@@ -285,8 +286,8 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
                         return new Map(existing);
                     });
                 } else {
-                    const name = prompt(key + translate["_not_found_enter_name"]);
-                    const overridePrice = prompt(translate["enter_override_price_for_"] + name);
+                    const name = interpretedData.find(d => d.stockName === key)?.avanzaName + "⛔️";
+                    const overridePrice = 1;
                     if (name && overridePrice) {
                         set_ISIN_Relations(existing => {
                             existing.set(key, { shortname: String(name), symbol: String(name), overridePrice: Number(overridePrice) })

@@ -83,6 +83,7 @@ export type StockHoldings = {
     sold: boolean;
     soldAt: Date | null;
     overridePrice: number | null;
+    avanzaName: string;
 }
 
 export type Templates = {
