@@ -14,14 +14,16 @@ import Button from "@mui/material/Button";
 import { toast } from "react-toastify";
 import { LinearProgressWithLabel } from "./LinearProgressWithLabel";
 import Box from "@mui/material/Box";
+import FailedFind from "./FailedFind";
 
-const STATIC_KEYS = ["csv_import_date", "csv_import_transaction_type", "csv_import_price", "csv_import_quantity", "csv_import_ISIN", "csv_import_diff"]
+const STATIC_KEYS = ["csv_import_date", "csv_import_transaction_type", "csv_import_price", "csv_import_quantity", "csv_import_ISIN", "csv_import_diff", "csv_import_name"]
 type Action = {
     csv_import_date: Date;
     csv_import_transaction_type: string;
     csv_import_price: number;
     csv_import_quantity: number;
     csv_import_diff: string;
+    csv_import_name: string;
 };
 type AggregatedData = {
     actions: Action[]
@@ -93,6 +95,11 @@ const bindDefaultConnections = (columns: string[]) => {
                 prev.push(getConnection(key, col))
                 break;
             }
+            case "Värdepapper/beskrivning": {
+                const key = "csv_import_name";
+                prev.push(getConnection(key, col))
+                break;
+            }
         }
         return prev;
     }, [] as Connection[])
@@ -103,7 +110,8 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
     const [scanning, setScanning] = useState(false);
     const [page, setPage] = useState(1);
     const [progressBar, setProgressbar] = useState([0, 0]);
-    const [ISIN_Relations, set_ISIN_Relations] = useState(new Map<string, { shortname: string, symbol: string }>());
+    const [failedFinds, setFailedFinds] = useState<{ id: string; name: string }[]>([]);
+    const [ISIN_Relations, set_ISIN_Relations] = useState(new Map<string, { shortname: string, symbol: string, stockName?: string; overridePrice?: number; }>());
     // const [aggregatedData, setAggregatedData] = useState<AggregatedData[]>([]);
     const [table, setTable] = useState<{ keys: string[], values: string[], connections: Connection[], data: CSVRow[] }>({ keys: STATIC_KEYS, values: [], connections: [], data: [] })
     const { keys, values, connections } = table;
@@ -128,7 +136,7 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
         console.log(table.data);
         const aggregated = table.data.reduce((agg, row) => {
             //Map the keys to the data
-            const [csv_import_date, csv_import_transaction_type, csv_import_price, csv_import_quantity, csv_import_ISIN, csv_import_diff] = STATIC_KEYS.map(key => {
+            const [csv_import_date, csv_import_transaction_type, csv_import_price, csv_import_quantity, csv_import_ISIN, csv_import_diff, csv_import_name] = STATIC_KEYS.map(key => {
                 const conn = table.connections.find(conn => conn.start === key);
                 if (conn === undefined) return null;
                 return row[conn.end]
@@ -143,7 +151,8 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
                         csv_import_transaction_type: String(csv_import_transaction_type),
                         csv_import_price: Math.abs(convertToNumber(csv_import_price)),
                         csv_import_quantity: Math.abs(convertToNumber(csv_import_quantity)),
-                        csv_import_diff: String(csv_import_diff)
+                        csv_import_diff: String(csv_import_diff),
+                        csv_import_name: String(csv_import_name)
                     }],
                     csv_import_ISIN: String(csv_import_ISIN),
                 })
@@ -159,7 +168,8 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
                             csv_import_transaction_type: String(csv_import_transaction_type),
                             csv_import_price: Math.abs(convertToNumber(csv_import_price)),
                             csv_import_quantity: Math.abs(convertToNumber(csv_import_quantity)),
-                            csv_import_diff: String(csv_import_diff)
+                            csv_import_diff: String(csv_import_diff),
+                            csv_import_name: String(csv_import_name)
                         }
                     ]
                 })
@@ -269,12 +279,33 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
                     set_ISIN_Relations(existing => {
                         existing.set(key, { shortname: quote.shortname, symbol: symbol })
                         return new Map(existing);
-                    })
+                    });
                 } else {
-                    set_ISIN_Relations(existing => {
-                        existing.set(key, { shortname: key, symbol: key })
-                        return new Map(existing);
-                    })
+                    const name = prompt(key + translate["_not_found_enter_name"]);
+                    const overridePrice = prompt(translate["enter_override_price_for_"] + name);
+                    if (name && overridePrice) {
+                        set_ISIN_Relations(existing => {
+                            existing.set(key, { shortname: String(name), symbol: String(name), overridePrice: Number(overridePrice) })
+                            return new Map(existing);
+                        });
+                    }
+                    // set_ISIN_Relations(existing => {
+                    //     existing.set(key, { shortname: String(name), symbol: String(name), overridePrice: Number(overridePrice) })
+                    //     return new Map(existing);
+                    // });
+                    // //Use backup by searching for name
+                    // console.log("NAME NOT FOUND: " + key);
+                    // set_ISIN_Relations(existing => {
+                    //     existing.set(key, { shortname: key, symbol: key })
+                    //     return new Map(existing);
+                    // });
+                    // setFailedFinds(f => {
+                    //     const data = interpretedData.find(d => d.stockName === key);
+                    //     f.push({ id: key, name: data?.stockName ?? key })
+                    //     return f;
+                    // })
+
+                    //If none found, prompt allowing user to enter a ticker name. Also allow user to enter nothing to skip
                 }
 
 
@@ -286,7 +317,10 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
         }, 1000);
     }
 
-    const stocks = interpretedData.map(d => ({ ...d, stockName: ISIN_Relations.get(d.stockName)?.symbol ?? d.stockName }));
+    const stocks = interpretedData.map(d => {
+        const existing = ISIN_Relations.get(d.stockName);
+        return { ...d, stockName: existing?.symbol ?? d.stockName, ...existing }
+    });
 
     const addStocks = async () => {
         setPage(5);
@@ -342,6 +376,7 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
                 {page === 3 && <div>
                     <Box sx={{ display: "flex", justifyContent: "center" }}>{ISIN_Relations.size != totalISIN && <Button onClick={() => scan()} disabled={scanning}>{scanning ? `${translate["scanning"]}... ${ISIN_Relations.size} / ${totalISIN}` : translate["convert_ISIN"]}</Button>}
                     </Box>
+                    {failedFinds.length > 0 && <FailedFind item={failedFinds[0]} updateStock={(v) => console.log(v)} />}
                     <StockPreview data={stocks} />
                 </div>}
 

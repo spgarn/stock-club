@@ -203,12 +203,17 @@ export const translate = {
     "csv_import_quantity": "Antal",
     "csv_import_ISIN": "ISIN",
     "csv_import_diff": "Differens",
+    "csv_import_name": "Namn",
     "back": "Tillbaka",
     "next": "Nästa",
     "no_columns": "Inga kolumner hittades",
     "convert_ISIN": "Konvertera ISIN",
     "scanning": "Skannar",
-    "finish": "Slutför"
+    "finish": "Slutför",
+    "change_ticker": "Ändra ticker symbol",
+    "skip": "Skippa",
+    "_not_found_enter_name": " hittades inte, skriv in namn (för överskrida pris)",
+    "enter_override_price_for_": "Skriv pris för "
 }
 
 //Translate with fallback

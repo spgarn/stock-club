@@ -81,7 +81,8 @@ export const colors = {
     'csv_import_price': '#9C27B0',       // Deep purple
     'csv_import_quantity': '#D81B60',    // Vibrant pink
     'csv_import_ISIN': '#FFA726',        // Orange
-    'csv_import_diff': '#5D4037',        // Dark brown
+    'csv_import_diff': '#5D4037', // Dark brown
+    'csv_import_name': '#9D4037',
 };
 
 const LineMatcher: React.FC<LineMatcherProps> = ({ className, keys, values, connections, setConnections }) => {
