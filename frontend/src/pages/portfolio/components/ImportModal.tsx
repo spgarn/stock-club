@@ -191,7 +191,11 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
                 }
                 return prev;
             }, { date: new Date(), price: 0, amount: 0, count: 0 })
-            return { date, price: price / count, amount: amount / count }
+            return {
+                date,
+                price: count === 0 ? 0 : price / count,
+                amount: count === 0 ? 0 : amount / count
+            }
         }
         for (const data of aggregated) {
             //buy: 10 amount
