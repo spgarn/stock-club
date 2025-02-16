@@ -1,5 +1,5 @@
 import Button from '@mui/material/Button';
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { translate } from '../../../i18n';
 import TextField from '@mui/material/TextField';
 
