@@ -206,6 +206,7 @@ export const translate = {
     "csv_import_name": "Namn",
     "back": "Tillbaka",
     "next": "Nästa",
+    "previous": "Föregående",
     "no_columns": "Inga kolumner hittades",
     "convert_ISIN": "Konvertera ISIN",
     "scanning": "Skannar",

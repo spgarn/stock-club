@@ -142,6 +142,20 @@ export const getDecisions = async () => {
     return response.data;
 }
 
+export const getEmails = async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const response = await api.get<any[]>(
+        '/emails',
+        {
+            headers: {
+                "Access-Control-Allow-Origin": "*"
+            },
+            withCredentials: true
+        }
+    )
+    return response.data;
+}
+
 
 export const getTemplates = async (clubId: number) => {
     const response = await api.get<Templates[]>(
