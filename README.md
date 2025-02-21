@@ -4,7 +4,7 @@ A portal for clubs to use
 
 # Add secret
 
-`Make .env file and add SendGrid secret`
+`Make .env file and add SendGrid secret + mail user/password`
 
 ## Dev (with vite hot reload)
 
