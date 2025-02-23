@@ -19,7 +19,7 @@ import portfolioStyles from "../portfolio.module.scss";
 
 const columnHelper = createColumnHelper<StockHoldings>();
 
-type IProps = { list: StockHoldings[], page: number, rowCount: number, currencyDisplay: "kr" | "percent", displayMethod: "active_stocks" | "sold_stocks" | "all_stocks", removeStock: (id: number) => void, setEditStock: (v: StockHoldings) => void, setSellPortion: (v: StockHoldings) => void, withLivePrice?: boolean; isPublic: boolean; }
+type IProps = { list: StockHoldings[], page: number, rowCount: number, currencyDisplay: "kr" | "percent", displayMethod: "active_stocks" | "sold_stocks" | "all_stocks", removeStock: (id: number) => void, setEditStock: (v: StockHoldings) => void, setSellPortion: (v: StockHoldings) => void, withLivePrice?: boolean; isPublic?: boolean; }
 
 export default function RenderStocks({ list, page, rowCount, currencyDisplay, displayMethod, removeStock, setEditStock, setSellPortion, withLivePrice = true, isPublic = false }: IProps) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
