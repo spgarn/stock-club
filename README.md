@@ -23,3 +23,11 @@ A portal for clubs to use
 ## https://phoenixnap.com/kb/letsencrypt-docker
 
 `docker compose run --rm certbot certonly --webroot --webroot-path /var/www/certbot/ --dry-run -d aktiesparklubb.se`
+
+## Connect to database locally
+
+Host: localhost
+Password: 23jka2jk3na2ujk3ss
+Port: 5434
+Username: postgres
+Default db: club

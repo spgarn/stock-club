@@ -40,6 +40,8 @@ services:
     image: postgres:16
     container_name: postgres_db
     restart: always
+    ports:
+      - "5434:5432"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 23jka2jk3na2ujk3ss
