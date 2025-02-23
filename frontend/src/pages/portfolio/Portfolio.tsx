@@ -21,12 +21,17 @@ import api, { getStocks, StockHoldings } from "../../api";
 import RenderStocks from "./components/RenderStocks";
 import DisplayToggle from "./components/DisplayToggle";
 import useStocks from "./components/useStocks";
+import { useParams } from "react-router-dom";
 export default function Portfolio() {
-    const { clubId } = useClubs();
+    const { id } = useParams(); // THis is for public
+    const { clubId: activeClubId } = useClubs();
+    const clubId = id ? Number(id) : activeClubId;
     const { data, refetch } = useQuery({
         queryKey: ['club-stocks', clubId],
         queryFn: () => getStocks(clubId),
     });
+    console.log(clubId);
+    console.log(data);
     const [rowCount, setRowCount] = useState(10);
     const [page, setPage] = useState(1);
     const [addStockOpen, setAddStockOpen] = useState(false);

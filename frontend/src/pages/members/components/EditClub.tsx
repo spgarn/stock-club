@@ -68,6 +68,7 @@ export default function EditClub({ handleClose, refetch, club }: { handleClose: 
         }
         setLoading(false);
     }
+    const link = "https://aktiesparklubb.se/#/public/portfolio/" + club.id;
     return (
         <Dialog
             open={true}
@@ -112,6 +113,7 @@ export default function EditClub({ handleClose, refetch, club }: { handleClose: 
                                     }
                                     label={translate["public_investment"]} // Example label text, update as needed
                                 />
+                                {value && <div className="p-1"><a className="p-1" href={link}>{link}</a></div>}
 
                             </>
                         )}

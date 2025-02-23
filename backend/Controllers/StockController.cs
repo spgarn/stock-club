@@ -12,21 +12,29 @@ namespace club.Controllers
     public class StockController : ExtendedController
     {
         [HttpGet]
-        [Authorize]
         [Route("all/{clubId}")]
         public async Task<ActionResult<ICollection<StockDto>>> GetStocks(
            [FromServices] MyDbContext context, int clubId)
         {
-            var result = await GetCurrentUser(context);
-            if (result.Result != null) // If it's an error result
-                return result.Result;
-            if (result.Value == null) return NotFound();
-            var user = result.Value;
-            if (user == null) return NotFound();
+            
+            var publicClub = context.Club.FirstOrDefault(c => c.Id == clubId);
+            Console.WriteLine(publicClub.Name);
+            Console.WriteLine(publicClub.PublicInvestments);
+            var isPublic = publicClub != null && publicClub.PublicInvestments;
+            if (!isPublic)
+            {
+                var result = await GetCurrentUser(context);
+                if (result.Result != null) // If it's an error result
+                    return result.Result;
+                if (result.Value == null) return NotFound();
+                var user = result.Value;
+                if (user == null) return NotFound();
 
-            var club = user.Clubs.FirstOrDefault(c => c.Id == clubId);
-            if (club == null) return NotFound();
-            var stocks = context.StockHolding.Include(stock => stock.Stock).Where(stocks => stocks.Club.Id == club.Id).OrderByDescending(stock => stock.Id).ToArray();
+                var club = user.Clubs.FirstOrDefault(c => c.Id == clubId);
+                if (club == null) return NotFound();
+            }
+           
+            var stocks = context.StockHolding.Include(stock => stock.Stock).Where(stocks => stocks.Club.Id == clubId).OrderByDescending(stock => stock.Id).ToArray();
             return Ok(stocks.Select(stock =>
                 new StockDto
                 {

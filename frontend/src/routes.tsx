@@ -107,6 +107,21 @@ export const publicRoutes = createHashRouter(
                     </Suspense>
                 }
             />
+            <Route
+                path='/public/portfolio/:id'
+                element={
+                    <Suspense fallback={<></>}>
+                        <div className='container'>
+                            <header>
+                                <div className='content-header'></div>
+                            </header>
+                            <main className='mt-12'>
+                                <Portfolio />
+                            </main>
+                        </div>
+                    </Suspense>
+                }
+            />
         </Route>
     )
 )
