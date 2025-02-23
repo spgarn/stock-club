@@ -26,6 +26,7 @@ import { toast } from "react-toastify";
 import useWindowDimensions from "../../hooks/useWindowDimensions";
 import Wrapper from "./components/Wrapper";
 import DOMPurify from 'dompurify';
+import AddSuggestionModal from "../home/components/AddSuggestionModal";
 const options = ['agenda', 'meeting_protocol', 'proposals', 'chat'];
 
 export default function Meeting() {
@@ -33,6 +34,7 @@ export default function Meeting() {
     const { width } = useWindowDimensions();
     const isMobile = (width ?? 0) < 700;
     const [agenda, setAgenda] = useState("");
+    const [addSuggestionOpen, setAddSuggestionOpen] = useState(false);
     const [meetingProtocols, setMeetingProtocols] = useState("");
     const [chats, setChats] = useState<MeetingChat[]>([]);
     const { id } = useParams();
@@ -140,6 +142,7 @@ export default function Meeting() {
             <div className="content-header">
                 <Typography variant="h5">{meeting.name} - {dayjs(meeting.meetingTime).format("HH:mm DD/MM YY")}</Typography>
                 <div className="flex">
+                    <Button onClick={() => setAddSuggestionOpen(true)}>{translate["new_proposal"]}</Button>
                     <Button onClick={() => setEditMeetingOpen(true)}>{translate["edit"]}</Button>
 
                     {meeting.endedAt ? <Button onClick={toggleMeeting} color="warning">{translate["reopen_meeting"]}</Button> : <Button onClick={toggleMeeting} color="error">{translate["end_meeting"]}</Button>}
@@ -215,7 +218,7 @@ export default function Meeting() {
 
             </div>}
             {editMeetingOpen && <EditMeetingModal refetch={liveRefetch} handleClose={() => setEditMeetingOpen(false)} meeting={meeting} />}
-
+            {addSuggestionOpen && <AddSuggestionModal meetingId={meeting.id} clubId={clubId} refetch={refetchClubAndMeeting} handleClose={() => setAddSuggestionOpen(false)} />}
         </div>
     )
 }

@@ -6,6 +6,8 @@ namespace club.Dtos
     {
         public int Id { get; set; }
 
+        public virtual Meeting Meeting { get; set; } = null!;
+
         public string Title { get; set; } = null!;
 
         public string Description { get; set; } = null!;

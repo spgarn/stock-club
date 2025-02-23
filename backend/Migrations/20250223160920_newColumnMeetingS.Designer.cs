@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using club.Data;
@@ -11,9 +12,11 @@ using club.Data;
 namespace club.Migrations
 {
     [DbContext(typeof(MyDbContext))]
-    partial class MyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250223160920_newColumnMeetingS")]
+    partial class newColumnMeetingS
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -451,8 +454,6 @@ namespace club.Migrations
 
                     b.HasIndex("ClubId");
 
-                    b.HasIndex("MeetingId");
-
                     b.HasIndex("UserId");
 
                     b.ToTable("MeetingsSuggestion");
@@ -728,19 +729,11 @@ namespace club.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("club.Models.Meeting", "Meeting")
-                        .WithMany("MeetingSuggestions")
-                        .HasForeignKey("MeetingId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("club.Models.ApplicationUser", "User")
                         .WithMany("MeetingsSuggestions")
                         .HasForeignKey("UserId");
 
                     b.Navigation("Club");
-
-                    b.Navigation("Meeting");
 
                     b.Navigation("User");
                 });
@@ -828,8 +821,6 @@ namespace club.Migrations
             modelBuilder.Entity("club.Models.Meeting", b =>
                 {
                     b.Navigation("MeetingChats");
-
-                    b.Navigation("MeetingSuggestions");
                 });
 
             modelBuilder.Entity("club.Models.MeetingsSuggestion", b =>

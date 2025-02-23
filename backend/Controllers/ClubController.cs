@@ -39,7 +39,7 @@ namespace club.Controllers
         [Authorize]
         [Route("{id}/info")]
         public async Task<ActionResult<IEnumerable<ClubDto>>> GetClubSuggestions(int id,
-    [FromServices] MyDbContext context)
+            [FromServices] MyDbContext context)
         {
             var result = await GetCurrentUser(context);
             if (result.Result != null) // If it's an error result
@@ -72,54 +72,55 @@ namespace club.Controllers
             {
                 return Unauthorized();
             }
+
             var clubDto = new ClubDto
             {
                 Id = club.Id,
                 Name = club.Name,
                 PublicInvestments = club.PublicInvestments,
                 Meetings = club.Meetings.Select(meeting =>
-                 new MeetingDTO
-                 {
-                     Id = meeting.Id,
-                     Name = meeting.Name,
-                     Description = meeting.Description,
-                     MeetingTime = meeting.MeetingTime,
-                     Location = meeting.Location
-                 }).ToList(),
+                    new MeetingDTO
+                    {
+                        Id = meeting.Id,
+                        Name = meeting.Name,
+                        Description = meeting.Description,
+                        MeetingTime = meeting.MeetingTime,
+                        Location = meeting.Location
+                    }).ToList(),
                 MeetingsSuggestions = club.MeetingsSuggestions.Select(suggestion =>
-               new MeetingSuggestionDTO
-               {
-                   Id = suggestion.Id,
-                   Title = suggestion.Title,
-                   Description = suggestion.Description,
-                   CreatedAt = suggestion.CreatedAt,
-                   Completed = suggestion.Completed,
-                   User = new UserDTO
-                   {
-                       Id = suggestion.User.Id,
-                       FirstName = suggestion.User.FirstName,
-                       LastName = suggestion.User.LastName,
-                       Email = suggestion.User.Email ?? "",
-                       UserName = suggestion.User.UserName ?? ""
-
-                   },
-                   MeetingsSuggestionsUpvotes = suggestion.MeetingsSuggestionsUpvotes.Select(upvote => new MeetingSuggestionUpvoteDTO
-                   {
-                       Id = upvote.Id,
-                       UserId = upvote.User.Id
-                   }).ToList(),
-                   MeetingsSuggestionsDownvotes = suggestion.MeetingsSuggestionsDownvotes.Select(upvote => new MeetingSuggestionDownvoteDTO
-                   {
-                       Id = upvote.Id,
-                       UserId = upvote.User.Id
-                   }).ToList(),
-
-               }).ToList()
+                    new MeetingSuggestionDTO
+                    {
+                        Id = suggestion.Id,
+                        Title = suggestion.Title,
+                        Description = suggestion.Description,
+                        CreatedAt = suggestion.CreatedAt,
+                        Completed = suggestion.Completed,
+                        User = new UserDTO
+                        {
+                            Id = suggestion.User.Id,
+                            FirstName = suggestion.User.FirstName,
+                            LastName = suggestion.User.LastName,
+                            Email = suggestion.User.Email ?? "",
+                            UserName = suggestion.User.UserName ?? ""
+                        },
+                        MeetingsSuggestionsUpvotes = suggestion.MeetingsSuggestionsUpvotes.Select(upvote =>
+                            new MeetingSuggestionUpvoteDTO
+                            {
+                                Id = upvote.Id,
+                                UserId = upvote.User.Id
+                            }).ToList(),
+                        MeetingsSuggestionsDownvotes = suggestion.MeetingsSuggestionsDownvotes.Select(upvote =>
+                            new MeetingSuggestionDownvoteDTO
+                            {
+                                Id = upvote.Id,
+                                UserId = upvote.User.Id
+                            }).ToList(),
+                    }).ToList()
             };
 
             return Ok(clubDto);
         }
-        
+
         [HttpPut]
         [Authorize(Roles = "Admin")]
         [Route("edit/{clubId}")]
@@ -142,11 +143,12 @@ namespace club.Controllers
 
         [HttpPost]
         [Authorize]
-        [Route("suggestion/{clubId}")]
+        [Route("suggestion/{clubId}/{meetingId}")]
         public async Task<ActionResult<string>> AddProposal(AddSuggestion suggestionDTO,
-           [FromServices] MyDbContext context, int clubId)
+            [FromServices] MyDbContext context, int clubId, int meetingId)
         {
             var result = await GetCurrentUser(context);
+            
             if (result.Result != null) // If it's an error result
                 return result.Result;
             if (result.Value == null) return NotFound();
@@ -156,19 +158,25 @@ namespace club.Controllers
             {
                 return NotFound();
             }
+
             var club = user.Clubs.FirstOrDefault(club => club.Id == clubId);
             if (club == null) return NotFound();
+            
+            var meeting = context.Meeting.FirstOrDefault(meeting => meeting.Id == meetingId && meeting.Club == club);
+            if (meeting == null) return NotFound();
+            
             var meetingSuggestion = new MeetingsSuggestion();
             meetingSuggestion.Title = suggestionDTO.Title;
             meetingSuggestion.Description = suggestionDTO.Description;
             meetingSuggestion.Club = club;
             meetingSuggestion.User = user;
+            meetingSuggestion.Meeting = meeting;
 
             context.MeetingsSuggestion.Add(meetingSuggestion);
             await context.SaveChangesAsync();
             return CreatedAtAction(nameof(AddProposal), user.Id);
         }
-        
+
         [HttpPost]
         [Authorize]
         [Route("togglesuggestion/{suggestionId}")]
@@ -185,7 +193,9 @@ namespace club.Controllers
             {
                 return NotFound();
             }
-            var meetingSuggestion = context.MeetingsSuggestion.FirstOrDefault(m => m.Id == suggestionId && user.Clubs.Select(c => c.Id).Contains(m.Club.Id));
+
+            var meetingSuggestion = context.MeetingsSuggestion.FirstOrDefault(m =>
+                m.Id == suggestionId && user.Clubs.Select(c => c.Id).Contains(m.Club.Id));
             if (meetingSuggestion == null) return NotFound();
             meetingSuggestion.Completed = !meetingSuggestion.Completed;
             context.MeetingsSuggestion.Update(meetingSuggestion);
@@ -197,7 +207,7 @@ namespace club.Controllers
         [Authorize]
         [Route("suggestion/delete/{suggestionid}")]
         public async Task<ActionResult<String>> RemoveProposal(
-           [FromServices] MyDbContext _context, int suggestionid)
+            [FromServices] MyDbContext _context, int suggestionid)
         {
             var result = await GetCurrentUser(_context);
             if (result.Result != null) // If it's an error result
@@ -209,7 +219,10 @@ namespace club.Controllers
             {
                 return NotFound();
             }
-            var meetingSuggestion = _context.MeetingsSuggestion.Where(sugg => sugg.Id == suggestionid && user.Clubs.Select(c => c.Id).Contains(sugg.Club.Id)).FirstOrDefault();
+
+            var meetingSuggestion = _context.MeetingsSuggestion
+                .Where(sugg => sugg.Id == suggestionid && user.Clubs.Select(c => c.Id).Contains(sugg.Club.Id))
+                .FirstOrDefault();
             if (meetingSuggestion == null) return NotFound();
 
             _context.MeetingsSuggestion.Remove(meetingSuggestion);
@@ -221,7 +234,7 @@ namespace club.Controllers
         [Authorize]
         [Route("react")]
         public async Task<ActionResult<String>> ProposalReact(React reactDTO,
-           [FromServices] MyDbContext _context)
+            [FromServices] MyDbContext _context)
         {
             var result = await GetCurrentUser(_context);
             if (result.Result != null) // If it's an error result
@@ -259,7 +272,8 @@ namespace club.Controllers
             //Add react
             if (reactDTO.IsUpvote)
             {
-                if (upvotes.Count == 0) //We only want to add if it doesn't already exist. If it exists, this is a DELETE operation
+                if (upvotes.Count ==
+                    0) //We only want to add if it doesn't already exist. If it exists, this is a DELETE operation
                 {
                     _context.MeetingsSuggestionsUpvote.Add(new MeetingsSuggestionsUpvote
                     {
@@ -267,11 +281,11 @@ namespace club.Controllers
                         MeetingsSuggestion = suggestion
                     });
                 }
-
             }
             else
             {
-                if (downvotes.Count == 0) // We only want to add if it doesn't already exist. If it exists, this is a DELETE operation
+                if (downvotes.Count ==
+                    0) // We only want to add if it doesn't already exist. If it exists, this is a DELETE operation
                 {
                     _context.MeetingsSuggestionsDownvote.Add(new MeetingsSuggestionsDownvote
                     {
@@ -280,6 +294,7 @@ namespace club.Controllers
                     });
                 }
             }
+
             await _context.SaveChangesAsync();
 
 

@@ -6,7 +6,6 @@ import {
     useQuery,
 } from '@tanstack/react-query'
 import { useMemo, useState } from "react";
-import AddSuggestionModal from "./components/AddSuggestionModal";
 import Loading from "../../components/Loading";
 import AddMeetingModal from "./components/AddMeetingModal";
 import dayjs from "dayjs";
@@ -21,7 +20,6 @@ export default function Home() {
 
 
     const { clubId: id, clubs: clubData } = useClubs();
-    const [addSuggestionOpen, setAddSuggestionOpen] = useState(false);
     const [addMeetingOpen, setAddMeetingOpen] = useState(false);
     const { width } = useWindowDimensions();
     const isMobile = (width ?? 0) < 700;
@@ -55,7 +53,6 @@ export default function Home() {
         <div>
             <div className={homeStyles.actions}>
                 <Button variant="contained" onClick={() => setAddMeetingOpen(true)}>{translate["new_meeting"]}</Button>
-                <Button variant="contained" onClick={() => setAddSuggestionOpen(true)}>{translate["new_proposal"]}</Button>
             </div>
             {isMobile ? <div className={homeStyles.mobileView}>
                 <UpcomingMeetings upcomingMeetings={upcomingMeetings} />
@@ -82,7 +79,6 @@ export default function Home() {
                 </div>
             </div>}
 
-            {addSuggestionOpen && <AddSuggestionModal clubId={id} refetch={refetchClubAndMeeting} handleClose={() => setAddSuggestionOpen(false)} />}
             {addMeetingOpen && <AddMeetingModal clubId={id} refetch={refetchClubAndMeeting} handleClose={() => setAddMeetingOpen(false)} />}
         </div>
     )

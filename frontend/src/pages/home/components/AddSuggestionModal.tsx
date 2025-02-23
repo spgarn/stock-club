@@ -26,7 +26,7 @@ export type NewSuggestion = {
     description: string;
 }
 // };
-export default function AddSuggestionModal({ handleClose, refetch, clubId }: { handleClose: () => void; refetch: () => void; clubId: number }) {
+export default function AddSuggestionModal({ handleClose, refetch, clubId, meetingId }: { handleClose: () => void; refetch: () => void; clubId: number, meetingId: number }) {
     const {
         register,
         handleSubmit,
@@ -37,7 +37,7 @@ export default function AddSuggestionModal({ handleClose, refetch, clubId }: { h
         setLoading(true);
         try {
             const res = await api.post<unknown>
-                ("/club/suggestion/" + clubId, data, {
+                ("/club/suggestion/" + clubId + "/" + meetingId, data, {
                     headers: {
                         "Access-Control-Allow-Origin": "*"
                     },
