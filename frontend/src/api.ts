@@ -57,6 +57,7 @@ export type MeetingSuggestionRate = {
 
 export type MeetingSuggestion = {
     id: number;
+    meeting: Meeting;
     title: string;
     description: string;
     createdAt: Date;

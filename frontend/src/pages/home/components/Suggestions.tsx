@@ -4,9 +4,11 @@ import Suggestion from './Suggestion';
 import axios from 'axios';
 import { translate, translateText } from '../../../i18n';
 import { toast } from 'react-toastify';
+import { useParams } from 'react-router-dom';
 
 export default function Suggestions({ user, refetch, meetingsSuggestions }: { user: User; refetch: () => void; meetingsSuggestions: MeetingSuggestion[] }) {
     const [isUpvoting, setIsUpvoting] = useState(false);
+    const { id: meetingId } = useParams()
     const react = async (suggestionId: number, isUpvote: boolean) => {
         if (isUpvoting) return;
 
@@ -100,9 +102,9 @@ export default function Suggestions({ user, refetch, meetingsSuggestions }: { us
         setIsUpvoting(false);
     }
     return (
-        <div className="suggestion-wrapper" >
+        <div className={`suggestion-wrapper ${!meetingId && "home-suggestions-wrapper" }`} >
             {meetingsSuggestions.length === 0 && <p className='text-center p-1'>{translate["no_suggestions"]}</p>}
-            {meetingsSuggestions.map(suggestion => <Suggestion user={user} react={react} toggleActive={toggleActive} suggestion={suggestion} key={suggestion.id} removeSuggestion={removeSuggestion} />)}
+            {meetingsSuggestions.filter(suggestions => !meetingId || suggestions.meeting.id === Number(meetingId)).map(suggestion => <Suggestion user={user} react={react} toggleActive={toggleActive} suggestion={suggestion} key={suggestion.id} removeSuggestion={removeSuggestion} />)}
         </div>
     )
 }

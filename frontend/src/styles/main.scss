@@ -270,6 +270,12 @@ ul, ol {
     flex-direction: column;
 }
 
+.home-suggestions-wrapper {
+    border: 1px solid colors.$gray;
+    border-radius: 10px;
+    padding: 1rem;
+}
+
 .suggestion-wrapper {
     background-color: colors.$white;
     display: flex;
