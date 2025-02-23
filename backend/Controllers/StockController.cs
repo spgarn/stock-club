@@ -18,8 +18,6 @@ namespace club.Controllers
         {
             
             var publicClub = context.Club.FirstOrDefault(c => c.Id == clubId);
-            Console.WriteLine(publicClub.Name);
-            Console.WriteLine(publicClub.PublicInvestments);
             var isPublic = publicClub != null && publicClub.PublicInvestments;
             if (!isPublic)
             {
