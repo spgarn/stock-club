@@ -68,7 +68,7 @@ export default function EditClub({ handleClose, refetch, club }: { handleClose: 
         }
         setLoading(false);
     }
-    const link = "https://aktiesparklubb.se/#/public/portfolio/" + club.id;
+    const link = `${window.location.origin}/#/public/portfolio/${club.id}`;
     return (
         <Dialog
             open={true}
