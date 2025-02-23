@@ -19,9 +19,9 @@ import portfolioStyles from "../portfolio.module.scss";
 
 const columnHelper = createColumnHelper<StockHoldings>();
 
-type IProps = { list: StockHoldings[], page: number, rowCount: number, currencyDisplay: "kr" | "percent", displayMethod: "active_stocks" | "sold_stocks" | "all_stocks", removeStock: (id: number) => void, setEditStock: (v: StockHoldings) => void, setSellPortion: (v: StockHoldings) => void, withLivePrice?: boolean; }
+type IProps = { list: StockHoldings[], page: number, rowCount: number, currencyDisplay: "kr" | "percent", displayMethod: "active_stocks" | "sold_stocks" | "all_stocks", removeStock: (id: number) => void, setEditStock: (v: StockHoldings) => void, setSellPortion: (v: StockHoldings) => void, withLivePrice?: boolean; isPublic: boolean; }
 
-export default function RenderStocks({ list, page, rowCount, currencyDisplay, displayMethod, removeStock, setEditStock, setSellPortion, withLivePrice = true }: IProps) {
+export default function RenderStocks({ list, page, rowCount, currencyDisplay, displayMethod, removeStock, setEditStock, setSellPortion, withLivePrice = true, isPublic = false }: IProps) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const columns: ColumnDef<StockHoldings, any>[] = useMemo(() => [
         columnHelper.accessor('stockName', {
@@ -113,7 +113,7 @@ export default function RenderStocks({ list, page, rowCount, currencyDisplay, di
                 return <p>{formatCurrency(value, true, 2, false)}</p>;
             },
         },
-        columnHelper.accessor('id', {
+        ...(!isPublic ? [columnHelper.accessor('id', {
             header: "",
             enableSorting: false,
             cell: info => {
@@ -131,8 +131,8 @@ export default function RenderStocks({ list, page, rowCount, currencyDisplay, di
                     </div>
                 </div>
             },
-        })
-    ], [currencyDisplay, displayMethod, withLivePrice]);
+        })] : [])
+    ], [currencyDisplay, displayMethod, withLivePrice, isPublic]);
 
     return <PaginatedTable columns={columns} data={list} page={page} rowCount={rowCount} />
 }

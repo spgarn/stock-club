@@ -22,11 +22,13 @@ import RenderStocks from "./components/RenderStocks";
 import DisplayToggle from "./components/DisplayToggle";
 import useStocks from "./components/useStocks";
 import { useParams } from "react-router-dom";
+import ErrorMessage from "../../components/ErrorMessage";
 export default function Portfolio() {
     const { id } = useParams(); // THis is for public
     const { clubId: activeClubId } = useClubs();
+    const isPublic = !activeClubId && !!id;
     const clubId = id ? Number(id) : activeClubId;
-    const { data, refetch } = useQuery({
+    const { data, refetch, error } = useQuery({
         queryKey: ['club-stocks', clubId],
         queryFn: () => getStocks(clubId),
     });
@@ -83,6 +85,11 @@ export default function Portfolio() {
 
 
     const maxPages = Math.ceil(list.length / rowCount);
+    if (error) {
+        return <div>
+            <ErrorMessage error={String(error?.message)} />
+        </div>
+    }
     if (!data) {
         return <div>
             <Loading />
@@ -119,7 +126,7 @@ export default function Portfolio() {
                 </div>
             </div>
             <div className={portfolioStyles.actionContainer}>
-                <Button onClick={() => setAddStockOpen(true)}>{translate["add_investment"]}</Button>
+                {!isPublic ? <Button onClick={() => setAddStockOpen(true)}>{translate["add_investment"]}</Button> : <p></p>}
                 <div>
                     <RowSelect
                         value={rowCount}
@@ -128,7 +135,7 @@ export default function Portfolio() {
                 </div>
             </div>
 
-            <RenderStocks list={list} page={page} rowCount={rowCount} currencyDisplay={currencyDisplay} displayMethod={displayMethod} removeStock={removeStock} setEditStock={setEditStock} setSellPortion={setSellPortion} />
+            <RenderStocks list={list} page={page} rowCount={rowCount} currencyDisplay={currencyDisplay} displayMethod={displayMethod} removeStock={removeStock} setEditStock={setEditStock} setSellPortion={setSellPortion} isPublic={isPublic} />
             {addStockOpen && <AddStockModal refetch={refetch} handleClose={() => setAddStockOpen(false)} />}
             {!!editStock && <EditStockModal refetch={refetch} handleClose={() => setEditStock(null)} stock={editStock} />}
             {!!sellPortion && <SellPortionModal refetch={refetch} handleClose={() => setSellPortion(null)} stock={sellPortion} />}
@@ -137,7 +144,7 @@ export default function Portfolio() {
             <div className="pagination-container">
                 <Pagination size="small" color="primary" count={maxPages} page={page} onChange={(_e, v) => setPage(v)} />
             </div>
-            <Button onClick={() => setImportModal(true)}>{translate["import_csv"]}</Button>
+            {!isPublic && <Button onClick={() => setImportModal(true)}>{translate["import_csv"]}</Button>}
         </div>
     )
 }
