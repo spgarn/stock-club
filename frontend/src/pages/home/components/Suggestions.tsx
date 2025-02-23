@@ -100,7 +100,7 @@ export default function Suggestions({ user, refetch, meetingsSuggestions }: { us
         setIsUpvoting(false);
     }
     return (
-        <div className="content-box">
+        <div className="suggestion-wrapper" >
             {meetingsSuggestions.length === 0 && <p className='text-center p-1'>{translate["no_suggestions"]}</p>}
             {meetingsSuggestions.map(suggestion => <Suggestion user={user} react={react} toggleActive={toggleActive} suggestion={suggestion} key={suggestion.id} removeSuggestion={removeSuggestion} />)}
         </div>

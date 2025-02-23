@@ -14,7 +14,7 @@ export default function Suggestion({ user, suggestion, react, removeSuggestion, 
     const isYou = user.email === suggestion.user.email;
 
     return (
-        <div className={homeStyles.suggestion}>
+        <div className={`${homeStyles.suggestion} suggestion-card` }>
             <div className={homeStyles.suggestionHeader}>{dayjs(suggestion.createdAt).format("DD/MM/YYYY")} | {suggestion.user.firstName + " " + suggestion.user.lastName} | {(isYou || user.admin) && <div className={homeStyles.deleteMessage} aria-label={translate["delete"]} role='button' title={translate["delete"]} onClick={() => removeSuggestion(suggestion.id)}><FontAwesomeIcon icon={faXmark} /></div>}                 <FontAwesomeIcon className='clickable' icon={faCheckCircle} onClick={() => toggleActive(suggestion.id)} />
             </div>
             <div>

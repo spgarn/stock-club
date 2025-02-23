@@ -138,6 +138,16 @@ h5 {
     padding-top: 1rem;
 }
 
+ul, ol {
+    padding: 0 1.5rem;
+    margin: 1.25rem 1rem 1.25rem 0.4rem;
+
+    li p {
+        margin-top: 0.25em;
+        margin-bottom: 0.25em;
+    }
+}
+
 .tiptap {
     :first-child {
         margin-top: 0;
@@ -146,7 +156,7 @@ h5 {
     /* List styles */
     ul,
     ol {
-        padding: 0 1rem;
+        padding: 0 1.5rem;
         margin: 1.25rem 1rem 1.25rem 0.4rem;
 
         li p {
@@ -251,18 +261,26 @@ h5 {
 .flex {
     display: flex;
 }
+
 .content-box {
     background-color: colors.$white;
     border-radius: 10px;
     border: 1px solid colors.$gray;
     display: flex;
     flex-direction: column;
-    > * {
-        border-bottom: 1px solid colors.$gray;
-    }
-    :last-child {
-        border-bottom: none;
-    }
+}
+
+.suggestion-wrapper {
+    background-color: colors.$white;
+    display: flex;
+    flex-direction: column;
+    gap:1rem;
+}
+
+.suggestion-card {
+    background-color: colors.$background;
+    border: 1px solid colors.$gray;
+    border-radius: 12px;
 }
 
 .flexGap {

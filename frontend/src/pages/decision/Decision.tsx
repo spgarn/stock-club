@@ -27,7 +27,6 @@ export default function Decision() {
     // Find the matching email
     const email = emails.find((email) => `email-${email.dateReceived}` === id);
 
-    console.log("EMAIL DATA:", email);
 
     if (!email) {
         return (
