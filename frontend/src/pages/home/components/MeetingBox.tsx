@@ -64,33 +64,41 @@ export default function MeetingBox({ meeting, user, refetch }: { meeting: Meetin
     }
     return (
         <>
-            <NavLink to={"/club/meeting/" + meeting.id} className={homeStyles.meeting}>
-                <div className={homeStyles.meetingLeft}>
-                    <Typography variant='h6' className={homeStyles.meetingTitle}>{time.format("DD/MM/YYYY")}</Typography>
-                    <p>{time.format("HH:mm")}</p>
-                </div>
-                <div className={homeStyles.meetingRight}>
-                    <Typography variant='h6' className={homeStyles.meetingTitle}>{meeting.name}</Typography>
-                    <p>{meeting.location}</p>
-                </div>
-                <div className={homeStyles.attendanceMeetingWrapper}>
+            <NavLink to={"/club/meeting/" + meeting.id} className={homeStyles.hoverLink}>
+                <div className={homeStyles.meeting}>
 
-                    <Typography variant="body1" className={homeStyles.meetingTitle}>{translate["attend"] + "?"}</Typography>
-                    <div className={homeStyles.attendanceMeeting}>
-                        <FontAwesomeIcon className={`${homeStyles.attendanceVoteIcon} ${attendance ? homeStyles.attendanceVoteIconVoted : ""}`} icon={faThumbsUp} onClick={(e) => {
-                            e.preventDefault()
-                            respond(true)
-                        }
-                        } />
-                        <FontAwesomeIcon className={`${homeStyles.attendanceVoteIcon} ${!attendance ? homeStyles.attendanceVoteIconVoted : ""}`}  icon={faThumbsDown} onClick={(e) => {
-                            e.preventDefault()
-                            respond(false)
-                        }} />
+                    <div className={homeStyles.meetingLeft}>
+                        <Typography variant='h6' className={homeStyles.meetingTitle}>{time.format("DD/MM/YYYY")}</Typography>
+                        <p>{time.format("HH:mm")}</p>
                     </div>
-                    <Typography variant="body1" style={{ color: colors.green[700] }}>{meeting.attendees.length}</Typography>
+                    <div className={homeStyles.meetingRight}>
+                        <Typography variant='h6' className={homeStyles.meetingTitle}>{meeting.name}</Typography>
+                        <p>{meeting.location}</p>
+                    </div>
+                    <div className={homeStyles.attendanceMeetingWrapper}>
+
+                        <Typography variant="body1" className={homeStyles.meetingTitle}>{translate["attend"] + "?"}</Typography>
+
+                        <Typography variant="body1" style={{ color: colors.green[700] }}>{meeting.attendees.length}</Typography>
+                    </div>
+
+                </div>
+                <div className={homeStyles.attendanceMeeting}>
+                    <FontAwesomeIcon className={`${homeStyles.attendanceVoteIcon} ${attendance ? homeStyles.attendanceVoteIconVoted : ""}`} icon={faThumbsUp} onClick={(e) => {
+                        e.preventDefault()
+                        respond(true)
+                    }
+                    } />
+                    <FontAwesomeIcon className={`${homeStyles.attendanceVoteIcon} ${!attendance ? homeStyles.attendanceVoteIconVoted : ""}`} icon={faThumbsDown} onClick={(e) => {
+                        e.preventDefault()
+                        respond(false)
+                    }} />
                 </div>
 
             </NavLink>
+            <div>
+
+            </div>
             {meeting.attendees.length > 0 &&
                 <div style={{ padding: "10px", borderTop: "1px solid #ccc" }}>
                     <Typography variant="body1">+ {meeting.attendees.map(user => user.firstName + " " + user.lastName)}</Typography>

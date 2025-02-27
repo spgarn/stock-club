@@ -31,57 +31,63 @@
     padding: 1rem;
 }
 
+.attendanceMeeting {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    color: colors.$black;
+}
+
+.attendanceMeetingWrapper {
+    gap:0.5rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    border-left: 3px solid colors.$black;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.attendanceVoteIcon {
+    border:1px solid colors.$gray;
+    padding:8px;
+    border-radius: 12px;
+    margin-bottom: 8px;
+}
+
+.attendanceVoteIcon:hover {
+    background-color: colors.$gray;
+    opacity: 0.5;
+}
+
+.attendanceVoteIconVoted {
+    background-color: colors.$gray;
+    opacity: 0.5;
+}
+
+.hoverLink:hover{
+    cursor: pointer;
+    -webkit-box-shadow: 5px 5px 40px 7px rgba(0, 0, 0, 0.2);
+    -moz-box-shadow: 5px 5px 40px 7px rgba(0, 0, 0, 0.2);
+    box-shadow: 5px 5px 40px 7px rgba(0, 0, 0, 0.2);
+}
+
 .meeting {
     display: flex;
     padding: 0.7rem;
     gap: 0.5rem;
     text-decoration: none;
     color: colors.$black;
-    > * {
-        padding: 0.5rem;
-    }
-
-    .attendanceMeeting {
-        display: flex;
-        flex-direction: row;
-        justify-content: center;
-        align-items: center;
-        gap: 0.5rem;
-    }
-    
-    .attendanceMeetingWrapper {
-        gap:0.5rem;
-        padding-left: 1rem;
-        padding-right: 1rem;
-        border-left: 3px solid colors.$black;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-    }
-
-    .attendanceVoteIcon {
-        border:1px solid colors.$gray;
-        padding:8px;
-        border-radius: 12px;
-    }
-
-    .attendanceVoteIcon:hover {
-        background-color: colors.$gray;
-        opacity: 0.5;
-    }
-
-    .attendanceVoteIconVoted {
-        background-color: colors.$gray;
-        opacity: 0.5;
-    }
 
     .meetingLeft {
         border-right: 3px solid colors.$black;
         display: flex;
         flex-direction: column;
         gap: 0.5rem;
-        padding-left: 1rem;
         padding-right: 1rem;
     }
 
@@ -97,12 +103,7 @@
         font-weight: 700;
     }
 }
-.meeting:hover {
-    cursor: pointer;
-    -webkit-box-shadow: 5px 5px 40px 7px rgba(0, 0, 0, 0.2);
-    -moz-box-shadow: 5px 5px 40px 7px rgba(0, 0, 0, 0.2);
-    box-shadow: 5px 5px 40px 7px rgba(0, 0, 0, 0.2);
-}
+
 
 .suggestion {
     display: flex;
