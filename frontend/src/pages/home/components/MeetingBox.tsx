@@ -10,6 +10,7 @@ import { translate, translateText } from '../../../i18n';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import { AddToCalendarButton } from 'add-to-calendar-button-react';
 
 export default function MeetingBox({ meeting, user, refetch }: { meeting: Meeting, refetch: () => void, user: User }) {
     const time = dayjs(meeting.meetingTime);
@@ -62,6 +63,7 @@ export default function MeetingBox({ meeting, user, refetch }: { meeting: Meetin
         }
         setIsUpvoting(false);
     }
+
     return (
         <>
             <NavLink to={"/club/meeting/" + meeting.id} className={homeStyles.hoverLink}>
@@ -77,31 +79,46 @@ export default function MeetingBox({ meeting, user, refetch }: { meeting: Meetin
                     </div>
                     <div className={homeStyles.attendanceMeetingWrapper}>
 
-                        <Typography variant="body1" className={homeStyles.meetingTitle}>{translate["attend"] + "?"}</Typography>
+                        <Typography variant="body1" className={homeStyles.meetingTitle}>{translate["amount"]}</Typography>
 
                         <Typography variant="body1" style={{ color: colors.green[700] }}>{meeting.attendees.length}</Typography>
                     </div>
 
                 </div>
-                <div className={homeStyles.attendanceMeeting}>
-                    <FontAwesomeIcon className={`${homeStyles.attendanceVoteIcon} ${attendance ? homeStyles.attendanceVoteIconVoted : ""}`} icon={faThumbsUp} onClick={(e) => {
+                <div className={homeStyles.attendanceMeeting} style={{marginBottom:"8px"}} onClick={(e) => e.preventDefault()}>
+                <FontAwesomeIcon className={`${homeStyles.attendanceVoteIcon} ${attendance ? homeStyles.attendanceVoteIconVoted : ""}`} icon={faThumbsUp} onClick={(e) => {
                         e.preventDefault()
                         respond(true)
                     }
                     } />
-                    <FontAwesomeIcon className={`${homeStyles.attendanceVoteIcon} ${!attendance ? homeStyles.attendanceVoteIconVoted : ""}`} icon={faThumbsDown} onClick={(e) => {
+                    <AddToCalendarButton
+                        customCss=""
+                        name={meeting.name}
+                        options={['Apple', 'Google']}
+                        description={meeting.description}
+                        location={meeting.location}
+                        startDate={time.format("YYYY-MM-DD")}
+                        endDate={time.format("YYYY-MM-DD")}
+                        startTime={time.format("HH:mm")}
+                        buttonsList
+                        endTime="23:30"
+                        timeZone="Europe/Stockholm"
+                        hideTextLabelButton
+                        buttonStyle="round"
+                    ></AddToCalendarButton>
+                      <FontAwesomeIcon className={`${homeStyles.attendanceVoteIcon} ${!attendance ? homeStyles.attendanceVoteIconVoted : ""}`} icon={faThumbsDown} onClick={(e) => {
                         e.preventDefault()
                         respond(false)
                     }} />
                 </div>
 
             </NavLink>
-            <div>
 
-            </div>
+
+
             {meeting.attendees.length > 0 &&
                 <div style={{ padding: "10px", borderTop: "1px solid #ccc" }}>
-                    <Typography variant="body1">+ {meeting.attendees.map(user => user.firstName + " " + user.lastName)}</Typography>
+                    <Typography variant="body1">+ {meeting.attendees.map(user => user.firstName + " " + user.lastName + ",  ")}</Typography>
                 </div>
             }
         </>
