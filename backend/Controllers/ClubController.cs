@@ -51,6 +51,9 @@ namespace club.Controllers
             var club = await context.Club
                 .Include(u => u.Users)
                 .Include(u => u.Meetings)
+                .ThenInclude(m => m.Attendees)
+                .Include(u => u.Meetings)
+                .ThenInclude(m => m.Decliners)
                 .Include(u => u.MeetingsSuggestions)
                 .ThenInclude(ms => ms.Meeting)
                 .Include(u => u.MeetingsSuggestions)
@@ -75,79 +78,95 @@ namespace club.Controllers
                 return Unauthorized();
             }
 
-         var clubDto = new ClubDto
-    {
-        Id = club.Id,
-        Name = club.Name,
-        PublicInvestments = club.PublicInvestments,
-
-        // Convert each Meeting entity to a MeetingDTO
-        Meetings = club.Meetings.Select(meeting => new MeetingDTO
-        {
-            Id = meeting.Id,
-            Name = meeting.Name,
-            Description = meeting.Description,
-            MeetingTime = meeting.MeetingTime,
-            EndedAt = meeting.EndedAt,
-            Location = meeting.Location,
-            Agenda = meeting.Agenda,
-            MeetingProtocol = meeting.MeetingProtocol,
-
-            // If you need to map meeting chats, do so here:
-            // MeetingChats = meeting.MeetingChats.Select(chat => new MeetingChatDTO { ... }).ToList()
-        }).ToList(),
-
-        // Convert each MeetingsSuggestion entity to a MeetingSuggestionDTO
-        MeetingsSuggestions = club.MeetingsSuggestions.Select(suggestion =>
-            new MeetingSuggestionDTO
+            var clubDto = new ClubDto
             {
-                Id = suggestion.Id,
-                Title = suggestion.Title,
-                Description = suggestion.Description,
-                CreatedAt = suggestion.CreatedAt,
-                Completed = suggestion.Completed,
+                Id = club.Id,
+                Name = club.Name,
+                PublicInvestments = club.PublicInvestments,
 
-                // Instead of assigning the EF Meeting entity directly,
-                // map it to a new MeetingDTO to avoid circular references
-                Meeting = suggestion.Meeting == null
-                    ? null
-                    : new MeetingDTO
-                    {
-                        Id = suggestion.Meeting.Id,
-                        Name = suggestion.Meeting.Name,
-                        Description = suggestion.Meeting.Description,
-                        MeetingTime = suggestion.Meeting.MeetingTime,
-                        EndedAt = suggestion.Meeting.EndedAt,
-                        Location = suggestion.Meeting.Location,
-                        Agenda = suggestion.Meeting.Agenda,
-                        MeetingProtocol = suggestion.Meeting.MeetingProtocol
-                    },
-
-                User = new UserDTO
+                // Convert each Meeting entity to a MeetingDTO
+                Meetings = club.Meetings.Select(meeting => new MeetingDTO
                 {
-                    Id = suggestion.User.Id,
-                    FirstName = suggestion.User.FirstName,
-                    LastName = suggestion.User.LastName,
-                    Email = suggestion.User.Email ?? "",
-                    UserName = suggestion.User.UserName ?? ""
-                },
-
-                MeetingsSuggestionsUpvotes = suggestion.MeetingsSuggestionsUpvotes
-                    .Select(upvote => new MeetingSuggestionUpvoteDTO
+                    Id = meeting.Id,
+                    Name = meeting.Name,
+                    Description = meeting.Description,
+                    MeetingTime = meeting.MeetingTime,
+                    EndedAt = meeting.EndedAt,
+                    Location = meeting.Location,
+                    Agenda = meeting.Agenda,
+                    MeetingProtocol = meeting.MeetingProtocol,
+                    Attendees = meeting.Attendees.Select(u => new UserDTO
                     {
-                        Id = upvote.Id,
-                        UserId = upvote.User.Id
+                        Id = u.Id,
+                        FirstName = u.FirstName,
+                        LastName = u.LastName,
+                        Email = u.Email ?? "",
+                        UserName = u.UserName ?? ""
                     }).ToList(),
-
-                MeetingsSuggestionsDownvotes = suggestion.MeetingsSuggestionsDownvotes
-                    .Select(downvote => new MeetingSuggestionDownvoteDTO
+                    Decliners = meeting.Decliners.Select(u => new UserDTO
                     {
-                        Id = downvote.Id,
-                        UserId = downvote.User.Id
+                        Id = u.Id,
+                        FirstName = u.FirstName,
+                        LastName = u.LastName,
+                        Email = u.Email ?? "",
+                        UserName = u.UserName ?? ""
                     }).ToList()
-            }
-        ).ToList()
-    };
+
+                    // If you need to map meeting chats, do so here:
+                    // MeetingChats = meeting.MeetingChats.Select(chat => new MeetingChatDTO { ... }).ToList()
+                }).ToList(),
+
+                // Convert each MeetingsSuggestion entity to a MeetingSuggestionDTO
+                MeetingsSuggestions = club.MeetingsSuggestions.Select(suggestion =>
+                    new MeetingSuggestionDTO
+                    {
+                        Id = suggestion.Id,
+                        Title = suggestion.Title,
+                        Description = suggestion.Description,
+                        CreatedAt = suggestion.CreatedAt,
+                        Completed = suggestion.Completed,
+
+                        // Instead of assigning the EF Meeting entity directly,
+                        // map it to a new MeetingDTO to avoid circular references
+                        Meeting = suggestion.Meeting == null
+                            ? null
+                            : new MeetingDTO
+                            {
+                                Id = suggestion.Meeting.Id,
+                                Name = suggestion.Meeting.Name,
+                                Description = suggestion.Meeting.Description,
+                                MeetingTime = suggestion.Meeting.MeetingTime,
+                                EndedAt = suggestion.Meeting.EndedAt,
+                                Location = suggestion.Meeting.Location,
+                                Agenda = suggestion.Meeting.Agenda,
+                                MeetingProtocol = suggestion.Meeting.MeetingProtocol
+                            },
+
+                        User = new UserDTO
+                        {
+                            Id = suggestion.User.Id,
+                            FirstName = suggestion.User.FirstName,
+                            LastName = suggestion.User.LastName,
+                            Email = suggestion.User.Email ?? "",
+                            UserName = suggestion.User.UserName ?? ""
+                        },
+
+                        MeetingsSuggestionsUpvotes = suggestion.MeetingsSuggestionsUpvotes
+                            .Select(upvote => new MeetingSuggestionUpvoteDTO
+                            {
+                                Id = upvote.Id,
+                                UserId = upvote.User.Id
+                            }).ToList(),
+
+                        MeetingsSuggestionsDownvotes = suggestion.MeetingsSuggestionsDownvotes
+                            .Select(downvote => new MeetingSuggestionDownvoteDTO
+                            {
+                                Id = downvote.Id,
+                                UserId = downvote.User.Id
+                            }).ToList()
+                    }
+                ).ToList()
+            };
 
 
             return Ok(clubDto);

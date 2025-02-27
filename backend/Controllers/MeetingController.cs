@@ -169,5 +169,59 @@ namespace club.Controllers
             await context.SaveChangesAsync();
             return CreatedAtAction(nameof(ToggleEndMeeting), user.Id);
         }
+        
+        [HttpPost]
+        [Authorize]
+        [Route("{meetingId}/respond")]
+        public async Task<IActionResult> RespondToMeeting(int meetingId, [FromBody] RespondToMeetingDto response, [FromServices] MyDbContext context)
+        {
+            // Load the meeting with both Attendees and Decliners
+            var meeting = await context.Meeting
+                .Include(m => m.Attendees)
+                .Include(m => m.Decliners)
+                .FirstOrDefaultAsync(m => m.Id == meetingId);
+
+            if (meeting == null)
+            {
+                return NotFound("Meeting not found.");
+            }
+
+            var userResult = await GetCurrentUser(context);
+            if (userResult.Value == null)
+            {
+                return Unauthorized();
+            }
+            var user = userResult.Value;
+
+            if (response.IsAttending)
+            {
+                // If attending, ensure the user is in the Attendees list.
+                if (!meeting.Attendees.Any(u => u.Id == user.Id))
+                {
+                    meeting.Attendees.Add(user);
+                }
+                // Remove the user from Decliners if they were previously marked as declining.
+                if (meeting.Decliners.Any(u => u.Id == user.Id))
+                {
+                    meeting.Decliners.Remove(user);
+                }
+            }
+            else
+            {
+                // If declining, ensure the user is in the Decliners list.
+                if (!meeting.Decliners.Any(u => u.Id == user.Id))
+                {
+                    meeting.Decliners.Add(user);
+                }
+                // Remove the user from Attendees if they were previously marked as attending.
+                if (meeting.Attendees.Any(u => u.Id == user.Id))
+                {
+                    meeting.Attendees.Remove(user);
+                }
+            }
+
+            await context.SaveChangesAsync();
+            return Ok("RSVP updated successfully.");
+        }
     }
 }

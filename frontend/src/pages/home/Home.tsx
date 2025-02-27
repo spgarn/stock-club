@@ -55,7 +55,7 @@ export default function Home() {
                 <Button variant="contained" onClick={() => setAddMeetingOpen(true)}>{translate["new_meeting"]}</Button>
             </div>
             {isMobile ? <div className={homeStyles.mobileView}>
-                <UpcomingMeetings upcomingMeetings={upcomingMeetings} />
+                <UpcomingMeetings refetch={refetch} user={user} upcomingMeetings={upcomingMeetings} />
                 <div className={homeStyles.toggleContainer}>
                     <ToggleButtonGroup
                         color="primary"
@@ -68,11 +68,11 @@ export default function Home() {
                         <ToggleButton value="proposals">{translate["proposals"]}</ToggleButton>
                     </ToggleButtonGroup>
                 </div>
-                {displayMethod == "prev_meetings" ? <PreviousMeetings prevMeetings={prevMeetings} /> : <Proposals user={user} refetch={refetch} meetingsSuggestions={data.meetingsSuggestions} />}
+                {displayMethod == "prev_meetings" ? <PreviousMeetings refetch={refetch} user={user} prevMeetings={prevMeetings} /> : <Proposals user={user} refetch={refetch} meetingsSuggestions={data.meetingsSuggestions} />}
             </div> : <div className={homeStyles.desktopView}>
                 <div>
-                    <UpcomingMeetings upcomingMeetings={upcomingMeetings} />
-                    <PreviousMeetings prevMeetings={prevMeetings} />
+                    <UpcomingMeetings user={user} refetch={refetch} upcomingMeetings={upcomingMeetings} />
+                    <PreviousMeetings user={user} refetch={refetch} prevMeetings={prevMeetings} />
                 </div>
                 <div>
                     <Proposals user={user} refetch={refetch} meetingsSuggestions={data.meetingsSuggestions} />

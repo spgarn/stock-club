@@ -41,6 +41,37 @@
         padding: 0.5rem;
     }
 
+    .attendanceMeeting {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .attendanceMeetingWrapper {
+        gap:0.5rem;
+        padding-left: 1rem;
+        padding-right: 1rem;
+        border-left: 3px solid colors.$black;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .attendanceVoteIcon {
+        border:1px solid colors.$gray;
+        padding:8px;
+        border-radius: 12px;
+
+    }
+
+    .attendanceVoteIcon:hover {
+        background-color: colors.$gray;
+        opacity: 0.5;
+    }
+
     .meetingLeft {
         border-right: 3px solid colors.$black;
         display: flex;
@@ -49,12 +80,14 @@
         padding-left: 1rem;
         padding-right: 1rem;
     }
+
     .meetingRight {
         width: 100%;
         display: flex;
         flex-direction: column;
         gap: 0.5rem;
     }
+
     .meetingTitle {
         font-size: 1.1em;
         font-weight: 700;

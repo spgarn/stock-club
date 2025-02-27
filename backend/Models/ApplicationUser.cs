@@ -21,6 +21,12 @@ namespace club.Models
 
         // Custom logic or computed properties can also be added
         public string FullName => $"{FirstName} {LastName}";
+        
+        // Existing: If you have one for attended meetings (optional)
+        public virtual ICollection<Meeting> AttendedMeetings { get; set; } = new List<Meeting>();
+
+        // New: For declined meetings
+        public virtual ICollection<Meeting> DeclinedMeetings { get; set; } = new List<Meeting>();
 
         public virtual ICollection<MeetingChat> MeetingChats { get; set; } = new List<MeetingChat>();
 
