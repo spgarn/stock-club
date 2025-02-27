@@ -1,20 +1,37 @@
 import api, { Meeting, User } from '../../../api'
 import dayjs from "dayjs";
 import homeStyles from "../home.module.scss";
-import { Typography } from '@mui/material';
+import { colors, Typography } from '@mui/material';
 import { NavLink } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faThumbsUp } from '@fortawesome/free-regular-svg-icons/faThumbsUp';
 import { faThumbsDown } from '@fortawesome/free-regular-svg-icons/faThumbsDown';
 import { translate, translateText } from '../../../i18n';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 
 export default function MeetingBox({ meeting, user, refetch }: { meeting: Meeting, refetch: () => void, user: User }) {
     const time = dayjs(meeting.meetingTime);
-
     const [isUpvoting, setIsUpvoting] = useState(false);
+    const [attendance, setAttendance] = useState<boolean | undefined>();
+
+    const userIsAttending = meeting.attendees.some(attendee => attendee.id === user.id)
+    const userHasDeclined = meeting.decliners.some(decliner => decliner.id === user.id)
+
+    useEffect(() => {
+        if (userIsAttending) {
+            setAttendance(true)
+        }
+        if (userHasDeclined) {
+            setAttendance(false)
+        }
+    }, [userHasDeclined, userIsAttending])
+
+    console.log(attendance)
+
+
+
     const respond = async (isAttending: boolean) => {
         if (isUpvoting) return;
 
@@ -46,32 +63,39 @@ export default function MeetingBox({ meeting, user, refetch }: { meeting: Meetin
         setIsUpvoting(false);
     }
     return (
-        <NavLink to={"/club/meeting/" + meeting.id} className={homeStyles.meeting}>
-            <div className={homeStyles.meetingLeft}>
-                <Typography variant='h6' className={homeStyles.meetingTitle}>{time.format("DD/MM/YYYY")}</Typography>
-                <p>{time.format("HH:mm")}</p>
-            </div>
-            <div className={homeStyles.meetingRight}>
-                <Typography variant='h6' className={homeStyles.meetingTitle}>{meeting.name}</Typography>
-                <p>{meeting.location}</p>
-            </div>
-            <div className={homeStyles.attendanceMeetingWrapper}>
-
-                <Typography variant="body1" className={homeStyles.meetingTitle}>{translate["attend"] + "?"}</Typography>
-                <div className={homeStyles.attendanceMeeting}>
-                    <FontAwesomeIcon className={homeStyles.attendanceVoteIcon} icon={faThumbsUp} onClick={(e) => {
-                        e.preventDefault()
-                        respond(true)
-                    }
-                    } />
-                    <FontAwesomeIcon className={homeStyles.attendanceVoteIcon} icon={faThumbsDown} onClick={(e) => {
-                        e.preventDefault()
-                        respond(false)
-                    }} />
+        <>
+            <NavLink to={"/club/meeting/" + meeting.id} className={homeStyles.meeting}>
+                <div className={homeStyles.meetingLeft}>
+                    <Typography variant='h6' className={homeStyles.meetingTitle}>{time.format("DD/MM/YYYY")}</Typography>
+                    <p>{time.format("HH:mm")}</p>
                 </div>
-            </div>
+                <div className={homeStyles.meetingRight}>
+                    <Typography variant='h6' className={homeStyles.meetingTitle}>{meeting.name}</Typography>
+                    <p>{meeting.location}</p>
+                </div>
+                <div className={homeStyles.attendanceMeetingWrapper}>
 
+                    <Typography variant="body1" className={homeStyles.meetingTitle}>{translate["attend"] + "?"}</Typography>
+                    <div className={homeStyles.attendanceMeeting}>
+                        <FontAwesomeIcon className={`${homeStyles.attendanceVoteIcon} ${attendance ? homeStyles.attendanceVoteIconVoted : ""}`} icon={faThumbsUp} onClick={(e) => {
+                            e.preventDefault()
+                            respond(true)
+                        }
+                        } />
+                        <FontAwesomeIcon className={`${homeStyles.attendanceVoteIcon} ${!attendance ? homeStyles.attendanceVoteIconVoted : ""}`}  icon={faThumbsDown} onClick={(e) => {
+                            e.preventDefault()
+                            respond(false)
+                        }} />
+                    </div>
+                    <Typography variant="body1" style={{ color: colors.green[700] }}>{meeting.attendees.length}</Typography>
+                </div>
 
-        </NavLink>
+            </NavLink>
+            {meeting.attendees.length > 0 &&
+                <div style={{ padding: "10px", borderTop: "1px solid #ccc" }}>
+                    <Typography variant="body1">+ {meeting.attendees.map(user => user.firstName + " " + user.lastName)}</Typography>
+                </div>
+            }
+        </>
     )
 }

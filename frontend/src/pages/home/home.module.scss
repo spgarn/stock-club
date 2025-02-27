@@ -64,10 +64,14 @@
         border:1px solid colors.$gray;
         padding:8px;
         border-radius: 12px;
-
     }
 
     .attendanceVoteIcon:hover {
+        background-color: colors.$gray;
+        opacity: 0.5;
+    }
+
+    .attendanceVoteIconVoted {
         background-color: colors.$gray;
         opacity: 0.5;
     }
