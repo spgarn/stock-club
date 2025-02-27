@@ -1,5 +1,8 @@
 export const translate = {
     "login": "Logga in",
+    "attend": "Delta",
+    "attending": "Deltagare",
+    "decliners": "Avböjare",
     "loggingIn": "Loggar in...",
     "register": "Registrera",
     "registering": "Registrerar...",

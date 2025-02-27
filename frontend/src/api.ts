@@ -25,6 +25,8 @@ export type Meeting = {
     meetingTime: Date;
     location: string;
     endedAt: Date | null;
+    attendees: User[];
+    decliners: User[];
 }
 
 export type MeetingChat = {
@@ -57,6 +59,7 @@ export type MeetingSuggestionRate = {
 
 export type MeetingSuggestion = {
     id: number;
+    meeting: Meeting;
     title: string;
     description: string;
     createdAt: Date;

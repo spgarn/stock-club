@@ -51,10 +51,15 @@ namespace club.Controllers
             var club = await context.Club
                 .Include(u => u.Users)
                 .Include(u => u.Meetings)
+                .ThenInclude(m => m.Attendees)
+                .Include(u => u.Meetings)
+                .ThenInclude(m => m.Decliners)
                 .Include(u => u.MeetingsSuggestions)
-                .ThenInclude(u => u.MeetingsSuggestionsUpvotes)
+                .ThenInclude(ms => ms.Meeting)
                 .Include(u => u.MeetingsSuggestions)
-                .ThenInclude(u => u.MeetingsSuggestionsDownvotes)
+                .ThenInclude(ms => ms.MeetingsSuggestionsUpvotes)
+                .Include(u => u.MeetingsSuggestions)
+                .ThenInclude(ms => ms.MeetingsSuggestionsDownvotes)
                 .FirstOrDefaultAsync(c => c.Id == id);
 
             //If there is no club by the given ID, not found.
@@ -78,15 +83,40 @@ namespace club.Controllers
                 Id = club.Id,
                 Name = club.Name,
                 PublicInvestments = club.PublicInvestments,
-                Meetings = club.Meetings.Select(meeting =>
-                    new MeetingDTO
+
+                // Convert each Meeting entity to a MeetingDTO
+                Meetings = club.Meetings.Select(meeting => new MeetingDTO
+                {
+                    Id = meeting.Id,
+                    Name = meeting.Name,
+                    Description = meeting.Description,
+                    MeetingTime = meeting.MeetingTime,
+                    EndedAt = meeting.EndedAt,
+                    Location = meeting.Location,
+                    Agenda = meeting.Agenda,
+                    MeetingProtocol = meeting.MeetingProtocol,
+                    Attendees = meeting.Attendees.Select(u => new UserDTO
                     {
-                        Id = meeting.Id,
-                        Name = meeting.Name,
-                        Description = meeting.Description,
-                        MeetingTime = meeting.MeetingTime,
-                        Location = meeting.Location
+                        Id = u.Id,
+                        FirstName = u.FirstName,
+                        LastName = u.LastName,
+                        Email = u.Email ?? "",
+                        UserName = u.UserName ?? ""
                     }).ToList(),
+                    Decliners = meeting.Decliners.Select(u => new UserDTO
+                    {
+                        Id = u.Id,
+                        FirstName = u.FirstName,
+                        LastName = u.LastName,
+                        Email = u.Email ?? "",
+                        UserName = u.UserName ?? ""
+                    }).ToList()
+
+                    // If you need to map meeting chats, do so here:
+                    // MeetingChats = meeting.MeetingChats.Select(chat => new MeetingChatDTO { ... }).ToList()
+                }).ToList(),
+
+                // Convert each MeetingsSuggestion entity to a MeetingSuggestionDTO
                 MeetingsSuggestions = club.MeetingsSuggestions.Select(suggestion =>
                     new MeetingSuggestionDTO
                     {
@@ -95,6 +125,23 @@ namespace club.Controllers
                         Description = suggestion.Description,
                         CreatedAt = suggestion.CreatedAt,
                         Completed = suggestion.Completed,
+
+                        // Instead of assigning the EF Meeting entity directly,
+                        // map it to a new MeetingDTO to avoid circular references
+                        Meeting = suggestion.Meeting == null
+                            ? null
+                            : new MeetingDTO
+                            {
+                                Id = suggestion.Meeting.Id,
+                                Name = suggestion.Meeting.Name,
+                                Description = suggestion.Meeting.Description,
+                                MeetingTime = suggestion.Meeting.MeetingTime,
+                                EndedAt = suggestion.Meeting.EndedAt,
+                                Location = suggestion.Meeting.Location,
+                                Agenda = suggestion.Meeting.Agenda,
+                                MeetingProtocol = suggestion.Meeting.MeetingProtocol
+                            },
+
                         User = new UserDTO
                         {
                             Id = suggestion.User.Id,
@@ -103,20 +150,24 @@ namespace club.Controllers
                             Email = suggestion.User.Email ?? "",
                             UserName = suggestion.User.UserName ?? ""
                         },
-                        MeetingsSuggestionsUpvotes = suggestion.MeetingsSuggestionsUpvotes.Select(upvote =>
-                            new MeetingSuggestionUpvoteDTO
+
+                        MeetingsSuggestionsUpvotes = suggestion.MeetingsSuggestionsUpvotes
+                            .Select(upvote => new MeetingSuggestionUpvoteDTO
                             {
                                 Id = upvote.Id,
                                 UserId = upvote.User.Id
                             }).ToList(),
-                        MeetingsSuggestionsDownvotes = suggestion.MeetingsSuggestionsDownvotes.Select(upvote =>
-                            new MeetingSuggestionDownvoteDTO
+
+                        MeetingsSuggestionsDownvotes = suggestion.MeetingsSuggestionsDownvotes
+                            .Select(downvote => new MeetingSuggestionDownvoteDTO
                             {
-                                Id = upvote.Id,
-                                UserId = upvote.User.Id
-                            }).ToList(),
-                    }).ToList()
+                                Id = downvote.Id,
+                                UserId = downvote.User.Id
+                            }).ToList()
+                    }
+                ).ToList()
             };
+
 
             return Ok(clubDto);
         }
@@ -148,7 +199,7 @@ namespace club.Controllers
             [FromServices] MyDbContext context, int clubId, int meetingId)
         {
             var result = await GetCurrentUser(context);
-            
+
             if (result.Result != null) // If it's an error result
                 return result.Result;
             if (result.Value == null) return NotFound();
@@ -161,10 +212,10 @@ namespace club.Controllers
 
             var club = user.Clubs.FirstOrDefault(club => club.Id == clubId);
             if (club == null) return NotFound();
-            
+
             var meeting = context.Meeting.FirstOrDefault(meeting => meeting.Id == meetingId && meeting.Club == club);
             if (meeting == null) return NotFound();
-            
+
             var meetingSuggestion = new MeetingsSuggestion();
             meetingSuggestion.Title = suggestionDTO.Title;
             meetingSuggestion.Description = suggestionDTO.Description;

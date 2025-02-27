@@ -16,6 +16,10 @@ namespace club.Dtos
 
         public string Agenda { get; set; } = null!;
         public string MeetingProtocol { get; set; } = null!;
+        
+        public ICollection<UserDTO> Attendees { get; set; } = new List<UserDTO>();
+        
+        public ICollection<UserDTO> Decliners { get; set; } = new List<UserDTO>();
 
         public virtual ICollection<MeetingChatDTO> MeetingChats { get; set; } = new List<MeetingChatDTO>();
     }
