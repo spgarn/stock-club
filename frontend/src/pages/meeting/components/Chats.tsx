@@ -30,10 +30,16 @@ export default function Chats({ messages, sendMessage, user, removeMessage }: { 
         }
     }
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
-            textareaRef.current?.blur();
             send();
+
+            // Only blur on desktop devices
+            if (!isMobile) {
+                textareaRef.current?.blur();
+            }
         }
     };
     const Textarea = styled(TextareaAutosize)(
