@@ -1,15 +1,3 @@
-
-// const style = {
-//     position: 'absolute',
-//     top: '50%',
-//     left: '50%',
-//     transform: 'translate(-50%, -50%)',
-//     width: 400,
-//     bgcolor: 'background.paper',
-//     border: '2px solid #000',
-//     boxShadow: 24,
-//     p: 4,
-
 import Dialog from "@mui/material/Dialog";
 import { BootstrapDialogTitle } from "../../../components/BootstrapDialogTitle";
 import { translate, translateText } from "../../../i18n";
@@ -23,12 +11,11 @@ import { toast } from "react-toastify";
 import TextField from "@mui/material/TextField";
 import BasicDateTimePicker from "../../../components/BasicDateTimePicker";
 import dayjs from "dayjs";
-import TipTapEditor from "../../../components/TipTapEditor";
 import { useQuery } from "@tanstack/react-query";
 import Autocomplete from "@mui/material/Autocomplete";
 import { NewMeeting } from "../../home/components/AddMeetingModal";
 import useClubs from "../../../hooks/useClubs";
-// };
+
 export default function EditMeetingModal({ handleClose, refetch, meeting }: { handleClose: () => void; refetch: () => void; meeting: MeetingExtended }) {
     const { clubId } = useClubs();
     const {
@@ -149,15 +136,19 @@ export default function EditMeetingModal({ handleClose, refetch, meeting }: { ha
                         helperText={errors.description ? errors?.description.message : " "}
                         {...register("description", { required: true })}
                     />
-                    <Controller
-                        name="agenda"
-                        control={control}
-                        rules={{ required: translate["agenda_required"] }}
-                        render={({ field: { onChange, value } }) => (
-                            <TipTapEditor content={value} label={translate["agenda"]} onChange={onChange} />
-
-                        )}
-                    />
+                        <Controller
+                            name="time"
+                            control={control}
+                            rules={{ required: translate["meeting_time_required"] }}
+                            render={({ field: { onChange, value } }) => (
+                                <BasicDateTimePicker
+                                    error={errors.location ? errors?.location.message : undefined}
+                                    label={translate["meeting_time"]}
+                                    value={dayjs(value)}
+                                    onChange={(v) => onChange(v?.toDate())}
+                                />
+                            )}
+                        />
                     <div className="dropdown-spacing">
                         <Autocomplete
                             onChange={(_v, r) => changeField("agenda", r)}
@@ -168,15 +159,6 @@ export default function EditMeetingModal({ handleClose, refetch, meeting }: { ha
                             renderInput={(params) => <TextField {...params} label={translate["choose_agenda_template"]} />}
                         />
                     </div>
-                    <Controller
-
-                        name="meetingProtocols"
-                        control={control}
-                        render={({ field: { onChange, value } }) => (
-                            <TipTapEditor content={value} label={translate["meeting_protocols"]} onChange={onChange} />
-
-                        )}
-                    />
                     <div className="dropdown-spacing">
                         <Autocomplete
                             onChange={(_v, r) => changeField("meetingProtocols", r)}
@@ -189,19 +171,6 @@ export default function EditMeetingModal({ handleClose, refetch, meeting }: { ha
                     </div>
 
 
-                    <Controller
-                        name="time"
-                        control={control}
-                        rules={{ required: translate["meeting_time_required"] }}
-                        render={({ field: { onChange, value } }) => (
-                            <BasicDateTimePicker
-                                error={errors.location ? errors?.location.message : undefined}
-                                label={translate["meeting_time"]}
-                                value={dayjs(value)}
-                                onChange={(v) => onChange(v?.toDate())}
-                            />
-                        )}
-                    />
                     <div className="align-center">
                         <Button sx={{ marginTop: "10px" }} type="submit" variant="contained" disabled={loading}>{loading ? translate["editing"] : translate["edit"]}</Button>
                     </div>

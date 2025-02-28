@@ -7,7 +7,7 @@ import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import Typography from "@mui/material/Typography";
 import { useParams } from "react-router-dom";
 import meetingStyles from "./meeting.module.scss";
-import { translate } from "../../i18n";
+import { translate, translateText } from "../../i18n";
 import { useQuery } from "@tanstack/react-query";
 import api, { getClubDetails, getMeeting, getUser, MeetingChat } from "../../api";
 import ErrorMessage from "../../components/ErrorMessage";
@@ -15,7 +15,7 @@ import Loading from "../../components/Loading";
 import Suggestions from "../home/components/Suggestions";
 import dayjs from "dayjs";
 import EditMeetingModal from "./components/EditMeetingModal";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { refetchClubAndMeeting } from "../../funcs/funcs";
 import TipTapEditor from "../../components/TipTapEditor";
 import useMeetingSocket from "../../hooks/useMeetingSocket";
@@ -27,6 +27,8 @@ import useWindowDimensions from "../../hooks/useWindowDimensions";
 import Wrapper from "./components/Wrapper";
 import DOMPurify from 'dompurify';
 import AddSuggestionModal from "../home/components/AddSuggestionModal";
+import { SubmitHandler } from "react-hook-form";
+import { NewMeeting } from "../../components/ConfirmClub";
 const options = ['agenda', 'meeting_protocol', 'proposals', 'chat'];
 
 export default function Meeting() {
@@ -34,10 +36,14 @@ export default function Meeting() {
     const { width } = useWindowDimensions();
     const isMobile = (width ?? 0) < 700;
     const [agenda, setAgenda] = useState("");
+    const [isEditingAgenda, setIsEditingAgenda] = useState(false);
+    const [isEditingProtocol, setIsEditingProtocol] = useState(false);
     const [addSuggestionOpen, setAddSuggestionOpen] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
     const [meetingProtocols, setMeetingProtocols] = useState("");
     const [chats, setChats] = useState<MeetingChat[]>([]);
     const { id } = useParams();
+    
     const getAgenda = (message: string) => {
         if (agenda != message) {
             setAgenda(message);
@@ -48,6 +54,7 @@ export default function Meeting() {
             setMeetingProtocols(message);
         }
     }
+
     const getChat = (chat: MeetingChat) => {
         console.log(chat);
 
@@ -124,6 +131,110 @@ export default function Meeting() {
         }
     };
 
+    const onSubmit: SubmitHandler<NewMeeting> = async (data: NewMeeting) => {
+        if (!meeting) return
+        try {
+            const res = await api.put<unknown>
+                ("/meeting/" + meeting.id, {
+                    name: data.name,
+                    description: data.description,
+                    meetingTime: data.time,
+                    location: data.location,
+                    agenda: data.agenda,
+                    meetingProtocol: data.meetingProtocols
+                }, {
+                    headers: {
+                        "Access-Control-Allow-Origin": "*"
+                    },
+                    withCredentials: true
+                });
+            const resData = res.data;
+            toast.success(translate["meeting_edited_success"]);
+            refetchClubAndMeeting();
+            setIsEditingAgenda(false);
+            setIsEditingProtocol(false);
+            console.log(resData);
+        } catch (err) {
+            if (axios.isAxiosError(err)) {
+                if (err.response?.data) {
+                    toast.error(translateText(err.response?.data?.title, err.response?.data?.title));
+                } else {
+                    toast.error(err.message);
+                }
+            } else {
+                toast.error(translate["something_went_wrong"])
+            }
+        }
+    }
+
+
+    const wrapperRefAgenda = useRef<HTMLDivElement>(null);
+    const wrapperRefProtocol = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = async (event: MouseEvent) => {
+            if (!meeting) return;
+            let shouldSubmit = false;
+
+            // Check for agenda changes
+            if (
+                isEditingAgenda &&
+                wrapperRefAgenda.current &&
+                !wrapperRefAgenda.current.contains(event.target as Node)
+            ) {
+                // Only submit if the new agenda is different from the original
+                if (agenda !== meeting.agenda) {
+                    shouldSubmit = true;
+                }
+                setIsEditingAgenda(false);
+            }
+
+            // Check for protocol changes
+            if (
+                isEditingProtocol &&
+                wrapperRefProtocol.current &&
+                !wrapperRefProtocol.current.contains(event.target as Node)
+            ) {
+                // Only submit if the new protocol is different from the original
+                if (meetingProtocols !== meeting.meetingProtocol) {
+                    shouldSubmit = true;
+                }
+                setIsEditingProtocol(false);
+            }
+
+            // Only submit if there was a change and if no submission is currently in progress
+            if (shouldSubmit && !submitting) {
+                setSubmitting(true);
+                try {
+                    await onSubmit({
+                        agenda: agenda,
+                        description: meeting.description,
+                        location: meeting.location,
+                        meetingProtocols: meetingProtocols,
+                        name: meeting.name,
+                        time: meeting.meetingTime,
+                    });
+                } finally {
+                    setSubmitting(false);
+                }
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [
+        isEditingAgenda,
+        isEditingProtocol,
+        meeting,
+        agenda,
+        meetingProtocols,
+        submitting,
+        onSubmit,
+    ]);
+
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const handleSelectChange = (event: any) => {
         setDisplayMethod(event.target.value as typeof displayMethod);
@@ -197,13 +308,29 @@ export default function Meeting() {
                     <Suggestions user={user} refetch={liveRefetch} meetingsSuggestions={clubDetails.meetingsSuggestions} />
                 </Wrapper>}
             </div> : <div className={meetingStyles.desktopView}>
-                <div className={meetingStyles.left}>
-                    <Wrapper title={translate["agenda"]}>
-                        <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(agenda) }} />
+                <div className={meetingStyles.left} >
+                    <Wrapper ref={wrapperRefAgenda} title={translate["agenda"]} onClick={() => setIsEditingAgenda(true)}>
 
+
+
+                        {isEditingAgenda ?
+
+                            <TipTapEditor content={agenda} label={translate["agenda"]} onChange={(text) => setAgenda(text)} />
+
+
+                            :
+                            <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(agenda) }} />
+                        }
                     </Wrapper>
-                    <Wrapper title={translate["meeting_protocols"]}>
-                        <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(meetingProtocols) }} />
+                    <Wrapper ref={wrapperRefProtocol} title={translate["meeting_protocols"]} onClick={() => setIsEditingProtocol(true)}>
+                        {
+                            isEditingProtocol ?
+                                <TipTapEditor content={meetingProtocols} label={translate["meeting_protocols"]} onChange={(text) => setMeetingProtocols(text)} />
+
+                                :
+
+                                <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(meetingProtocols) }} />
+                        }
 
                     </Wrapper>
                 </div>
