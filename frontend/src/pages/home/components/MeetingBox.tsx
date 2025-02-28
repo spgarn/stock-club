@@ -29,7 +29,6 @@ export default function MeetingBox({ meeting, user, refetch }: { meeting: Meetin
         }
     }, [userHasDeclined, userIsAttending])
 
-    console.log(attendance)
 
 
 
@@ -85,8 +84,8 @@ export default function MeetingBox({ meeting, user, refetch }: { meeting: Meetin
                     </div>
 
                 </div>
-                <div className={homeStyles.attendanceMeeting} style={{marginBottom:"8px"}} onClick={(e) => e.preventDefault()}>
-                <FontAwesomeIcon className={`${homeStyles.attendanceVoteIcon} ${attendance ? homeStyles.attendanceVoteIconVoted : ""}`} icon={faThumbsUp} onClick={(e) => {
+                <div className={homeStyles.attendanceMeeting} style={{ marginBottom: "8px" }} onClick={(e) => e.preventDefault()}>
+                    <FontAwesomeIcon className={`${homeStyles.attendanceVoteIcon} ${attendance ? homeStyles.attendanceVoteIconVoted : ""}`} icon={faThumbsUp} onClick={(e) => {
                         e.preventDefault()
                         respond(true)
                     }
@@ -106,7 +105,7 @@ export default function MeetingBox({ meeting, user, refetch }: { meeting: Meetin
                         hideTextLabelButton
                         buttonStyle="round"
                     ></AddToCalendarButton>
-                      <FontAwesomeIcon className={`${homeStyles.attendanceVoteIcon} ${!attendance ? homeStyles.attendanceVoteIconVoted : ""}`} icon={faThumbsDown} onClick={(e) => {
+                    <FontAwesomeIcon className={`${homeStyles.attendanceVoteIcon} ${!attendance ? homeStyles.attendanceVoteIconVoted : ""}`} icon={faThumbsDown} onClick={(e) => {
                         e.preventDefault()
                         respond(false)
                     }} />
@@ -116,11 +115,20 @@ export default function MeetingBox({ meeting, user, refetch }: { meeting: Meetin
 
 
 
-            {meeting.attendees.length > 0 &&
+            {(meeting.attendees.length > 0 || meeting.decliners.length > 0) && (
                 <div style={{ padding: "10px", borderTop: "1px solid #ccc" }}>
-                    <Typography variant="body1">+ {meeting.attendees.map(user => user.firstName + " " + user.lastName + ",  ")}</Typography>
+                    {meeting.attendees.length > 0 && (
+                        <Typography variant="body1" color={colors.green[700]}>
+                            + {meeting.attendees.map(user => `${user.firstName} ${user.lastName}`).join(", ")}
+                        </Typography>
+                    )}
+                    {meeting.decliners.length > 0 && (
+                        <Typography variant="body1" color={colors.red[700]}>
+                            - {meeting.decliners.map(user => `${user.firstName} ${user.lastName}`).join(", ")}
+                        </Typography>
+                    )}
                 </div>
-            }
+            )}
         </>
     )
 }
