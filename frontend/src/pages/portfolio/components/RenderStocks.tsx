@@ -145,7 +145,6 @@ export default function RenderStocks({ list, page, rowCount, currencyDisplay, di
                         const original = info.row.original;
                         let price = Number(original?.sellPrice ?? original.currentPrice);
                         const amount = Number(original.amount);
-                        const value = price * amount;
                         // If the currency is USD, convert the price using the usdRate
                         if (original.currency === "USD") {
                             price = price * (reverseRates.USD ?? 1);
@@ -156,6 +155,7 @@ export default function RenderStocks({ list, page, rowCount, currencyDisplay, di
                         if (original.currency === "GBP") {
                             price = price * (reverseRates.GBP ?? 1);
                         }
+                        const value = price * amount;
                         return (
 
                             <p>
