@@ -4,6 +4,7 @@ using club.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace club.Controllers
 {
@@ -11,12 +12,21 @@ namespace club.Controllers
     [Route("stocks")]
     public class StockController : ExtendedController
     {
+        private readonly HttpClient _httpClient;
+        private readonly ILogger<StockController> _logger;
+
+        // Inject IHttpClientFactory to create HttpClient instances.
+        public StockController(IHttpClientFactory httpClientFactory, ILogger<StockController> logger)
+        {
+            _httpClient = httpClientFactory.CreateClient();
+            _logger = logger;
+        }
+
         [HttpGet]
         [Route("all/{clubId}")]
         public async Task<ActionResult<ICollection<StockDto>>> GetStocks(
-           [FromServices] MyDbContext context, int clubId)
+            [FromServices] MyDbContext context, int clubId)
         {
-            
             var publicClub = context.Club.FirstOrDefault(c => c.Id == clubId);
             var isPublic = publicClub != null && publicClub.PublicInvestments;
             if (!isPublic)
@@ -31,8 +41,9 @@ namespace club.Controllers
                 var club = user.Clubs.FirstOrDefault(c => c.Id == clubId);
                 if (club == null) return NotFound();
             }
-           
-            var stocks = context.StockHolding.Include(stock => stock.Stock).Where(stocks => stocks.Club.Id == clubId).OrderByDescending(stock => stock.Id).ToArray();
+
+            var stocks = context.StockHolding.Include(stock => stock.Stock).Where(stocks => stocks.Club.Id == clubId)
+                .OrderByDescending(stock => stock.Id).ToArray();
             return Ok(stocks.Select(stock =>
                 new StockDto
                 {
@@ -42,17 +53,22 @@ namespace club.Controllers
                     BuyPrice = stock.BuyPrice,
                     InvestedAt = stock.InvestedAt,
                     Sold = stock.Sold,
+                    Currency = stock.Currency,
                     StockName = stock.StockName,
                     SoldAt = stock?.SoldAt,
-                    CurrentPrice = stock?.Stock != null ? stock.Stock.CurrentPrice : (stock?.OverridePrice ?? 0), //await YahooAPI.GetStock(club.StockName)
+                    CurrentPrice =
+                        stock?.Stock != null
+                            ? stock.Stock.CurrentPrice
+                            : (stock?.OverridePrice ?? 0), //await YahooAPI.GetStock(club.StockName)
                     OverridePrice = stock?.OverridePrice,
                 }).ToList());
         }
+
         [HttpPost]
         [Authorize]
         [Route("add/{clubId}")]
         public async Task<ActionResult<string>> AddStock(
-           [FromServices] MyDbContext context, StockDto stockDto, int clubId)
+            [FromServices] MyDbContext context, StockDto stockDto, int clubId)
         {
             var result = await GetCurrentUser(context);
             if (result.Result != null) // If it's an error result
@@ -80,8 +96,8 @@ namespace club.Controllers
                     UpdatedAt = DateTime.UtcNow,
                 };
                 context.Stock.Add(stock);
-
             }
+
             context.StockHolding.Add(new StockHolding
             {
                 Amount = stockDto.Amount,
@@ -91,6 +107,7 @@ namespace club.Controllers
                 Sold = stockDto.Sold,
                 InvestedAt = stockDto.InvestedAt,
                 SoldAt = stockDto.Sold ? stockDto.SoldAt ?? null : null,
+                Currency = stockDto.Currency,
                 User = user,
                 Stock = stock,
                 Club = club,
@@ -99,11 +116,12 @@ namespace club.Controllers
             await context.SaveChangesAsync();
             return CreatedAtAction(nameof(AddStock), user.Id);
         }
+
         [HttpPut]
         [Authorize]
         [Route("edit/{stockId}/club/{clubId}")]
         public async Task<ActionResult<string>> EditStock(
-           [FromServices] MyDbContext context, StockDto stockDto, int stockId, int clubId)
+            [FromServices] MyDbContext context, StockDto stockDto, int stockId, int clubId)
         {
             var result = await GetCurrentUser(context);
             if (result.Result != null) // If it's an error result
@@ -131,9 +149,10 @@ namespace club.Controllers
                     UpdatedAt = DateTime.UtcNow,
                 };
                 context.Stock.Add(stock);
-
             }
-            var existingStock = context.StockHolding.Include(stock => stock.Stock).FirstOrDefault(stock => stock.Id == stockId && stock.Club.Id == club.Id);
+
+            var existingStock = context.StockHolding.Include(stock => stock.Stock)
+                .FirstOrDefault(stock => stock.Id == stockId && stock.Club.Id == club.Id);
             if (existingStock == null) return NotFound();
             existingStock.Amount = stockDto.Amount;
             existingStock.BuyPrice = stockDto.BuyPrice;
@@ -161,7 +180,7 @@ namespace club.Controllers
         [Authorize]
         [Route("sellportion/club/{clubId}")]
         public async Task<ActionResult<string>> SellChunk(
-           [FromServices] MyDbContext context, StockSplitForm stockDto, int clubId)
+            [FromServices] MyDbContext context, StockSplitForm stockDto, int clubId)
         {
             var result = await GetCurrentUser(context);
             if (result.Result != null) // If it's an error result
@@ -171,7 +190,8 @@ namespace club.Controllers
             if (user == null) return NotFound();
             var club = user.Clubs.FirstOrDefault(c => c.Id == clubId);
             if (club == null) return NotFound();
-            var existingStock = context.StockHolding.Include(stock => stock.Stock).FirstOrDefault(stock => stock.Id == stockDto.Id && stock.Club.Id == club.Id);
+            var existingStock = context.StockHolding.Include(stock => stock.Stock)
+                .FirstOrDefault(stock => stock.Id == stockDto.Id && stock.Club.Id == club.Id);
             if (existingStock == null) return NotFound();
             if (existingStock.Amount < stockDto.Amount) return StatusCode(400); //Too many
 
@@ -189,6 +209,7 @@ namespace club.Controllers
                 InvestedAt = existingStock.InvestedAt,
                 SoldAt = stockDto.SoldAt,
                 User = user,
+                Currency = existingStock.Currency,
                 Stock = existingStock.Stock,
                 Club = club,
                 OverridePrice = existingStock.OverridePrice
@@ -202,6 +223,7 @@ namespace club.Controllers
             {
                 context.StockHolding.Update(existingStock);
             }
+
             context.StockHolding.Add(newSoldStock);
             await context.SaveChangesAsync();
             return CreatedAtAction(nameof(SellChunk), user.Id);
@@ -211,7 +233,7 @@ namespace club.Controllers
         [Authorize]
         [Route("{id}")]
         public async Task<ActionResult<string>> DeleteStock(
-          [FromServices] MyDbContext context, int id)
+            [FromServices] MyDbContext context, int id)
         {
             var result = await GetCurrentUser(context);
             if (result.Result != null) // If it's an error result
@@ -221,10 +243,12 @@ namespace club.Controllers
             if (user == null) return NotFound();
             if (user.Clubs.Count == 0) return NotFound();
             var userClubIds = user.Clubs.Select(c => c.Id).ToList(); // Materialize in memory
-            var existingStock = context.StockHolding.FirstOrDefault(stock => stock.Id == id && userClubIds.Contains(stock.Club.Id));           
+            var existingStock =
+                context.StockHolding.FirstOrDefault(stock => stock.Id == id && userClubIds.Contains(stock.Club.Id));
             if (existingStock == null) return NotFound();
             //Check if there is only 1 instance of this stock. If so delete it from Stock as well
-            var stock = context.Stock.Include(stock => stock.StockHoldings).FirstOrDefault(stock => stock.StockName == existingStock.StockName);
+            var stock = context.Stock.Include(stock => stock.StockHoldings)
+                .FirstOrDefault(stock => stock.StockName == existingStock.StockName);
 
             //Delete stock holding
             context.StockHolding.Remove(existingStock);
@@ -232,8 +256,32 @@ namespace club.Controllers
             {
                 context.Stock.Remove(stock);
             }
+
             await context.SaveChangesAsync();
             return CreatedAtAction(nameof(DeleteStock), user.Id);
+        }
+
+
+        [HttpGet("currency")]
+        public async Task<IActionResult> GetFxRates()
+        {
+            var url = "https://api.fxratesapi.com/latest?currencies=EUR,USD,GBP&base=SEK";
+            var response = await _httpClient.GetAsync(url);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogError("Failed to fetch FX rates. Status Code: {StatusCode}", response.StatusCode);
+                return StatusCode((int)response.StatusCode, "Failed to fetch FX rates from FXRatesAPI.");
+            }
+
+            var content = await response.Content.ReadAsStringAsync();
+            if (string.IsNullOrWhiteSpace(content))
+            {
+                _logger.LogError("Empty response received from FXRatesAPI.");
+                return StatusCode(500, "Empty response from FXRatesAPI.");
+            }
+
+            return Content(content, response.Content.Headers.ContentType?.MediaType ?? "application/json");
         }
     }
 }

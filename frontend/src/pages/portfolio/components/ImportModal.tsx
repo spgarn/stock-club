@@ -16,13 +16,14 @@ import { LinearProgressWithLabel } from "./LinearProgressWithLabel";
 import Box from "@mui/material/Box";
 // import FailedFind from "./FailedFind";
 
-const STATIC_KEYS = ["csv_import_date", "csv_import_transaction_type", "csv_import_price", "csv_import_quantity", "csv_import_ISIN", "csv_import_diff", "csv_import_name"]
+const STATIC_KEYS = ["csv_import_date", "csv_import_transaction_type", "csv_import_price", "csv_import_quantity", "csv_import_ISIN", "csv_import_diff", "csv_import_name", "csv_import_currency"]
 type Action = {
     csv_import_date: Date;
     csv_import_transaction_type: string;
     csv_import_price: number;
     csv_import_quantity: number;
     csv_import_diff: string;
+    csv_import_currency: string;
 };
 type AggregatedData = {
     actions: Action[]
@@ -100,6 +101,11 @@ const bindDefaultConnections = (columns: string[]) => {
                 prev.push(getConnection(key, col))
                 break;
             }
+            case "Instrumentvaluta": {
+                const key = "csv_import_currency";
+                prev.push(getConnection(key, col))
+                break;
+            }
         }
         return prev;
     }, [] as Connection[])
@@ -115,10 +121,8 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
     // const [aggregatedData, setAggregatedData] = useState<AggregatedData[]>([]);
     const [table, setTable] = useState<{ keys: string[], values: string[], connections: Connection[], data: CSVRow[] }>({ keys: STATIC_KEYS, values: [], connections: [], data: [] })
     const { keys, values, connections } = table;
-    console.log(connections);
     const parseData = (data: CSVRow[]) => {
-        console.log(data);
-        console.log(Object.keys(data[0]));
+        console.log("All columns:", Object.keys(data[0]));
         const columns = Object.keys(data[0]);
         const connections = bindDefaultConnections(columns);
         setTable({ keys, values: columns, data: data, connections })
@@ -136,7 +140,7 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
         console.log(table.data);
         const aggregated = table.data.reduce((agg, row) => {
             //Map the keys to the data
-            const [csv_import_date, csv_import_transaction_type, csv_import_price, csv_import_quantity, csv_import_ISIN, csv_import_diff, csv_import_name] = STATIC_KEYS.map(key => {
+            const [csv_import_date, csv_import_transaction_type, csv_import_price, csv_import_quantity, csv_import_ISIN, csv_import_diff, csv_import_name, csv_import_currency] = STATIC_KEYS.map(key => {
                 const conn = table.connections.find(conn => conn.start === key);
                 if (conn === undefined) return null;
                 return row[conn.end]
@@ -152,9 +156,10 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
                         csv_import_price: Math.abs(convertToNumber(csv_import_price)),
                         csv_import_quantity: Math.abs(convertToNumber(csv_import_quantity)),
                         csv_import_diff: String(csv_import_diff),
+                        csv_import_currency: String(csv_import_currency)
                     }],
                     csv_import_ISIN: String(csv_import_ISIN),
-                    csv_import_name: String(csv_import_name)
+                    csv_import_name: String(csv_import_name),
                 })
             } else {
                 const prev = agg[existing];
@@ -169,6 +174,7 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
                             csv_import_price: Math.abs(convertToNumber(csv_import_price)),
                             csv_import_quantity: Math.abs(convertToNumber(csv_import_quantity)),
                             csv_import_diff: String(csv_import_diff),
+                            csv_import_currency: String(csv_import_currency)
                         }
                     ]
                 })
@@ -192,8 +198,8 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
             }, { date: new Date(), price: 0, amount: 0, count: 0 })
             return {
                 date,
-                price: count === 0 ? 0 : price / count,
-                amount: count === 0 ? 0 : amount / count
+                price: count === 0 ? 0 : price / amount,
+                amount: amount,
             }
         }
         for (const data of aggregated) {
@@ -206,35 +212,38 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
 
             const effectiveSellsAmount = sells.amount;
 
+
             if (effectiveBuysAmount > 0) {
                 stocks.push({
                     sellPrice: null,
                     id: 0,
                     stockName: data.csv_import_ISIN,
                     investedAt: buys.date,
-                    buyPrice: buys.price,
+                    buyPrice: buys.price * effectiveBuysAmount,
                     amount: effectiveBuysAmount,
                     currentPrice: 0,
                     sold: false,
                     soldAt: null,
                     overridePrice: null,
-                    avanzaName: data.csv_import_name
+                    avanzaName: data.csv_import_name,
+                    currency: data.actions.find(a => a.csv_import_currency)?.csv_import_currency || "SEK"
                 })
             }
 
             if (effectiveSellsAmount > 0) {
                 stocks.push({
-                    sellPrice: sells.price,
+                    sellPrice: sells.price * effectiveSellsAmount,
                     id: 0,
                     stockName: data.csv_import_ISIN,
                     investedAt: buys.date,
-                    buyPrice: buys.price,
+                    buyPrice: buys.price * effectiveSellsAmount,
                     amount: effectiveSellsAmount,
                     currentPrice: 0,
                     sold: true,
                     soldAt: sells.date,
                     overridePrice: null,
-                    avanzaName: data.csv_import_name
+                    avanzaName: data.csv_import_name,
+                    currency: data.actions.find(a => a.csv_import_currency)?.csv_import_currency || "SEK"
                 })
             }
         }

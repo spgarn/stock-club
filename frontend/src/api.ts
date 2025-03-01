@@ -43,6 +43,20 @@ export type MeetingExtended = Meeting & {
     meetingChats: MeetingChat[]
 }
 
+export type FxRatesApiResponse = {
+    success: boolean;
+    terms: string;
+    privacy: string;
+    timestamp: number;
+    date: string;
+    base: string;
+    rates: {
+      EUR: number;
+      GBP: number;
+      USD: number;
+    };
+  }
+
 export type User = {
     id: string;
     userName: string | null;
@@ -87,6 +101,7 @@ export type StockHoldings = {
     soldAt: Date | null;
     overridePrice: number | null;
     avanzaName: string;
+    currency: string;
 }
 
 export type Templates = {
@@ -263,3 +278,12 @@ export const getUserById = async (id: string | undefined) => {
     )
     return response.data;
 }
+
+export const getCurrencyRates = async () => {
+    const response = await api.get<FxRatesApiResponse>(
+        '/stocks/currency',
+        { withCredentials: true }
+    );
+    console.log(response)
+    return response.data;
+};

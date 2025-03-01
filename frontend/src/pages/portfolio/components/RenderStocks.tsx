@@ -9,12 +9,13 @@ import {
     ColumnDef,
     createColumnHelper
 } from '@tanstack/react-table'
-import { StockHoldings } from "../../../api";
+import { getCurrencyRates, StockHoldings } from "../../../api";
 import dayjs from "dayjs";
 import { formatCurrency } from "../../../funcs/funcs";
 import { translate } from "../../../i18n";
 import { useMemo } from "react";
 import portfolioStyles from "../portfolio.module.scss";
+import { useQuery } from "@tanstack/react-query";
 
 
 const columnHelper = createColumnHelper<StockHoldings>();
@@ -22,6 +23,16 @@ const columnHelper = createColumnHelper<StockHoldings>();
 type IProps = { list: StockHoldings[], page: number, rowCount: number, currencyDisplay: "kr" | "percent", displayMethod: "active_stocks" | "sold_stocks" | "all_stocks", removeStock: (id: number) => void, setEditStock: (v: StockHoldings) => void, setSellPortion: (v: StockHoldings) => void, withLivePrice?: boolean; isPublic?: boolean; }
 
 export default function RenderStocks({ list, page, rowCount, currencyDisplay, displayMethod, removeStock, setEditStock, setSellPortion, withLivePrice = true, isPublic = false }: IProps) {
+
+    const { data } = useQuery({
+        queryKey: ['currency'],
+        queryFn: getCurrencyRates,
+    });
+
+
+    const { EUR, USD, GBP } = data?.rates ?? { EUR: undefined, USD: undefined, GBP: undefined };
+
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const columns: ColumnDef<StockHoldings, any>[] = useMemo(() => [
         columnHelper.accessor('stockName', {
@@ -52,11 +63,25 @@ export default function RenderStocks({ list, page, rowCount, currencyDisplay, di
                 cell: info => info.renderValue() ? formatCurrency(Number(info.renderValue()), true, 3) : translate["not_sold"],
             })
         ] : []),
-        ...(displayMethod != "sold_stocks" ? [ //Active or ALL
+        ...(displayMethod !== "sold_stocks" ? [
             columnHelper.accessor('currentPrice', {
                 header: translate["currentPrice"],
-                cell: info => formatCurrency(Number(info.renderValue()), true, 3),
-            })
+                cell: (info) => {
+                    const original = info.row.original;
+                    let price = Number(info.renderValue());
+                    // If the currency is USD, convert the price using the usdRate
+                    if (original.currency === "USD") {
+                        price = price * (USD ?? 1);
+                    }
+                    if (original.currency === "EUR") {
+                        price = price * (EUR ?? 1);
+                    }
+                    if (original.currency === "GBP") {
+                        price = price * (GBP ?? 1);
+                    }
+                    return original.sellPrice ? translate["sold"] : formatCurrency(price, true, 3);
+                },
+            }),
         ] : []),
         ...(displayMethod != "active_stocks" ? [ //Active or ALL
             {
@@ -91,6 +116,8 @@ export default function RenderStocks({ list, page, rowCount, currencyDisplay, di
                     const buyPrice = original.buyPrice;
                     const currentPrice = Number(original.currentPrice);
 
+                    if (original?.sellPrice) return translate["sold"]
+
                     if (currencyDisplay === "percent") {
                         const percent = 100 * ((currentPrice / buyPrice) - 1);
                         return <span className={percent >= 0 ? portfolioStyles.positiveBubble : portfolioStyles.negativeBubble}>{formatCurrency(percent, false, 2, true)} %</span>;
@@ -100,19 +127,31 @@ export default function RenderStocks({ list, page, rowCount, currencyDisplay, di
                 },
             }
         ] : []),
-        {
-            id: 'value',
-            enableSorting: true,
-            accessorFn: (original) => Number(original?.sellPrice ?? original.currentPrice) * Number(original.amount),
-            header: translate["value"],
-            cell: (info: CellContext<StockHoldings, never>) => {
-                const original = info.row.original;
-                const price = Number(original?.sellPrice ?? original.currentPrice);
-                const amount = Number(original.amount);
-                const value = price * amount;
-                return <p>{formatCurrency(value, true, 2, false)}</p>;
-            },
-        },
+        ...(
+            displayMethod !== "sold_stocks"
+                ? [{
+                    id: 'value',
+                    enableSorting: true,
+                    accessorFn: (original: StockHoldings) =>
+                        Number(original?.sellPrice ?? original.currentPrice) *
+                        Number(original.amount),
+                    header: translate["value"],
+                    cell: (info: CellContext<StockHoldings, never>) => {
+                        const original = info.row.original;
+                        const price = Number(original?.sellPrice ?? original.currentPrice);
+                        const amount = Number(original.amount);
+                        const value = price * amount;
+                        return (
+                            <p>
+                                {original?.sellPrice
+                                    ? translate["sold"]
+                                    : formatCurrency(value, true, 2, false)}
+                            </p>
+                        );
+                    },
+                }]
+                : []
+        ),
         ...(!isPublic ? [columnHelper.accessor('id', {
             header: "",
             enableSorting: false,

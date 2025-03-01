@@ -83,6 +83,7 @@ export const colors = {
     'csv_import_ISIN': '#FFA726',        // Orange
     'csv_import_diff': '#5D4037', // Dark brown
     'csv_import_name': '#9D4037',
+    "csv_import_currency": "#FFD600",
 };
 
 const LineMatcher: React.FC<LineMatcherProps> = ({ className, keys, values, connections, setConnections }) => {

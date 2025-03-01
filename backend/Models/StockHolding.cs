@@ -13,6 +13,8 @@ public partial class StockHolding
     [MaxLength(50)]
     public required string StockName { get; set; }
 
+    public string Currency { get; set; }
+
     public decimal BuyPrice { get; set; }
 
     public decimal? SellPrice { get; set; }

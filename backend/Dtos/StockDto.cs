@@ -8,12 +8,14 @@ namespace club.Dtos
 
         public string StockName { get; set; } = null!;
 
+        public string Currency { get; set; }
+
         public decimal BuyPrice { get; set; }
 
         public decimal? SellPrice { get; set; }
 
         public decimal? CurrentPrice { get; set; }
-        
+
         public decimal? OverridePrice { get; set; }
 
         public decimal Amount { get; set; }
