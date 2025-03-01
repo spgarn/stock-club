@@ -3,82 +3,92 @@ import { StockHoldings } from '../../../api';
 import { convertCurrency } from '../../../funcs/funcs';
 
 export default function useStocks(
-    data: StockHoldings[] | undefined,
-    displayMethod: string,
-    setPage: (v: number) => void,
-    reverseRates: { EUR?: number; USD?: number; GBP?: number }
+  data: StockHoldings[] | undefined,
+  displayMethod: string,
+  setPage: (v: number) => void,
+  reverseRates: { EUR?: number; USD?: number; GBP?: number }
 ) {
-    // Move side-effects out of useMemo
-    useEffect(() => {
-        setPage(1);
-    }, [data, setPage]);
+  useEffect(() => {
+    // Reset page whenever 'data' changes
+    setPage(1);
+  }, [data, setPage]);
 
-    return useMemo(() => {
-        if (!data) {
-            return { totalAmount: 0, list: [], totalValue: 0, development: 0 };
-        }
+  return useMemo(() => {
+    if (!data) {
+      return { totalAmount: 0, list: [], totalValue: 0, development: 0 };
+    }
 
-        // Separate active and sold stocks
-        const currentStocks = data.filter((stock) => !stock.sold);
-        const soldStocks = data.filter((stock) => stock.sold);
+    // Separate active and sold
+    const activeStocks = data.filter(s => !s.sold);
+    const soldStocks = data.filter(s => s.sold);
 
-        // Calculate initial investment from active stocks (using buyPrice converted to base currency)
-        const initial = currentStocks.reduce(
-            (prev, stock) =>
-                prev +
-                stock.amount * convertCurrency(stock.buyPrice, stock.currency, reverseRates),
-            0
-        );
+    // --- ACTIVE STOCKS ---
+    // cost basis for active stocks (buyPrice * amount, converted)
+    const activeInitial = activeStocks.reduce(
+      (sum, s) => sum + s.amount * convertCurrency(s.buyPrice, s.currency, reverseRates),
+      0
+    );
+    // current market value for active stocks (currentPrice * amount, converted)
+    const activeValue = activeStocks.reduce(
+      (sum, s) => sum + s.amount * convertCurrency(s.currentPrice, s.currency, reverseRates),
+      0
+    );
 
-        console.log({ currentStocks, soldStocks, initial });
+    // --- SOLD STOCKS ---
+    // cost basis for sold stocks
+    // (Depending on your data, you may need to multiply by amount or convertCurrency
+    //  if buyPrice is a per-share figure. If buyPrice is already total cost, skip the multiply.)
+    const soldInitial = soldStocks.reduce(
+      (sum, s) => sum + convertCurrency(s.buyPrice, s.currency, reverseRates),
+      0
+    );
+    // total proceeds for sold stocks (assuming sellPrice is already total, no multiply)
+    const soldValue = soldStocks.reduce(
+      (sum, s) => sum + Number(s.sellPrice),
+      0
+    );
 
+    if (displayMethod === 'all_stocks') {
+      // Combine both active and sold for total
+      const totalInitial = activeInitial + soldInitial;
+      const totalValue = activeValue + soldValue;
+      const development = totalInitial
+        ? ((totalValue / totalInitial) - 1) * 100
+        : 0;
 
-        if (displayMethod === 'all_stocks') {
-            // For active stocks, we use the current or sellPrice (if available) multiplied by the amount
-            const activeValue = currentStocks.reduce((prev, stock) => {
-                const price = stock.sellPrice ? Number(stock.sellPrice) : stock.currentPrice;
-                return prev + stock.amount * convertCurrency(price, stock.currency, reverseRates);
-            }, 0);
-            // For sold stocks, we now simply use the sellPrice directly (without conversion or multiplication)
-            const soldValue = soldStocks.reduce(
-                (prev, stock) => prev + Number(stock.sellPrice),
-                0
-            );
-            const totalValue = activeValue + soldValue;
-            return {
-                totalAmount: data.length,
-                list: data,
-                totalValue,
-                development: ((totalValue / initial - 1) * 100),
-            };
-        }
+      return {
+        totalAmount: data.length,
+        list: data,
+        totalValue,
+        development,
+      };
+    } 
+    
+    if (displayMethod === 'active_stocks') {
+      // Only active
+      const development = activeInitial
+        ? ((activeValue / activeInitial) - 1) * 100
+        : 0;
 
-        if (displayMethod === 'active_stocks') {
-            const activeValue = currentStocks.reduce(
-                (prev, stock) =>
-                    prev +
-                    stock.amount *
-                    convertCurrency(stock.currentPrice, stock.currency, reverseRates),
-                0
-            );
-            return {
-                totalAmount: currentStocks.length,
-                list: currentStocks,
-                totalValue: activeValue,
-                development: ((activeValue / initial - 1) * 100),
-            };
-        } else {
-            // For sold stocks, simply sum the sellPrice values without converting or multiplying by the amount
-            const soldValue = soldStocks.reduce(
-                (prev, stock) => prev + Number(stock.sellPrice),
-                0
-            );
-            return {
-                totalAmount: soldStocks.length,
-                list: soldStocks,
-                totalValue: soldValue,
-                development: ((soldValue / initial - 1) * 100),
-            };
-        }
-    }, [data, displayMethod, reverseRates]);
+      return {
+        totalAmount: activeStocks.length,
+        list: activeStocks,
+        totalValue: activeValue,
+        development,
+      };
+    }
+
+    // Otherwise "sold_stocks"
+    // Only sold
+    const development = soldInitial
+      ? ((soldValue / soldInitial) - 1) * 100
+      : 0;
+
+    return {
+      totalAmount: soldStocks.length,
+      list: soldStocks,
+      totalValue: soldValue,
+      development,
+    };
+  }, [data, displayMethod, reverseRates]);
 }
