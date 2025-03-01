@@ -119,9 +119,20 @@ export default function RenderStocks({ list, page, rowCount, currencyDisplay, di
                 cell: (info: CellContext<StockHoldings, never>) => {
                     const original = info.row.original;
                     const buyPrice = original.buyPrice;
-                    const currentPrice = Number(original.currentPrice);
+                    let currentPrice = Number(original.currentPrice);
 
                     if (original?.sellPrice) return translate["sold"]
+
+                    // If the currency is USD, convert the price using the usdRate
+                    if (original.currency === "USD") {
+                        currentPrice = currentPrice * (reverseRates.USD ?? 1);
+                    }
+                    if (original.currency === "EUR") {
+                        currentPrice = currentPrice * (reverseRates.EUR ?? 1);
+                    }
+                    if (original.currency === "GBP") {
+                        currentPrice = currentPrice * (reverseRates.GBP ?? 1);
+                    }
 
                     if (currencyDisplay === "percent") {
                         const percent = 100 * ((currentPrice / buyPrice) - 1);
