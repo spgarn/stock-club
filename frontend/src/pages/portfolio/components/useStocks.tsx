@@ -43,7 +43,7 @@ export default function useStocks(
       return sum + convertCurrency(totalPerShare, s.currency, reverseRates);
     }, 0);
 
-    const soldValue = soldStocks.reduce((sum, s) => sum + s.sellPrice, 0);
+    const soldValue = soldStocks.reduce((sum, s) => sum + (s.sellPrice ?? 0), 0);
 
     // Now compute the displayed totals and development
     if (displayMethod === 'all_stocks') {
