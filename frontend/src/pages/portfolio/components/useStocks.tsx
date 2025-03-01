@@ -2,14 +2,20 @@ import { useMemo, useEffect } from 'react';
 import { StockHoldings } from '../../../api';
 import { convertCurrency } from '../../../funcs/funcs';
 
+interface ReverseRates {
+  EUR?: number;
+  USD?: number;
+  GBP?: number;
+}
+
 export default function useStocks(
   data: StockHoldings[] | undefined,
   displayMethod: string,
   setPage: (v: number) => void,
-  reverseRates: { EUR?: number; USD?: number; GBP?: number }
+  reverseRates: ReverseRates
 ) {
+  // Reset pagination whenever data changes
   useEffect(() => {
-    // Reset page whenever 'data' changes
     setPage(1);
   }, [data, setPage]);
 
@@ -18,58 +24,42 @@ export default function useStocks(
       return { totalAmount: 0, list: [], totalValue: 0, development: 0 };
     }
 
-    // Separate active and sold
+    // Split into active vs. sold
     const activeStocks = data.filter(s => !s.sold);
     const soldStocks = data.filter(s => s.sold);
 
-    // --- ACTIVE STOCKS ---
-    // cost basis for active stocks (buyPrice * amount, converted)
-    const activeInitial = activeStocks.reduce(
-      (sum, s) => sum + s.amount * convertCurrency(s.buyPrice, s.currency, reverseRates),
-      0
-    );
-    // current market value for active stocks (currentPrice * amount, converted)
-    const activeValue = activeStocks.reduce(
-      (sum, s) => sum + s.amount * convertCurrency(s.currentPrice, s.currency, reverseRates),
-      0
-    );
+    // 1) COST BASIS (buyPrice):
+    //    - Active: buyPrice is already in base currency (total), so just sum.
+    //    - Sold: buyPrice is also already in base currency (total), so just sum.
+    const activeCost = activeStocks.reduce((sum, s) => sum + s.buyPrice, 0);
+    const soldCost = soldStocks.reduce((sum, s) => sum + s.buyPrice, 0);
 
-    // --- SOLD STOCKS ---
-    // cost basis for sold stocks
-    // (Depending on your data, you may need to multiply by amount or convertCurrency
-    //  if buyPrice is a per-share figure. If buyPrice is already total cost, skip the multiply.)
-    const soldInitial = soldStocks.reduce(
-      (sum, s) => sum + convertCurrency(s.buyPrice, s.currency, reverseRates),
-      0
-    );
-    // total proceeds for sold stocks (assuming sellPrice is already total, no multiply)
-    const soldValue = soldStocks.reduce(
-      (sum, s) => sum + Number(s.sellPrice),
-      0
-    );
+    // 2) CURRENT or FINAL VALUE:
+    //    - Active: currentPrice is *per share* in a foreign currency => multiply by amount, then convert.
+    //    - Sold: sellPrice is already total in base currency => just sum it.
+    const activeValue = activeStocks.reduce((sum, s) => {
+      // multiply by amount only if s.currentPrice is per-share
+      const totalPerShare = s.currentPrice * s.amount;
+      return sum + convertCurrency(totalPerShare, s.currency, reverseRates);
+    }, 0);
 
+    const soldValue = soldStocks.reduce((sum, s) => sum + s.sellPrice, 0);
+
+    // Now compute the displayed totals and development
     if (displayMethod === 'all_stocks') {
-      // Combine both active and sold for total
-      const totalInitial = activeInitial + soldInitial;
+      const totalCost = activeCost + soldCost;
       const totalValue = activeValue + soldValue;
-      const development = totalInitial
-        ? ((totalValue / totalInitial) - 1) * 100
-        : 0;
-
+      const development = totalCost > 0 ? ((totalValue / totalCost) - 1) * 100 : 0;
       return {
         totalAmount: data.length,
         list: data,
         totalValue,
         development,
       };
-    } 
-    
-    if (displayMethod === 'active_stocks') {
-      // Only active
-      const development = activeInitial
-        ? ((activeValue / activeInitial) - 1) * 100
-        : 0;
+    }
 
+    if (displayMethod === 'active_stocks') {
+      const development = activeCost > 0 ? ((activeValue / activeCost) - 1) * 100 : 0;
       return {
         totalAmount: activeStocks.length,
         list: activeStocks,
@@ -79,16 +69,12 @@ export default function useStocks(
     }
 
     // Otherwise "sold_stocks"
-    // Only sold
-    const development = soldInitial
-      ? ((soldValue / soldInitial) - 1) * 100
-      : 0;
-
+    const development = soldCost > 0 ? ((soldValue / soldCost) - 1) * 100 : 0;
     return {
       totalAmount: soldStocks.length,
       list: soldStocks,
       totalValue: soldValue,
       development,
     };
-  }, [data, displayMethod, reverseRates]);
+  }, [data, displayMethod, reverseRates, setPage]);
 }
