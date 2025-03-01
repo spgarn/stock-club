@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEdit } from "@fortawesome/free-regular-svg-icons/faEdit";
@@ -29,11 +30,15 @@ export default function RenderStocks({ list, page, rowCount, currencyDisplay, di
         queryFn: getCurrencyRates,
     });
 
-
     const { EUR, USD, GBP } = data?.rates ?? { EUR: undefined, USD: undefined, GBP: undefined };
 
+    const reverseRates = {
+        EUR: EUR ? 1 / EUR : undefined,
+        USD: USD ? 1 / USD : undefined,
+        GBP: GBP ? 1 / GBP : undefined,
+    };
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     const columns: ColumnDef<StockHoldings, any>[] = useMemo(() => [
         columnHelper.accessor('stockName', {
             header: () => translate["stockName"],
@@ -71,13 +76,13 @@ export default function RenderStocks({ list, page, rowCount, currencyDisplay, di
                     let price = Number(info.renderValue());
                     // If the currency is USD, convert the price using the usdRate
                     if (original.currency === "USD") {
-                        price = price * (USD ?? 1);
+                        price = price * (reverseRates.USD ?? 1);
                     }
                     if (original.currency === "EUR") {
-                        price = price * (EUR ?? 1);
+                        price = price * (reverseRates.EUR ?? 1);
                     }
                     if (original.currency === "GBP") {
-                        price = price * (GBP ?? 1);
+                        price = price * (reverseRates.GBP ?? 1);
                     }
                     return original.sellPrice ? translate["sold"] : formatCurrency(price, true, 3);
                 },
@@ -138,14 +143,26 @@ export default function RenderStocks({ list, page, rowCount, currencyDisplay, di
                     header: translate["value"],
                     cell: (info: CellContext<StockHoldings, never>) => {
                         const original = info.row.original;
-                        const price = Number(original?.sellPrice ?? original.currentPrice);
+                        let price = Number(original?.sellPrice ?? original.currentPrice);
                         const amount = Number(original.amount);
                         const value = price * amount;
+                        // If the currency is USD, convert the price using the usdRate
+                        if (original.currency === "USD") {
+                            price = price * (reverseRates.USD ?? 1);
+                        }
+                        if (original.currency === "EUR") {
+                            price = price * (reverseRates.EUR ?? 1);
+                        }
+                        if (original.currency === "GBP") {
+                            price = price * (reverseRates.GBP ?? 1);
+                        }
                         return (
+
                             <p>
-                                {original?.sellPrice
-                                    ? translate["sold"]
-                                    : formatCurrency(value, true, 2, false)}
+                                {
+                                    original?.sellPrice
+                                        ? translate["sold"]
+                                        : formatCurrency(value, true, 2, false)}
                             </p>
                         );
                     },
