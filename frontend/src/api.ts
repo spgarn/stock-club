@@ -284,6 +284,5 @@ export const getCurrencyRates = async () => {
         '/stocks/currency',
         { withCredentials: true }
     );
-    console.log(response)
     return response.data;
 };

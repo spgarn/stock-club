@@ -188,7 +188,7 @@ export default function RenderStocks({
                             </span>
                         );
                     }
-                    const value = currentPrice - buyPrice;
+                    const value = (currentPrice * original.amount) - buyPrice;
                     return (
                         <span
                             className={

@@ -14,10 +14,11 @@ import Button from "@mui/material/Button";
 import { toast } from "react-toastify";
 import { LinearProgressWithLabel } from "./LinearProgressWithLabel";
 import Box from "@mui/material/Box";
-// import FailedFind from "./FailedFind";
+import { mergeBTAIntoLatest } from "../utils/mergeBTAIntoLatest";
+import { calculateRemainingBuyCostAndDate, calculateSoldCostAndDate } from "../utils/fifoDetailed";
 
 const STATIC_KEYS = ["csv_import_date", "csv_import_transaction_type", "csv_import_price", "csv_import_quantity", "csv_import_ISIN", "csv_import_diff", "csv_import_name", "csv_import_currency"]
-type Action = {
+export type Action = {
     csv_import_date: Date;
     csv_import_transaction_type: string;
     csv_import_price: number;
@@ -25,7 +26,7 @@ type Action = {
     csv_import_diff: string;
     csv_import_currency: string;
 };
-type AggregatedData = {
+export type AggregatedData = {
     actions: Action[]
     csv_import_ISIN: string;
     csv_import_name: string;
@@ -61,6 +62,8 @@ const getConnection = (key: string, col: string) => {
         color: colors[key as keyof typeof colors]
     };
 }
+
+
 
 const bindDefaultConnections = (columns: string[]) => {
     return columns.reduce((prev, col) => {
@@ -182,69 +185,82 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
             return agg;
         }, [] as AggregatedData[]);
 
+        mergeBTAIntoLatest(aggregated);
+
         const stocks: StockHoldings[] = [];
-        const sumBy = (actions: Action[], type: string) => {
-            const { date, price, amount, count } = actions.reduce((prev, v) => {
-                if (v.csv_import_transaction_type === type) {
-                    //Add
-                    prev.count++;
-                    prev.price += v.csv_import_price;
-                    prev.amount += v.csv_import_quantity;
-                    if (v.csv_import_date > prev.date) {
-                        prev.date = v.csv_import_date;
-                    }
-                }
-                return prev;
-            }, { date: new Date(), price: 0, amount: 0, count: 0 })
-            return {
-                date,
-                price: count === 0 ? 0 : price / amount,
-                amount: amount,
-            }
-        }
         for (const data of aggregated) {
-            //buy: 10 amount
-            const buys = sumBy(data.actions, "Köp");
-            //sell: 3 amount
-            const sells = sumBy(data.actions, "Sälj");
-
-            const effectiveBuysAmount = buys.amount - sells.amount; //10-3 = 7 still remaining in bought cat
-
-            const effectiveSellsAmount = sells.amount;
-
+            // Filter out buy and sell actions
+            const buyActions = data.actions.filter(
+                (a) => a.csv_import_transaction_type === "Köp"
+            );
+            const sellActions = data.actions.filter(
+                (a) => a.csv_import_transaction_type === "Sälj"
+            );
+            const totalSellQty = sellActions.reduce(
+                (sum, a) => sum + a.csv_import_quantity,
+                0
+            );
+            const totalBuyQty = buyActions.reduce(
+                (sum, a) => sum + a.csv_import_quantity,
+                0
+            );
+            const effectiveBuysAmount = totalBuyQty - totalSellQty;
 
             if (effectiveBuysAmount > 0) {
+                // Use FIFO matching to calculate the remaining cost basis.
+                const { remainingCost, remainingBuyDate } =
+                    calculateRemainingBuyCostAndDate(buyActions, totalSellQty);
+
                 stocks.push({
                     sellPrice: null,
                     id: 0,
                     stockName: data.csv_import_ISIN,
-                    investedAt: buys.date,
-                    buyPrice: buys.price * effectiveBuysAmount,
+                    investedAt: new Date(remainingBuyDate),
+                    buyPrice: remainingCost, // Now set based on FIFO calculation
                     amount: effectiveBuysAmount,
                     currentPrice: 0,
                     sold: false,
                     soldAt: null,
                     overridePrice: null,
                     avanzaName: data.csv_import_name,
-                    currency: data.actions.find(a => a.csv_import_currency)?.csv_import_currency || "SEK"
-                })
+                    currency:
+                        data.actions.find((a) => a.csv_import_currency)?.csv_import_currency ||
+                        "SEK",
+                });
             }
 
-            if (effectiveSellsAmount > 0) {
+            if (totalSellQty > 0) {
+                // Compute the cost basis for sold shares using FIFO
+                const { soldCost, lastSellBuyDate } = calculateSoldCostAndDate(buyActions, totalSellQty);
+
+                // Aggregate sell transactions for revenue and last sell date.
+                const sellAggregate = sellActions.reduce(
+                    (prev, v) => {
+                        prev.amount += v.csv_import_quantity;
+                        prev.price += v.csv_import_price;
+                        if (v.csv_import_date > prev.date) {
+                            prev.date = v.csv_import_date;
+                        }
+                        return prev;
+                    },
+                    { date: new Date(), price: 0, amount: 0 }
+                );
+
                 stocks.push({
-                    sellPrice: sells.price * effectiveSellsAmount,
+                    sellPrice: sellAggregate.price, // Total revenue from sells
                     id: 0,
                     stockName: data.csv_import_ISIN,
-                    investedAt: buys.date,
-                    buyPrice: buys.price * effectiveSellsAmount,
-                    amount: effectiveSellsAmount,
+                    investedAt: lastSellBuyDate, // Date of the last buy that contributed to the sold shares
+                    buyPrice: soldCost,          // FIFO cost basis for sold shares
+                    amount: totalSellQty,
                     currentPrice: 0,
                     sold: true,
-                    soldAt: sells.date,
+                    soldAt: sellAggregate.date,  // Latest sell date
                     overridePrice: null,
                     avanzaName: data.csv_import_name,
-                    currency: data.actions.find(a => a.csv_import_currency)?.csv_import_currency || "SEK"
-                })
+                    currency:
+                        data.actions.find((a) => a.csv_import_currency)?.csv_import_currency || "SEK",
+                });
             }
         }
         return stocks;
@@ -273,63 +289,57 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
         if (scanning) return;
         setScanning(true);
         const list = new Set(interpretedData.map(d => d.stockName));
-        //Scan through and index all
+
+        // Scan through and index all
         const interval = setInterval(async () => {
             const next = list.entries().next().value;
             if (next) {
                 const [key] = next;
                 list.delete(key);
+                const backupName = interpretedData.find(d => d.stockName === key)?.avanzaName;
 
-                const res = await api.get<YahooISINResponse>(`/yahoo/info?ISIN=${key}`, {
-                    headers: {
-                        "Access-Control-Allow-Origin": "*"
-                    },
+                // Primary search by ISIN (stockName)
+                let res = await api.get<YahooISINResponse>(`/yahoo/info?ISIN=${key}`, {
+                    headers: { "Access-Control-Allow-Origin": "*" },
                     withCredentials: true
                 });
-                const data = res.data;
-                if (data && data.count > 0) {
+                let data = res.data;
+
+                // If no results from primary call, try backup search using avanzaName
+                if (!data || data.count === 0) {
+
+                    if (backupName) {
+                        res = await api.get<YahooISINResponse>(`/yahoo/info?ISIN=${encodeURIComponent(backupName)}`, {
+                            headers: { "Access-Control-Allow-Origin": "*" },
+                            withCredentials: true
+                        });
+                        data = res.data;
+                    }
+                }
+
+                // Process the results
+                if (data && data.count > 0 && Array.isArray(data.quotes) && data.quotes.length > 0) {
                     const quote = data.quotes[0];
                     const symbol = quote.symbol;
+                    console.log(symbol)
                     set_ISIN_Relations(existing => {
-                        existing.set(key, { shortname: quote.shortname, symbol: symbol })
+                        existing.set(key, { shortname: quote.shortname, symbol });
                         return new Map(existing);
                     });
                 } else {
-                    const name = interpretedData.find(d => d.stockName === key)?.avanzaName + "⛔️";
+                    // Fallback: mark with a special indicator and an override price
+                    const nameWithIndicator = backupName ? backupName + "⛔️" : key;
                     const overridePrice = 1;
-                    if (name && overridePrice) {
-                        set_ISIN_Relations(existing => {
-                            existing.set(key, { shortname: String(name), symbol: String(name), overridePrice: Number(overridePrice) })
-                            return new Map(existing);
-                        });
-                    }
-                    // set_ISIN_Relations(existing => {
-                    //     existing.set(key, { shortname: String(name), symbol: String(name), overridePrice: Number(overridePrice) })
-                    //     return new Map(existing);
-                    // });
-                    // //Use backup by searching for name
-                    // console.log("NAME NOT FOUND: " + key);
-                    // set_ISIN_Relations(existing => {
-                    //     existing.set(key, { shortname: key, symbol: key })
-                    //     return new Map(existing);
-                    // });
-                    // setFailedFinds(f => {
-                    //     const data = interpretedData.find(d => d.stockName === key);
-                    //     f.push({ id: key, name: data?.stockName ?? key })
-                    //     return f;
-                    // })
-
-                    //If none found, prompt allowing user to enter a ticker name. Also allow user to enter nothing to skip
+                    set_ISIN_Relations(existing => {
+                        existing.set(key, { shortname: nameWithIndicator, symbol: nameWithIndicator, overridePrice });
+                        return new Map(existing);
+                    });
                 }
-
-
             } else {
                 clearInterval(interval);
             }
-
-
         }, 1000);
-    }
+    };
 
     const stocks = interpretedData.map(d => {
         const existing = ISIN_Relations.get(d.stockName);

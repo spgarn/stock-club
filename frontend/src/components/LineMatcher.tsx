@@ -101,14 +101,11 @@ const LineMatcher: React.FC<LineMatcherProps> = ({ className, keys, values, conn
     }, []);
 
     const handleButtonClick = (id: string, isKey: boolean) => {
-        console.log(activeButton, id);
         if (!activeButton) {
             setActiveButton(id);
         } else if (activeButton !== id) {
             const [first, second] = isKey ? [id, activeButton] : [activeButton, id];
-            console.log(first, second);
             if (keys.includes(first) && values.includes(second)) {
-                console.log("Adding connection")
                 const filteredConnections = connections.filter(conn => conn.start !== first);
                 setConnections([
                     ...filteredConnections,
@@ -146,7 +143,6 @@ const LineMatcher: React.FC<LineMatcherProps> = ({ className, keys, values, conn
         forceUpdate({});
     }, [connections]);
 
-    console.log(values, keys);
 
     return (
         <Container ref={containerRef} className={className}>
