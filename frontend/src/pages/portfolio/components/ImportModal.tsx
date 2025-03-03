@@ -16,6 +16,7 @@ import { LinearProgressWithLabel } from "./LinearProgressWithLabel";
 import Box from "@mui/material/Box";
 import { mergeBTAIntoLatest } from "../utils/mergeBTAIntoLatest";
 import { calculateRemainingBuyCostAndDate, calculateSoldCostAndDate } from "../utils/fifoDetailed";
+import { adaptForSplits } from "../utils/adaptForSplits";
 
 const STATIC_KEYS = ["csv_import_date", "csv_import_transaction_type", "csv_import_price", "csv_import_quantity", "csv_import_ISIN", "csv_import_diff", "csv_import_name", "csv_import_currency"]
 export type Action = {
@@ -141,6 +142,7 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
         if (connections.length < 6) return [];
         console.log("Interpreting data");
         console.log(table.data);
+
         const aggregated = table.data.reduce((agg, row) => {
             //Map the keys to the data
             const [csv_import_date, csv_import_transaction_type, csv_import_price, csv_import_quantity, csv_import_ISIN, csv_import_diff, csv_import_name, csv_import_currency] = STATIC_KEYS.map(key => {
@@ -148,7 +150,8 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
                 if (conn === undefined) return null;
                 return row[conn.end]
             })
-            if (!csv_import_date || !csv_import_transaction_type || !csv_import_price || !csv_import_quantity || !csv_import_ISIN) return agg;
+            if (!csv_import_date || !csv_import_transaction_type || !csv_import_ISIN) return agg;
+            if (csv_import_transaction_type !== "Övrigt" && (!csv_import_price || !csv_import_quantity)) return agg;
             const existing = agg.findIndex(v => v.csv_import_ISIN == csv_import_ISIN);
             if (existing < 0) {
                 //Add
@@ -156,8 +159,8 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
                     actions: [{
                         csv_import_date: new Date(String(csv_import_date)),
                         csv_import_transaction_type: String(csv_import_transaction_type),
-                        csv_import_price: Math.abs(convertToNumber(csv_import_price)),
-                        csv_import_quantity: Math.abs(convertToNumber(csv_import_quantity)),
+                        csv_import_price: Math.abs(convertToNumber(csv_import_price ?? 0)),
+                        csv_import_quantity: Math.abs(convertToNumber(csv_import_quantity ?? 0)),
                         csv_import_diff: String(csv_import_diff),
                         csv_import_currency: String(csv_import_currency)
                     }],
@@ -174,8 +177,8 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
                         {
                             csv_import_date: new Date(String(csv_import_date)),
                             csv_import_transaction_type: String(csv_import_transaction_type),
-                            csv_import_price: Math.abs(convertToNumber(csv_import_price)),
-                            csv_import_quantity: Math.abs(convertToNumber(csv_import_quantity)),
+                            csv_import_price: Math.abs(convertToNumber(csv_import_price ?? 0)),
+                            csv_import_quantity: Math.abs(convertToNumber(csv_import_quantity ?? 0)),
                             csv_import_diff: String(csv_import_diff),
                             csv_import_currency: String(csv_import_currency)
                         }
@@ -186,10 +189,12 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
         }, [] as AggregatedData[]);
 
         mergeBTAIntoLatest(aggregated);
+        const newAgg = adaptForSplits(aggregated)
 
         const stocks: StockHoldings[] = [];
-        for (const data of aggregated) {
+        for (const data of newAgg) {
             // Filter out buy and sell actions
+
             const buyActions = data.actions.filter(
                 (a) => a.csv_import_transaction_type === "Köp"
             );
