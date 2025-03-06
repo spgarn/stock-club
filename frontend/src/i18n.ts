@@ -209,6 +209,7 @@ export const translate = {
     "csv_import_diff": "Differens",
     "csv_import_name": "Namn",
     "csv_import_currency": "Valuta",
+    "csv_import_share_price": "Aktiepris",
     "back": "Tillbaka",
     "next": "Nästa",
     "previous": "Föregående",

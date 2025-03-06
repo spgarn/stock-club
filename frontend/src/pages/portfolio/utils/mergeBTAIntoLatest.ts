@@ -1,11 +1,29 @@
 import { AggregatedData } from "../components/ImportModal";
 
-export const stripBTA = (name: string) => {
-    // If you need something more robust, add more logic here
-    return name.replace(/\sBTA$/i, "");
+// Helper function to process each transaction row
+export const processTransactions = (aggregated: AggregatedData[]): AggregatedData[] => {
+    aggregated.forEach(item => {
+        item.actions.forEach(action => {
+            // If csv_import_price is non-zero, update the transaction type and calculate quantity
+            if (action.csv_import_price && action.csv_import_price !== 0 && action.csv_import_transaction_type === "Övrigt") {
+                action.csv_import_transaction_type = "Köp";
+                if (action.csv_import_share_price && action.csv_import_share_price !== 0) {
+                    // Calculate quantity as price divided by share price
+                    action.csv_import_quantity = action.csv_import_price / action.csv_import_share_price;
+                }
+            }
+        });
+    });
+    return aggregated;
 }
 
+export const stripBTA = (name: string) => {
+    return name.replace(/\sBTA\b.*$/i, "").trim().toUpperCase();
+}
 export const mergeBTAIntoLatest = (aggregated: AggregatedData[]) => {
+    // First, update the transaction rows
+    aggregated = processTransactions(aggregated);
+
     // 1) Separate normal vs. BTA
     const btaItems: AggregatedData[] = [];
     const normalItemsByBaseName: Record<string, AggregatedData[]> = {};
@@ -14,6 +32,7 @@ export const mergeBTAIntoLatest = (aggregated: AggregatedData[]) => {
         const baseName = stripBTA(item.csv_import_name);
         // Does the name actually contain 'BTA'?
         const isBTA = /BTA/i.test(item.csv_import_name);
+
 
         if (isBTA) {
             btaItems.push(item);
@@ -30,7 +49,7 @@ export const mergeBTAIntoLatest = (aggregated: AggregatedData[]) => {
     const latestNormalByBaseName: Record<string, AggregatedData | null> = {};
     for (const baseName in normalItemsByBaseName) {
         const items = normalItemsByBaseName[baseName];
-        let bestItem = null;
+        let bestItem: AggregatedData | null = null;
         let bestDate = new Date(0);
 
         for (const normalItem of items) {
@@ -45,6 +64,7 @@ export const mergeBTAIntoLatest = (aggregated: AggregatedData[]) => {
             }
         }
 
+
         latestNormalByBaseName[baseName] = bestItem;
     }
 
@@ -55,6 +75,7 @@ export const mergeBTAIntoLatest = (aggregated: AggregatedData[]) => {
         if (/BTA/i.test(item.csv_import_name)) {
             const baseName = stripBTA(item.csv_import_name);
             const latestNormal = latestNormalByBaseName[baseName];
+            console.log(latestNormal)
             if (latestNormal) {
                 // Merge actions
                 latestNormal.actions.push(...item.actions);
@@ -63,6 +84,7 @@ export const mergeBTAIntoLatest = (aggregated: AggregatedData[]) => {
             }
         }
     }
+
 
     return aggregated;
 }

@@ -18,7 +18,7 @@ import { mergeBTAIntoLatest } from "../utils/mergeBTAIntoLatest";
 import { calculateRemainingBuyCostAndDate, calculateSoldCostAndDate } from "../utils/fifoDetailed";
 import { adaptForSplits } from "../utils/adaptForSplits";
 
-const STATIC_KEYS = ["csv_import_date", "csv_import_transaction_type", "csv_import_price", "csv_import_quantity", "csv_import_ISIN", "csv_import_diff", "csv_import_name", "csv_import_currency"]
+const STATIC_KEYS = ["csv_import_date", "csv_import_transaction_type", "csv_import_price", "csv_import_quantity", "csv_import_ISIN", "csv_import_diff", "csv_import_name", "csv_import_currency", "csv_import_share_price"]
 export type Action = {
     csv_import_date: Date;
     csv_import_transaction_type: string;
@@ -26,6 +26,7 @@ export type Action = {
     csv_import_quantity: number;
     csv_import_diff: string;
     csv_import_currency: string;
+    csv_import_share_price: number;
 };
 export type AggregatedData = {
     actions: Action[]
@@ -110,6 +111,11 @@ const bindDefaultConnections = (columns: string[]) => {
                 prev.push(getConnection(key, col))
                 break;
             }
+            case "Kurs": {
+                const key = "csv_import_share_price";
+                prev.push(getConnection(key, col))
+                break;
+            }
         }
         return prev;
     }, [] as Connection[])
@@ -145,7 +151,7 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
 
         const aggregated = table.data.reduce((agg, row) => {
             //Map the keys to the data
-            const [csv_import_date, csv_import_transaction_type, csv_import_price, csv_import_quantity, csv_import_ISIN, csv_import_diff, csv_import_name, csv_import_currency] = STATIC_KEYS.map(key => {
+            const [csv_import_date, csv_import_transaction_type, csv_import_price, csv_import_quantity, csv_import_ISIN, csv_import_diff, csv_import_name, csv_import_currency, csv_import_share_price] = STATIC_KEYS.map(key => {
                 const conn = table.connections.find(conn => conn.start === key);
                 if (conn === undefined) return null;
                 return row[conn.end]
@@ -162,7 +168,8 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
                         csv_import_price: Math.abs(convertToNumber(csv_import_price ?? 0)),
                         csv_import_quantity: Math.abs(convertToNumber(csv_import_quantity ?? 0)),
                         csv_import_diff: String(csv_import_diff),
-                        csv_import_currency: String(csv_import_currency)
+                        csv_import_currency: String(csv_import_currency),
+                        csv_import_share_price: Math.abs(convertToNumber(csv_import_share_price ?? 0)),
                     }],
                     csv_import_ISIN: String(csv_import_ISIN),
                     csv_import_name: String(csv_import_name),
@@ -180,7 +187,8 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
                             csv_import_price: Math.abs(convertToNumber(csv_import_price ?? 0)),
                             csv_import_quantity: Math.abs(convertToNumber(csv_import_quantity ?? 0)),
                             csv_import_diff: String(csv_import_diff),
-                            csv_import_currency: String(csv_import_currency)
+                            csv_import_currency: String(csv_import_currency),
+                            csv_import_share_price: Math.abs(convertToNumber(csv_import_share_price ?? 0)),
                         }
                     ]
                 })
