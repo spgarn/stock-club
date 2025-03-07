@@ -9,9 +9,9 @@ import {
     ColumnDef,
     createColumnHelper,
 } from "@tanstack/react-table";
-import { StockHoldings } from "../../../api";
+import { CurrencyRates, StockHoldings } from "../../../api";
 import dayjs from "dayjs";
-import { convertCurrency, formatCurrency } from "../../../funcs/funcs";
+import { formatCurrency } from "../../../funcs/funcs";
 import { translate } from "../../../i18n";
 import { useMemo } from "react";
 import portfolioStyles from "../portfolio.module.scss";
@@ -29,7 +29,7 @@ type IProps = {
     setSellPortion: (v: StockHoldings) => void;
     withLivePrice?: boolean;
     isPublic?: boolean;
-    reverseRates: { EUR?: number; USD?: number; GBP?: number }
+    currencies: CurrencyRates[];
 };
 
 
@@ -44,9 +44,7 @@ export default function RenderStocks({
     setSellPortion,
     withLivePrice = true,
     isPublic = false,
-    reverseRates
 }: IProps) {
-
 
     const columns: ColumnDef<StockHoldings, any>[] = useMemo(() => {
         const baseColumns: ColumnDef<StockHoldings, any>[] = [
@@ -106,8 +104,7 @@ export default function RenderStocks({
                     header: translate["currentPrice"],
                     cell: (info) => {
                         const original = info.row.original;
-                        let price = Number(info.renderValue());
-                        price = convertCurrency(price, original.currency, reverseRates);
+                        const price = Number(info.renderValue());
                         return original.sellPrice
                             ? translate["sold"]
                             : formatCurrency(price, true, 3);
@@ -124,7 +121,7 @@ export default function RenderStocks({
                 enableSorting: true,
                 accessorFn: (original: StockHoldings) =>
                     Number(original.sellPrice) - Number(original.buyPrice),
-                cell: (info: CellContext<StockHoldings, never>) => {
+                cell: (info: CellContext<StockHoldings, any>) => {
                     const original = info.row.original;
                     const buyPrice = original.buyPrice;
                     const sellPrice = Number(original.sellPrice);
@@ -165,14 +162,13 @@ export default function RenderStocks({
                 accessorFn: (original: StockHoldings) =>
                     Number(original.currentPrice) - Number(original.buyPrice),
                 enableSorting: true,
-                cell: (info: CellContext<StockHoldings, never>) => {
+                cell: (info: CellContext<StockHoldings, any>) => {
                     const original = info.row.original;
                     const buyPrice = original.buyPrice;
-                    let currentPrice = Number(original.currentPrice);
+                    const currentPrice = Number(original.currentPrice);
 
                     if (original?.sellPrice) return translate["sold"];
 
-                    currentPrice = convertCurrency(currentPrice, original.currency, reverseRates);
 
                     if (currencyDisplay === "percent") {
                         const percent = 100 * ((currentPrice / buyPrice) - 1);
@@ -213,8 +209,8 @@ export default function RenderStocks({
                 header: translate["value"],
                 cell: (info: CellContext<StockHoldings, never>) => {
                     const original = info.row.original;
-                    let price = Number(original?.sellPrice ?? original.currentPrice);
-                    price = convertCurrency(price, original.currency, reverseRates);
+                    const price = Number(original?.sellPrice ?? original.currentPrice);
+
                     const value = price * Number(original.amount);
                     return (
                         <p>

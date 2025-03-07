@@ -43,19 +43,11 @@ export type MeetingExtended = Meeting & {
     meetingChats: MeetingChat[]
 }
 
-export type FxRatesApiResponse = {
-    success: boolean;
-    terms: string;
-    privacy: string;
-    timestamp: number;
-    date: string;
-    base: string;
-    rates: {
-      EUR: number;
-      GBP: number;
-      USD: number;
-    };
-  }
+export type CurrencyRates = {
+    id: number,
+    name: string,
+    rate: number
+}
 
 export type User = {
     id: string;
@@ -82,6 +74,7 @@ export type MeetingSuggestion = {
     meetingsSuggestionsDownvotes: MeetingSuggestionRate[];
     user: User;
 }
+
 
 export type ClubDetails = Club & {
     meetings: Meeting[],
@@ -280,9 +273,11 @@ export const getUserById = async (id: string | undefined) => {
 }
 
 export const getCurrencyRates = async () => {
-    const response = await api.get<FxRatesApiResponse>(
-        '/stocks/currency',
+    const response = await api.get<CurrencyRates[]>(
+        '/currency/getrates',
         { withCredentials: true }
     );
-    return response.data;
+    const reversedRates = response.data.map(currency => currency.rate ? { ...currency, rate: 1 / currency.rate } : currency);
+
+    return reversedRates;
 };

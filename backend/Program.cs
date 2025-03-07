@@ -19,6 +19,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddMemoryCache();
 builder.Services.AddControllers();
 
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
@@ -84,6 +85,10 @@ builder.Services.AddTransient<EmailSender, EmailSender>();
 builder.Services.AddScoped<EmailFetcher>();
 builder.Services.Configure<AuthMessageSenderOptions>(builder.Configuration);
 builder.Services.AddHttpClient();
+
+// Register Currency Services
+builder.Services.AddScoped<ICurrencyService, CurrencyService>();
+builder.Services.AddHostedService<CurrencyUpdateJob>();
 
 var app = builder.Build();
 

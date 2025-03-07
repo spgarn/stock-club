@@ -1,58 +1,60 @@
 import { useMemo, useEffect } from 'react';
-import { StockHoldings } from '../../../api';
-import { convertCurrency } from '../../../funcs/funcs';
-
-interface ReverseRates {
-  EUR?: number;
-  USD?: number;
-  GBP?: number;
-}
+import { CurrencyRates, StockHoldings } from '../../../api';
 
 export default function useStocks(
   data: StockHoldings[] | undefined,
   displayMethod: string,
   setPage: (v: number) => void,
-  reverseRates: ReverseRates
+  currencies: CurrencyRates[]
 ) {
-  // Reset pagination whenever data changes
   useEffect(() => {
     setPage(1);
   }, [data, setPage]);
 
   return useMemo(() => {
-    if (!data) {
+    if (!data || currencies.length === 0) {
       return { totalAmount: 0, list: [], totalValue: 0, development: 0 };
     }
 
-    // Split into active vs. sold
-    const activeStocks = data.filter(s => !s.sold);
-    const soldStocks = data.filter(s => s.sold);
+    console.log(data);
 
-    // 1) COST BASIS (buyPrice):
-    //    - Active: buyPrice is already in base currency (total), so just sum.
-    //    - Sold: buyPrice is also already in base currency (total), so just sum.
+    // Create a currency lookup object for quick access
+    const currencyLookup = currencies.reduce((acc, c) => {
+      acc[c.name] = c.rate;
+      return acc;
+    }, {} as Record<string, number>);
+
+    // Function to convert prices using the lookup
+    const getConvertedPrice = (price: number, currency: string): number => {
+      return price * (currencyLookup[currency] || 1);
+    };
+
+    // Update current prices based on currency conversion
+    const updatedStocks = data.map(stock => ({
+      ...stock,
+      currentPrice: getConvertedPrice(stock.currentPrice, stock.currency),
+    }));
+
+    // Split into active vs. sold
+    const activeStocks = updatedStocks.filter(s => !s.sold);
+    const soldStocks = updatedStocks.filter(s => s.sold);
+
+    // Cost basis
     const activeCost = activeStocks.reduce((sum, s) => sum + s.buyPrice, 0);
     const soldCost = soldStocks.reduce((sum, s) => sum + s.buyPrice, 0);
 
-    // 2) CURRENT or FINAL VALUE:
-    //    - Active: currentPrice is *per share* in a foreign currency => multiply by amount, then convert.
-    //    - Sold: sellPrice is already total in base currency => just sum it.
-    const activeValue = activeStocks.reduce((sum, s) => {
-      // multiply by amount only if s.currentPrice is per-share
-      const totalPerShare = s.currentPrice * s.amount;
-      return sum + convertCurrency(totalPerShare, s.currency, reverseRates);
-    }, 0);
-
+    // Current value calculation
+    const activeValue = activeStocks.reduce((sum, s) => sum + s.currentPrice * s.amount, 0);
     const soldValue = soldStocks.reduce((sum, s) => sum + (s.sellPrice ?? 0), 0);
 
-    // Now compute the displayed totals and development
+    // Compute the displayed totals and development
     if (displayMethod === 'all_stocks') {
       const totalCost = activeCost + soldCost;
       const totalValue = activeValue + soldValue;
       const development = totalCost > 0 ? ((totalValue / totalCost) - 1) * 100 : 0;
       return {
-        totalAmount: data.length,
-        list: data,
+        totalAmount: updatedStocks.length,
+        list: updatedStocks,
         totalValue,
         development,
       };
@@ -68,7 +70,6 @@ export default function useStocks(
       };
     }
 
-    // Otherwise "sold_stocks"
     const development = soldCost > 0 ? ((soldValue / soldCost) - 1) * 100 : 0;
     return {
       totalAmount: soldStocks.length,
@@ -76,5 +77,5 @@ export default function useStocks(
       totalValue: soldValue,
       development,
     };
-  }, [data, displayMethod, reverseRates, setPage]);
+  }, [data, displayMethod, currencies, setPage]);
 }

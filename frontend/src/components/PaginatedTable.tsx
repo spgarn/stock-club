@@ -58,6 +58,7 @@ const PaginatedTable = <T,>({ columns, data, rowCount, page, }: TableProps<T>) =
             <Typography variant='h5'>{translate["empty_table"]}</Typography>
         </div>
     }
+    console.log(data)
     return (
         <TableContainer component={Paper}>
             <Table aria-label="Sorted table" className='sort-table'>

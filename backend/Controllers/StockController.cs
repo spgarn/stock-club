@@ -105,9 +105,9 @@ namespace club.Controllers
                 BuyPrice = stockDto.BuyPrice,
                 StockName = stockDto.StockName,
                 Sold = stockDto.Sold,
+                Currency = stockDto.Currency,
                 InvestedAt = stockDto.InvestedAt,
                 SoldAt = stockDto.Sold ? stockDto.SoldAt ?? null : null,
-                Currency = stockDto.Currency,
                 User = user,
                 Stock = stock,
                 Club = club,
@@ -206,10 +206,10 @@ namespace club.Controllers
                 BuyPrice = existingStock.BuyPrice,
                 StockName = existingStock.StockName,
                 Sold = true,
+                Currency = existingStock.Currency,
                 InvestedAt = existingStock.InvestedAt,
                 SoldAt = stockDto.SoldAt,
                 User = user,
-                Currency = existingStock.Currency,
                 Stock = existingStock.Stock,
                 Club = club,
                 OverridePrice = existingStock.OverridePrice
@@ -259,29 +259,6 @@ namespace club.Controllers
 
             await context.SaveChangesAsync();
             return CreatedAtAction(nameof(DeleteStock), user.Id);
-        }
-
-
-        [HttpGet("currency")]
-        public async Task<IActionResult> GetFxRates()
-        {
-            var url = "https://api.fxratesapi.com/latest?currencies=EUR,USD,GBP&base=SEK";
-            var response = await _httpClient.GetAsync(url);
-
-            if (!response.IsSuccessStatusCode)
-            {
-                _logger.LogError("Failed to fetch FX rates. Status Code: {StatusCode}", response.StatusCode);
-                return StatusCode((int)response.StatusCode, "Failed to fetch FX rates from FXRatesAPI.");
-            }
-
-            var content = await response.Content.ReadAsStringAsync();
-            if (string.IsNullOrWhiteSpace(content))
-            {
-                _logger.LogError("Empty response received from FXRatesAPI.");
-                return StatusCode(500, "Empty response from FXRatesAPI.");
-            }
-
-            return Content(content, response.Content.Headers.ContentType?.MediaType ?? "application/json");
         }
     }
 }

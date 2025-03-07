@@ -32,24 +32,13 @@ export default function Portfolio() {
         queryKey: ['club-stocks', clubId],
         queryFn: () => getStocks(clubId),
     });
-    const { data: currency } = useQuery({
+    const { data: currencies } = useQuery({
         queryKey: ["currency"],
         queryFn: getCurrencyRates,
     });
 
-    const { EUR, USD, GBP } = currency?.rates ?? {
-        EUR: undefined,
-        USD: undefined,
-        GBP: undefined,
-    };
 
-    const reverseRates = {
-        EUR: EUR ? 1 / EUR : undefined,
-        USD: USD ? 1 / USD : undefined,
-        GBP: GBP ? 1 / GBP : undefined,
-    };
-
-    const [rowCount, setRowCount] = useState(10);
+    const [rowCount, setRowCount] = useState(20);
     const [page, setPage] = useState(1);
     const [addStockOpen, setAddStockOpen] = useState(false);
     const [importModal, setImportModal] = useState(false);
@@ -60,7 +49,8 @@ export default function Portfolio() {
     const [currencyDisplay, setCurrencyDisplay] = useState<"kr" | "percent">("kr");
     const {
         totalValue, totalAmount, development, list
-    } = useStocks(data, displayMethod, setPage, reverseRates);
+    } = useStocks(data, displayMethod, setPage, currencies ?? []);
+
 
     const changeRow = (row: number) => {
         setRowCount(row);
@@ -150,7 +140,7 @@ export default function Portfolio() {
                 </div>
             </div>
 
-            <RenderStocks reverseRates={reverseRates} list={list} page={page} rowCount={rowCount} currencyDisplay={currencyDisplay} displayMethod={displayMethod} removeStock={removeStock} setEditStock={setEditStock} setSellPortion={setSellPortion} isPublic={isPublic} />
+            <RenderStocks currencies={currencies ?? []} list={list} page={page} rowCount={rowCount} currencyDisplay={currencyDisplay} displayMethod={displayMethod} removeStock={removeStock} setEditStock={setEditStock} setSellPortion={setSellPortion} isPublic={isPublic} />
             {addStockOpen && <AddStockModal refetch={refetch} handleClose={() => setAddStockOpen(false)} />}
             {!!editStock && <EditStockModal refetch={refetch} handleClose={() => setEditStock(null)} stock={editStock} />}
             {!!sellPortion && <SellPortionModal refetch={refetch} handleClose={() => setSellPortion(null)} stock={sellPortion} />}

@@ -19,6 +19,7 @@ namespace club.Data
         public DbSet<Models.StockHolding> StockHolding { get; set; }
         public DbSet<Models.Stock> Stock { get; set; }
         public DbSet<Models.ApplicationUser> User { get; set; }
+        public DbSet<Models.Currency> Currency { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

@@ -19,21 +19,3 @@ export const refetchClubAndMeeting = () => {
 export const convertToNumber = (num: string | number) => {
     return Number(String(num).replace(/\s/g, "").replace(",", "."))
 }
-
-
-export const convertCurrency = (
-    price: number,
-    currency: string,
-    reverseRates: { EUR?: number; USD?: number; GBP?: number }
-): number => {
-    switch (currency) {
-        case "USD":
-            return price * (reverseRates.USD ?? 1);
-        case "EUR":
-            return price * (reverseRates.EUR ?? 1);
-        case "GBP":
-            return price * (reverseRates.GBP ?? 1);
-        default:
-            return price;
-    }
-};
