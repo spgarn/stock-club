@@ -68,7 +68,7 @@ export default function RenderStocks({
             // Buy price
             columnHelper.accessor("buyPrice", {
                 header: () => translate["buyPrice"],
-                cell: (info) => formatCurrency(info.renderValue(), true, 3),
+                cell: (info) => formatCurrency(info.renderValue(), true, 0),
             }),
             // Amount
             columnHelper.accessor("amount", {
@@ -107,7 +107,7 @@ export default function RenderStocks({
                         const price = Number(info.renderValue());
                         return original.sellPrice
                             ? translate["sold"]
-                            : formatCurrency(price, true, 3);
+                            : formatCurrency(price, true, 0);
                     },
                 })
             );
@@ -191,7 +191,7 @@ export default function RenderStocks({
                                 value >= 0 ? portfolioStyles.positive : portfolioStyles.negative
                             }
                         >
-                            {formatCurrency(value, true, 2, true)}
+                            {formatCurrency(value, true, 0, true)}
                         </span>
                     );
                 },
@@ -216,7 +216,7 @@ export default function RenderStocks({
                         <p>
                             {original?.sellPrice
                                 ? translate["sold"]
-                                : formatCurrency(value, true, 2, false)}
+                                : formatCurrency(value, true, 0, false)}
                         </p>
                     );
                 },
