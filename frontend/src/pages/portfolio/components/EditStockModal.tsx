@@ -41,6 +41,7 @@ export default function EditStockModal({ handleClose, refetch, stock }: { handle
                 buyPrice: stock.buyPrice,
                 sellPrice: stock.sellPrice ?? stock.currentPrice,
                 sold: stock.sold,
+                currency: stock.currency,
                 soldAt: new Date(Date.now()),
                 overridePrice: stock.overridePrice ? String(stock.overridePrice) : null
             });
@@ -51,22 +52,20 @@ export default function EditStockModal({ handleClose, refetch, stock }: { handle
         setLoading(true);
         const override_price = data.overridePrice;
         try {
-            const res = await api.put<unknown>
+            await api.put<unknown>
                 ("/stocks/edit/" + stock.id + "/club/" + clubId, {
                     ...data,
-                    overridePrice: override_price && override_price.length > 0 ? Number(override_price) : undefined
-
+                    overridePrice: override_price && override_price.length > 0 ? Number(override_price) : undefined,
+                    currency: stock.currency
                 }, {
                     headers: {
                         "Access-Control-Allow-Origin": "*"
                     },
                     withCredentials: true
                 });
-            const resData = res.data;
             toast.success(translate["stock_updated_success"]);
             refetch();
             handleClose();
-            console.log(resData);
         } catch (err) {
             if (axios.isAxiosError(err)) {
                 if (err.response?.data) {
@@ -135,14 +134,14 @@ export default function EditStockModal({ handleClose, refetch, stock }: { handle
                         fullWidth={true}
                         error={!!errors.buyPrice}
                         id="edit_stock_content"
-                        label={translate["price_per_stock"]}
+                        label={translate["buyPrice"]}
                         type="text"
                         variant="standard"
                         helperText={errors.buyPrice ? errors?.buyPrice.message : " "}
                         {...register("buyPrice", { required: true })}
                         rows={4}
                     />
-                    <TextField
+                    {/* <TextField
                         fullWidth={true}
                         error={!!errors.amount}
                         id="override_price"
@@ -151,7 +150,7 @@ export default function EditStockModal({ handleClose, refetch, stock }: { handle
                         variant="standard"
                         helperText={errors.amount ? errors?.amount.message : translate["leave_empty_for_automatic"]}
                         {...register("overridePrice", { required: true })}
-                    />
+                    /> */}
                     <Controller
                         name="sold"
                         control={control}

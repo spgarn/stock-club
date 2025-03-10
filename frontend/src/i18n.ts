@@ -133,6 +133,7 @@ export const translate = {
     "reopen_meeting": "Återöppna Möte",
     "add_user": "Lägg till användare",
     "usermanagement": "Hantera Användare",
+    "currency": "Valuta",
     "users": "Användare",
     "user_added": "Användare lades till i klubben!",
     "user_deleted": "Användare borttagen från klubben!",

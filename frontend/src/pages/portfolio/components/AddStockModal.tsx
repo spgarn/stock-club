@@ -15,6 +15,7 @@ import Checkbox from "@mui/material/Checkbox";
 import portfolioStyles from "../portfolio.module.scss";
 import useClubs from "../../../hooks/useClubs";
 import BasicDatePicker from "../../../components/BasicDatePicker";
+
 export type NewInvestment = {
     stockName: string;
     investedAt: Date;
@@ -23,9 +24,10 @@ export type NewInvestment = {
     sellPrice: number | null;
     sold: boolean;
     soldAt: Date | null;
-    overridePrice: string | null
+    overridePrice: string | null;
+    currency: string;
 }
-// };
+
 export default function AddStockModal({ handleClose, refetch }: { handleClose: () => void; refetch: () => void; }) {
     const { clubId } = useClubs();
     const {
@@ -125,15 +127,26 @@ export default function AddStockModal({ handleClose, refetch }: { handleClose: (
                         fullWidth={true}
                         error={!!errors.buyPrice}
                         id="stock_content"
-                        label={translate["price_per_stock"]}
+                        label={translate["buyPrice"]}
                         type="text"
                         variant="standard"
                         helperText={errors.buyPrice ? errors?.buyPrice.message : " "}
                         {...register("buyPrice", { required: true })}
                         rows={4}
                     />
-
                     <TextField
+                        fullWidth={true}
+                        error={!!errors.buyPrice}
+                        id="currency"
+                        label={translate["currency"]}
+                        type="text"
+                        variant="standard"
+                        helperText={errors.buyPrice ? errors?.buyPrice.message : " "}
+                        {...register("currency", { required: true })}
+                        rows={4}
+                    />
+
+                    {/* <TextField
                         fullWidth={true}
                         error={!!errors.amount}
                         id="override_price"
@@ -142,7 +155,7 @@ export default function AddStockModal({ handleClose, refetch }: { handleClose: (
                         variant="standard"
                         helperText={errors.amount ? errors?.amount.message : translate["leave_empty_for_automatic"]}
                         {...register("overridePrice", { required: false })}
-                    />
+                    /> */}
 
                     <Controller
                         name="sold"
