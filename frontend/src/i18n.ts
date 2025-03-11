@@ -10,6 +10,7 @@ export const translate = {
     "meetsAndProposals": "Möten & Förslag",
     "portfolio": "Innehav",
     "news": "Nyhetsflöde",
+    "info": "Information",
     "email": "Email",
     "enter_email": "Skriv in Email",
     "password": "Lösenord",
