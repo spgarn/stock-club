@@ -7,7 +7,7 @@ export default function UpcomingMeetings({ upcomingMeetings, user, refetch }: { 
     return (
         <div>
             <Typography variant="h5">{translate["upcoming_meetings"]}</Typography>
-            <div className="content-box">
+            <div className="meeting-cards">
                 {upcomingMeetings.map((meeting, index) => <MeetingBox key={index} meeting={meeting} refetch={refetch} user={user} />)}
             </div>
         </div>
