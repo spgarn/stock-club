@@ -55,7 +55,7 @@
 .attendanceVoteIcon {
     border:1px solid colors.$gray;
     padding:8px;
-    border-radius: 12px;
+    border-radius: 10px;
     margin-bottom: 8px;
 }
 
@@ -67,6 +67,12 @@
 .attendanceVoteIconVoted {
     background-color: colors.$gray;
     opacity: 0.5;
+}
+
+.hoverLink{
+    background-color: colors.$white;
+    border: 1px solid colors.$gray;
+    border-radius: 10px;
 }
 
 .hoverLink:hover{

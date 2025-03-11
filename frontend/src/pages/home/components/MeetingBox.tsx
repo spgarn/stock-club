@@ -14,6 +14,7 @@ import { AddToCalendarButton } from 'add-to-calendar-button-react';
 
 export default function MeetingBox({ meeting, user, refetch }: { meeting: Meeting, refetch: () => void, user: User }) {
     const time = dayjs(meeting.meetingTime);
+    const now = dayjs();
     const [isUpvoting, setIsUpvoting] = useState(false);
     const [attendance, setAttendance] = useState<boolean | undefined>();
 
@@ -28,6 +29,7 @@ export default function MeetingBox({ meeting, user, refetch }: { meeting: Meetin
             setAttendance(false)
         }
     }, [userHasDeclined, userIsAttending])
+
 
 
 
@@ -84,7 +86,7 @@ export default function MeetingBox({ meeting, user, refetch }: { meeting: Meetin
                     </div>
 
                 </div>
-                <div className={homeStyles.attendanceMeeting} style={{ marginBottom: "8px" }} onClick={(e) => e.preventDefault()}>
+                <div className={homeStyles.attendanceMeeting} style={{ marginBottom: "8px", pointerEvents: time < now ? "none" : "auto" }} onClick={(e) => e.preventDefault()} >
                     <FontAwesomeIcon className={`${homeStyles.attendanceVoteIcon} ${attendance ? homeStyles.attendanceVoteIconVoted : ""}`} icon={faThumbsUp} onClick={(e) => {
                         e.preventDefault()
                         respond(true)
@@ -111,11 +113,7 @@ export default function MeetingBox({ meeting, user, refetch }: { meeting: Meetin
                     }} />
                 </div>
 
-            </NavLink>
-
-
-
-            {(meeting.attendees.length > 0 || meeting.decliners.length > 0) && (
+                {(meeting.attendees.length > 0 || meeting.decliners.length > 0) && (
                 <div style={{ padding: "10px", borderTop: "1px solid #ccc" }}>
                     {meeting.attendees.length > 0 && (
                         <Typography variant="body1" color={colors.green[700]}>
@@ -129,6 +127,11 @@ export default function MeetingBox({ meeting, user, refetch }: { meeting: Meetin
                     )}
                 </div>
             )}
+            </NavLink>
+
+
+
+          
         </>
     )
 }
