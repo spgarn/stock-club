@@ -93,7 +93,7 @@ export default function Home() {
                     <PreviousMeetings user={user} refetch={refetch} prevMeetings={prevMeetings} />
                 </div>
                 <div>
-                    <Proposals user={user} refetch={refetch} meetingsSuggestions={data.meetingsSuggestions} clubId={id} />
+                    <Proposals user={user} refetch={refetch} meetingsSuggestions={data.meetingsSuggestions} />
                     <div className={"content-box"}>
                         {currencies?.filter(currency => currency.name !== "SEK").map(currency => <div key={currency.id} style={{ display: "flex", gap: "10px", padding: "12px" }}>
                             <span style={{ color: colors.blueGrey["400"] }}>{currency.name}:</span>
