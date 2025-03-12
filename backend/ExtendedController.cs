@@ -19,6 +19,7 @@ namespace club
 
             var user = await context.Users
                 .Include(u => u.Clubs)
+                .ThenInclude(c => c.Users) // Make sure users in each club are loaded
                 .FirstOrDefaultAsync(u => u.Id == userId);
 
             if (user == null)

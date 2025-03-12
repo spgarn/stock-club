@@ -21,12 +21,12 @@ public partial class Meeting
 
     public DateTime? EndedAt { get; set; }
 
-    public virtual ICollection<MeetingsSuggestion> MeetingSuggestions{ get; set; } = new List<MeetingsSuggestion>();
-    
+    public virtual ICollection<MeetingsSuggestion> MeetingSuggestions { get; set; } = new List<MeetingsSuggestion>();
+
     public virtual ICollection<ApplicationUser> Attendees { get; set; } = new List<ApplicationUser>();
-    
-    public virtual ICollection<ApplicationUser> Decliners { get; set; } = new List<ApplicationUser>();
-    
+
+    public virtual ICollection<MeetingDecliner> Decliners { get; set; } = new List<MeetingDecliner>();
+
     public virtual Club Club { get; set; } = null!;
     //public virtual ClubTemplates? MeetingProtocolTemplate { get; set; } = null;
 

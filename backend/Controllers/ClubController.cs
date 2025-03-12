@@ -32,28 +32,37 @@ namespace club.Controllers
                 Id = club.Id,
                 Name = club.Name,
                 PublicInvestments = club.PublicInvestments,
+                Users = club.Users.Select(u => new UserDTO
+                {
+                    Id = u.Id,
+                    FirstName = u.FirstName,
+                    LastName = u.LastName,
+                    Email = u.Email ?? "",
+                    UserName = u.UserName ?? ""
+                }).ToList()
             }).ToList());
         }
 
         [HttpGet]
         [Authorize]
         [Route("{id}/info")]
-        public async Task<ActionResult<IEnumerable<ClubDto>>> GetClubSuggestions(int id,
-            [FromServices] MyDbContext context)
+        public async Task<ActionResult<ClubDto>> GetClubSuggestions(int id, [FromServices] MyDbContext context)
         {
             var result = await GetCurrentUser(context);
-            if (result.Result != null) // If it's an error result
-                return result.Result;
+            if (result.Result != null) return result.Result;
             if (result.Value == null) return NotFound();
             var user = result.Value;
 
-            // Fetch the club and its users, suggestions, meetings
             var club = await context.Club
                 .Include(u => u.Users)
                 .Include(u => u.Meetings)
                 .ThenInclude(m => m.Attendees)
                 .Include(u => u.Meetings)
-                .ThenInclude(m => m.Decliners)
+                .ThenInclude(m => m.Decliners) // ✅ Fix: Ensure we load `MeetingDecliners`
+                .ThenInclude(d => d.User) // ✅ Fix: Load user information for decliners
+                .Include(u => u.Meetings)
+                .ThenInclude(m => m.MeetingChats) // ✅ Fix: Load `MeetingChats`
+                .ThenInclude(c => c.User) // ✅ Fix: Load chat users
                 .Include(u => u.MeetingsSuggestions)
                 .ThenInclude(ms => ms.Meeting)
                 .Include(u => u.MeetingsSuggestions)
@@ -62,21 +71,7 @@ namespace club.Controllers
                 .ThenInclude(ms => ms.MeetingsSuggestionsDownvotes)
                 .FirstOrDefaultAsync(c => c.Id == id);
 
-            //If there is no club by the given ID, not found.
-            if (club == null)
-            {
-                return NotFound();
-            }
-
-            //Order
-            club.Meetings = club.Meetings.OrderByDescending(m => m.MeetingTime).ToList();
-            club.MeetingsSuggestions = club.MeetingsSuggestions.OrderByDescending(ms => ms.Id).ToList();
-            //Try to find the current userId in the list of users. If it can't be found user is not part of this club
-            var userRef = club.Users.FirstOrDefault(u => u.Id == user.Id);
-            if (userRef == null)
-            {
-                return Unauthorized();
-            }
+            if (club == null) return NotFound();
 
             var clubDto = new ClubDto
             {
@@ -84,7 +79,15 @@ namespace club.Controllers
                 Name = club.Name,
                 PublicInvestments = club.PublicInvestments,
 
-                // Convert each Meeting entity to a MeetingDTO
+                Users = club.Users.Select(u => new UserDTO
+                {
+                    Id = u.Id,
+                    FirstName = u.FirstName,
+                    LastName = u.LastName,
+                    Email = u.Email ?? "",
+                    UserName = u.UserName ?? ""
+                }).ToList(),
+
                 Meetings = club.Meetings.Select(meeting => new MeetingDTO
                 {
                     Id = meeting.Id,
@@ -95,6 +98,7 @@ namespace club.Controllers
                     Location = meeting.Location,
                     Agenda = meeting.Agenda,
                     MeetingProtocol = meeting.MeetingProtocol,
+
                     Attendees = meeting.Attendees.Select(u => new UserDTO
                     {
                         Id = u.Id,
@@ -103,71 +107,42 @@ namespace club.Controllers
                         Email = u.Email ?? "",
                         UserName = u.UserName ?? ""
                     }).ToList(),
-                    Decliners = meeting.Decliners.Select(u => new UserDTO
+
+                    // ✅ Fix: Correctly format `MeetingDecliners`
+                    Decliners = meeting.Decliners.Select(decliner => new MeetingDeclinerDTO
                     {
-                        Id = u.Id,
-                        FirstName = u.FirstName,
-                        LastName = u.LastName,
-                        Email = u.Email ?? "",
-                        UserName = u.UserName ?? ""
-                    }).ToList()
-
-                    // If you need to map meeting chats, do so here:
-                    // MeetingChats = meeting.MeetingChats.Select(chat => new MeetingChatDTO { ... }).ToList()
-                }).ToList(),
-
-                // Convert each MeetingsSuggestion entity to a MeetingSuggestionDTO
-                MeetingsSuggestions = club.MeetingsSuggestions.Select(suggestion =>
-                    new MeetingSuggestionDTO
-                    {
-                        Id = suggestion.Id,
-                        Title = suggestion.Title,
-                        Description = suggestion.Description,
-                        CreatedAt = suggestion.CreatedAt,
-                        Completed = suggestion.Completed,
-
-                        // Instead of assigning the EF Meeting entity directly,
-                        // map it to a new MeetingDTO to avoid circular references
-                        Meeting = suggestion.Meeting == null
-                            ? null
-                            : new MeetingDTO
-                            {
-                                Id = suggestion.Meeting.Id,
-                                Name = suggestion.Meeting.Name,
-                                Description = suggestion.Meeting.Description,
-                                MeetingTime = suggestion.Meeting.MeetingTime,
-                                EndedAt = suggestion.Meeting.EndedAt,
-                                Location = suggestion.Meeting.Location,
-                                Agenda = suggestion.Meeting.Agenda,
-                                MeetingProtocol = suggestion.Meeting.MeetingProtocol
-                            },
-
+                        UserId = decliner.UserId,
+                        VotingPowerGivenTo = decliner.VotingPowerGivenTo,
                         User = new UserDTO
                         {
-                            Id = suggestion.User.Id,
-                            FirstName = suggestion.User.FirstName,
-                            LastName = suggestion.User.LastName,
-                            Email = suggestion.User.Email ?? "",
-                            UserName = suggestion.User.UserName ?? ""
-                        },
+                            Id = decliner.User.Id,
+                            FirstName = decliner.User.FirstName,
+                            LastName = decliner.User.LastName,
+                            UserName = decliner.User.UserName,
+                            Email = decliner.User.Email,
+                            Admin = false
+                        }
+                    }).ToList(),
 
-                        MeetingsSuggestionsUpvotes = suggestion.MeetingsSuggestionsUpvotes
-                            .Select(upvote => new MeetingSuggestionUpvoteDTO
-                            {
-                                Id = upvote.Id,
-                                UserId = upvote.User.Id
-                            }).ToList(),
-
-                        MeetingsSuggestionsDownvotes = suggestion.MeetingsSuggestionsDownvotes
-                            .Select(downvote => new MeetingSuggestionDownvoteDTO
-                            {
-                                Id = downvote.Id,
-                                UserId = downvote.User.Id
-                            }).ToList()
-                    }
-                ).ToList()
+                    // ✅ Fix: Ensure `MeetingChats` are correctly formatted and returned
+                    MeetingChats = meeting.MeetingChats.Select(chat => new MeetingChatDTO
+                    {
+                        Id = chat.Id,
+                        CreatedAt = chat.CreatedAt,
+                        Message = chat.Message,
+                        UpdatedAt = chat.UpdatedAt,
+                        User = new UserDTO
+                        {
+                            Id = chat.User.Id,
+                            FirstName = chat.User.FirstName,
+                            LastName = chat.User.LastName,
+                            UserName = chat.User.UserName,
+                            Email = chat.User.Email,
+                            Admin = false
+                        }
+                    }).ToList()
+                }).ToList()
             };
-
 
             return Ok(clubDto);
         }

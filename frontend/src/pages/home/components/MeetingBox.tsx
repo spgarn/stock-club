@@ -1,7 +1,7 @@
 import api, { Meeting, User } from '../../../api'
 import dayjs from "dayjs";
 import homeStyles from "../home.module.scss";
-import { colors, Typography } from '@mui/material';
+import { Autocomplete, Button, colors, Dialog, DialogContent, TextField, Typography } from '@mui/material';
 import { NavLink } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faThumbsUp } from '@fortawesome/free-regular-svg-icons/faThumbsUp';
@@ -16,10 +16,14 @@ export default function MeetingBox({ meeting, user, refetch }: { meeting: Meetin
     const time = dayjs(meeting.meetingTime);
     const now = dayjs();
     const [isUpvoting, setIsUpvoting] = useState(false);
+    const [isDownvoting, setIsDownvoting] = useState(false);
+    const [downvotingUser, setDownvotingUser] = useState<User | null>(null);
+
     const [attendance, setAttendance] = useState<boolean | undefined>();
 
     const userIsAttending = meeting.attendees.some(attendee => attendee.id === user.id)
-    const userHasDeclined = meeting.decliners.some(decliner => decliner.id === user.id)
+    const userHasDeclined = meeting.decliners.some(decliner => decliner.user.id === user.id)
+
 
     useEffect(() => {
         if (userIsAttending) {
@@ -32,16 +36,15 @@ export default function MeetingBox({ meeting, user, refetch }: { meeting: Meetin
 
 
 
-
-
-    const respond = async (isAttending: boolean) => {
+    const respond = async (isAttending: boolean, VotingPowerGivenTo?: string) => {
         if (isUpvoting) return;
 
         setIsUpvoting(true);
         try {
             const res = await api.post<unknown>
                 (`/meeting/${meeting.id}/respond`, {
-                    isAttending
+                    isAttending,
+                    VotingPowerGivenTo
                 }, {
                     headers: {
                         "Access-Control-Allow-Origin": "*"
@@ -65,8 +68,26 @@ export default function MeetingBox({ meeting, user, refetch }: { meeting: Meetin
         setIsUpvoting(false);
     }
 
+    const handleIsDownvoting = () => {
+        respond(false, downvotingUser?.id);
+        setIsDownvoting(false);
+    }
+
     return (
         <>
+            <Dialog open={isDownvoting} onClose={() => setIsDownvoting(false)}>
+                <DialogContent sx={{ display: "flex", flexDirection: "column", gap: "16px", alignItems: "center", justifyContent: "center", height: "220px" }}>
+                    <Typography variant="h6">{translate["give_away_voting_power"]}</Typography>
+                    <Autocomplete
+                        onChange={(_v, user) => setDownvotingUser(user)}
+                        options={meeting.attendees?.filter(userArr => userArr.id !== user.id)}
+                        sx={{ width: 300 }}
+                        getOptionLabel={(v) => v.firstName + " " + v.lastName}
+                        renderInput={(params) => <TextField {...params} label={"Välj mottagare"} />}
+                    />
+                    <Button onClick={handleIsDownvoting} variant="contained">{translate["save"]}</Button>
+                </DialogContent>
+            </Dialog>
             <NavLink to={"/club/meeting/" + meeting.id} className={homeStyles.hoverLink}>
                 <div className={homeStyles.meeting}>
 
@@ -109,29 +130,30 @@ export default function MeetingBox({ meeting, user, refetch }: { meeting: Meetin
                     ></AddToCalendarButton>
                     <FontAwesomeIcon className={`${homeStyles.attendanceVoteIcon} ${!attendance ? homeStyles.attendanceVoteIconVoted : ""}`} icon={faThumbsDown} onClick={(e) => {
                         e.preventDefault()
-                        respond(false)
+                        setIsDownvoting(true)
+
                     }} />
                 </div>
 
                 {(meeting.attendees.length > 0 || meeting.decliners.length > 0) && (
-                <div style={{ padding: "10px", borderTop: "1px solid #ccc" }}>
-                    {meeting.attendees.length > 0 && (
-                        <Typography variant="body1" color={colors.green[700]}>
-                            + {meeting.attendees.map(user => `${user.firstName} ${user.lastName}`).join(", ")}
-                        </Typography>
-                    )}
-                    {meeting.decliners.length > 0 && (
-                        <Typography variant="body1" color={colors.red[700]}>
-                            - {meeting.decliners.map(user => `${user.firstName} ${user.lastName}`).join(", ")}
-                        </Typography>
-                    )}
-                </div>
-            )}
+                    <div style={{ padding: "10px", borderTop: "1px solid #ccc" }}>
+                        {meeting.attendees.length > 0 && (
+                            <Typography variant="body1" color={colors.green[700]}>
+                                + {meeting.attendees.map(user => `${user.firstName} ${user.lastName}`).join(", ")}
+                            </Typography>
+                        )}
+                        {meeting.decliners.length > 0 && (
+                            <Typography variant="body1" color={colors.red[700]}>
+                                - {meeting.decliners.map(decliner => `${decliner.user.firstName} ${decliner.user.lastName}`).join(", ")}
+                            </Typography>
+                        )}
+                    </div>
+                )}
             </NavLink>
 
 
 
-          
+
         </>
     )
 }

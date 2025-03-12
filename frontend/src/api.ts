@@ -26,7 +26,11 @@ export type Meeting = {
     location: string;
     endedAt: Date | null;
     attendees: User[];
-    decliners: User[];
+    decliners: {
+        UserId: string;
+        VotingPowerGivenTo: string;
+        user: User;
+    }[];
 }
 
 export type MeetingChat = {
@@ -43,7 +47,7 @@ export type MeetingExtended = Meeting & {
     meetingChats: MeetingChat[]
 }
 
-export type CurrencyRates = {
+export type CurrencyRate = {
     id: number,
     name: string,
     rate: number
@@ -273,7 +277,7 @@ export const getUserById = async (id: string | undefined) => {
 }
 
 export const getCurrencyRates = async () => {
-    const response = await api.get<CurrencyRates[]>(
+    const response = await api.get<CurrencyRate[]>(
         '/currency/getrates',
         { withCredentials: true }
     );

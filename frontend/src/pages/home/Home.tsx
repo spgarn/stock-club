@@ -1,4 +1,4 @@
-import { Button, colors, ToggleButton, ToggleButtonGroup, Typography } from "@mui/material";
+import { Button } from "@mui/material";
 import { translate } from "../../i18n";
 import homeStyles from "./home.module.scss";
 import { getClubDetails, getCurrencyRates, getUser } from "../../api";
@@ -9,12 +9,11 @@ import { useMemo, useState } from "react";
 import Loading from "../../components/Loading";
 import AddMeetingModal from "./components/AddMeetingModal";
 import dayjs from "dayjs";
-import { formatCurrency, refetchClubAndMeeting } from "../../funcs/funcs";
+import { refetchClubAndMeeting } from "../../funcs/funcs";
 import useClubs from "../../hooks/useClubs";
 import useWindowDimensions from "../../hooks/useWindowDimensions";
-import UpcomingMeetings from "./components/UpcomingMeetings";
-import PreviousMeetings from "./components/PreviousMeetings";
-import Proposals from "./components/Proposals";
+import { MobileView } from "./components/Mobile/MobileView";
+import { DesktopView } from "./components/Desktop/DesktopView";
 
 export default function Home() {
 
@@ -23,7 +22,7 @@ export default function Home() {
     const [addMeetingOpen, setAddMeetingOpen] = useState(false);
     const { width } = useWindowDimensions();
     const isMobile = (width ?? 0) < 700;
-    const [displayMethod, setDisplayMethod] = useState<"prev_meetings" | "proposals" | "info">("prev_meetings");
+
     //This is for mobile view, if false, show proposals
     const { data, refetch } = useQuery({
         queryKey: ['club-details', id],
@@ -54,56 +53,14 @@ export default function Home() {
         return <Loading />
     }
 
+
     return (
         <div>
             <div className={homeStyles.actions}>
                 <Button variant="contained" onClick={() => setAddMeetingOpen(true)}>{translate["new_meeting"]}</Button>
             </div>
-            {isMobile ? <div className={homeStyles.mobileView}>
-                <UpcomingMeetings refetch={refetch} user={user} upcomingMeetings={upcomingMeetings} />
-                <div className={homeStyles.toggleContainer}>
-                    <ToggleButtonGroup
-                        color="primary"
-                        value={displayMethod}
-                        exclusive
-                        onChange={(_v, r) => setDisplayMethod(r)}
-                        aria-label="Display Type"
-                    >
-                        <ToggleButton value="prev_meetings">{translate["previous_meetings"]}</ToggleButton>
-                        <ToggleButton value="proposals">{translate["proposals"]}</ToggleButton>
-                        <ToggleButton value="info">{translate["info"]}</ToggleButton>
-                    </ToggleButtonGroup>
-                </div>
-                {displayMethod === "prev_meetings" ? <PreviousMeetings refetch={refetch} user={user} prevMeetings={prevMeetings} /> :
-                    displayMethod === "info" ?
-                        <>
-                            <Typography variant="h5">{translate["currency"]}</Typography>
-                            <div className={"content-box"}>
-
-                                {currencies?.filter(currency => currency.name !== "SEK").map(currency => <div key={currency.id} style={{ display: "flex", gap: "10px", padding: "12px" }}>
-                                    <span style={{ color: colors.blueGrey["400"] }}>{currency.name}:</span>
-                                    <span>{formatCurrency(currency.rate)}</span>
-                                </div>)}
-                            </div>
-                            </>
-                        : <Proposals user={user} refetch={refetch} meetingsSuggestions={data.meetingsSuggestions} />}
-            </div> : <div className={homeStyles.desktopView}>
-                <div>
-                    <UpcomingMeetings user={user} refetch={refetch} upcomingMeetings={upcomingMeetings} />
-                    <PreviousMeetings user={user} refetch={refetch} prevMeetings={prevMeetings} />
-                </div>
-                <div>
-                    <Proposals user={user} refetch={refetch} meetingsSuggestions={data.meetingsSuggestions} />
-                    <div className={"content-box"}>
-                        {currencies?.filter(currency => currency.name !== "SEK").map(currency => <div key={currency.id} style={{ display: "flex", gap: "10px", padding: "12px" }}>
-                            <span style={{ color: colors.blueGrey["400"] }}>{currency.name}:</span>
-                            <span>{formatCurrency(currency.rate)}</span>
-                        </div>)}
-
-                    </div>
-                </div>
-
-            </div>}
+            {isMobile ? <MobileView data={data} prevMeetings={prevMeetings} currencies={currencies} user={user} upcomingMeetings={upcomingMeetings} refetch={refetch} />
+                : <DesktopView data={data} prevMeetings={prevMeetings} currencies={currencies} user={user} upcomingMeetings={upcomingMeetings} refetch={refetch} />}
 
             {addMeetingOpen && <AddMeetingModal clubId={id} refetch={refetchClubAndMeeting} handleClose={() => setAddMeetingOpen(false)} />}
         </div>

@@ -1,11 +1,11 @@
 import { useMemo, useEffect } from 'react';
-import { CurrencyRates, StockHoldings } from '../../../api';
+import { CurrencyRate, StockHoldings } from '../../../api';
 
 export default function useStocks(
   data: StockHoldings[] | undefined,
   displayMethod: string,
   setPage: (v: number) => void,
-  currencies: CurrencyRates[]
+  currencies: CurrencyRate[]
 ) {
   useEffect(() => {
     setPage(1);

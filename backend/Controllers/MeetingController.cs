@@ -1,14 +1,10 @@
 ﻿using club.Data;
 using club.Dtos;
-using club.Migrations;
 using club.Models;
-using k8s.KubeConfigModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using System.Linq;
-using System.Security.Claims;
 
 namespace club.Controllers
 {
@@ -16,42 +12,68 @@ namespace club.Controllers
     [Route("meeting")]
     public class MeetingController : ExtendedController
     {
-
         [HttpGet]
         [Authorize]
         [Route("get/{id}")]
-        public async Task<ActionResult<string>> GetMeeting(
-     [FromServices] MyDbContext context, int id)
+        public async Task<ActionResult<MeetingDTO>> GetMeeting([FromServices] MyDbContext context, int id)
         {
             var result = await GetCurrentUser(context);
-            if (result.Result != null) // If it's an error result
-                return result.Result;
+            if (result.Result != null) return result.Result;
             if (result.Value == null) return NotFound();
             var user = result.Value;
 
-            if (user.Clubs.IsNullOrEmpty())
-            {
-                return NotFound();
-            }
+            if (user.Clubs.IsNullOrEmpty()) return NotFound();
+
             var userClubIds = user.Clubs.Select(c => c.Id).ToList();
             var meeting = await context.Meeting
-                .Include(v => v.MeetingChats)
-                .ThenInclude(v => v.User)
+                .Include(m => m.Attendees)
+                .Include(m => m.Decliners) // ✅ Fix: Ensure we load `MeetingDecliners`
+                .ThenInclude(d => d.User) // ✅ Fix: Load user info for each decliner
+                .Include(m => m.MeetingChats) // ✅ Fix: Ensure `MeetingChats` are loaded
+                .ThenInclude(c => c.User) // ✅ Fix: Load users who posted in the chat
                 .FirstOrDefaultAsync(x => x.Id == id && userClubIds.Contains(x.Club.Id));
-            if (meeting == null)
-            {
-                return NotFound();
-            }
+
+            if (meeting == null) return NotFound();
+
             return Ok(new MeetingDTO
             {
                 Id = meeting.Id,
+                Name = meeting.Name,
                 Description = meeting.Description,
-                Location = meeting.Location,
                 MeetingTime = meeting.MeetingTime,
                 EndedAt = meeting.EndedAt,
-                Name = meeting.Name,
+                Location = meeting.Location,
                 Agenda = meeting.Agenda,
                 MeetingProtocol = meeting.MeetingProtocol,
+
+                // ✅ Fix: Correctly format attendees
+                Attendees = meeting.Attendees.Select(user => new UserDTO
+                {
+                    Id = user.Id,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    UserName = user.UserName,
+                    Email = user.Email,
+                    Admin = false
+                }).ToList(),
+
+                // ✅ Fix: Correctly format decliners from `MeetingDecliners` table
+                Decliners = meeting.Decliners.Select(decliner => new MeetingDeclinerDTO
+                {
+                    UserId = decliner.UserId,
+                    VotingPowerGivenTo = decliner.VotingPowerGivenTo,
+                    User = new UserDTO
+                    {
+                        Id = decliner.User.Id,
+                        FirstName = decliner.User.FirstName,
+                        LastName = decliner.User.LastName,
+                        UserName = decliner.User.UserName,
+                        Email = decliner.User.Email,
+                        Admin = false
+                    }
+                }).ToList(),
+
+                // ✅ Fix: Ensure `MeetingChats` are correctly formatted and returned
                 MeetingChats = meeting.MeetingChats.Select(chat => new MeetingChatDTO
                 {
                     Id = chat.Id,
@@ -60,7 +82,7 @@ namespace club.Controllers
                     UpdatedAt = chat.UpdatedAt,
                     User = new UserDTO
                     {
-                        Id = user.Id,
+                        Id = chat.User.Id,
                         FirstName = chat.User.FirstName,
                         LastName = chat.User.LastName,
                         UserName = chat.User.UserName,
@@ -76,7 +98,7 @@ namespace club.Controllers
         [Authorize]
         [Route("{clubId}")]
         public async Task<ActionResult<string>> AddMeeting(AddMeeting meetingDTO,
-           [FromServices] MyDbContext context, int clubId)
+            [FromServices] MyDbContext context, int clubId)
         {
             var result = await GetCurrentUser(context);
             if (result.Result != null) // If it's an error result
@@ -107,11 +129,12 @@ namespace club.Controllers
             await context.SaveChangesAsync();
             return CreatedAtAction(nameof(AddMeeting), user.Id);
         }
+
         [HttpPut]
         [Authorize]
         [Route("{id}")]
         public async Task<ActionResult<string>> EditMeeting(AddMeeting meetingDTO,
-           [FromServices] MyDbContext context, int id)
+            [FromServices] MyDbContext context, int id)
 
         {
             var result = await GetCurrentUser(context);
@@ -125,7 +148,9 @@ namespace club.Controllers
                 return NotFound();
             }
 
-            var meeting = await context.Meeting.Where(meeting => meeting.Id == id && user.Clubs.Select(c => c.Id).Contains(meeting.Club.Id)).FirstOrDefaultAsync();
+            var meeting = await context.Meeting
+                .Where(meeting => meeting.Id == id && user.Clubs.Select(c => c.Id).Contains(meeting.Club.Id))
+                .FirstOrDefaultAsync();
             if (meeting == null) return NotFound();
 
             meeting.Name = meetingDTO.Name;
@@ -144,7 +169,7 @@ namespace club.Controllers
         [Authorize]
         [Route("toggle/{id}")]
         public async Task<ActionResult<string>> ToggleEndMeeting(
-          [FromServices] MyDbContext context, int id)
+            [FromServices] MyDbContext context, int id)
 
         {
             var result = await GetCurrentUser(context);
@@ -153,7 +178,9 @@ namespace club.Controllers
             if (result.Value == null) return NotFound();
             var user = result.Value;
 
-            var meeting = await context.Meeting.Where(meeting => meeting.Id == id && user.Clubs.Select(c => c.Id).Contains(meeting.Club.Id)).FirstOrDefaultAsync();
+            var meeting = await context.Meeting
+                .Where(meeting => meeting.Id == id && user.Clubs.Select(c => c.Id).Contains(meeting.Club.Id))
+                .FirstOrDefaultAsync();
             if (meeting == null) return NotFound();
 
             if (meeting.EndedAt == null)
@@ -169,55 +196,75 @@ namespace club.Controllers
             await context.SaveChangesAsync();
             return CreatedAtAction(nameof(ToggleEndMeeting), user.Id);
         }
-        
+
         [HttpPost]
         [Authorize]
         [Route("{meetingId}/respond")]
-        public async Task<IActionResult> RespondToMeeting(int meetingId, [FromBody] RespondToMeetingDto response, [FromServices] MyDbContext context)
+        public async Task<IActionResult> RespondToMeeting(int meetingId, [FromBody] RespondToMeetingDto response,
+            [FromServices] MyDbContext context)
         {
-            // Load the meeting with both Attendees and Decliners
             var meeting = await context.Meeting
                 .Include(m => m.Attendees)
                 .Include(m => m.Decliners)
+                .ThenInclude(d => d.VotingPowerReceiver) // Ensures we load voting delegates
                 .FirstOrDefaultAsync(m => m.Id == meetingId);
 
-            if (meeting == null)
-            {
-                return NotFound("Meeting not found.");
-            }
+            if (meeting == null) return NotFound("Meeting not found.");
 
             var userResult = await GetCurrentUser(context);
-            if (userResult.Value == null)
-            {
-                return Unauthorized();
-            }
+            if (userResult.Value == null) return Unauthorized();
             var user = userResult.Value;
 
+            // ✅ If Attending
             if (response.IsAttending)
             {
-                // If attending, ensure the user is in the Attendees list.
+                // Add to attendees list if not already present
                 if (!meeting.Attendees.Any(u => u.Id == user.Id))
                 {
                     meeting.Attendees.Add(user);
                 }
-                // Remove the user from Decliners if they were previously marked as declining.
-                if (meeting.Decliners.Any(u => u.Id == user.Id))
+
+                // Remove from Decliners if previously declined
+                var existingDecliner = meeting.Decliners.FirstOrDefault(d => d.UserId == user.Id);
+                if (existingDecliner != null)
                 {
-                    meeting.Decliners.Remove(user);
+                    meeting.Decliners.Remove(existingDecliner);
+                    context.MeetingDecliners.Remove(existingDecliner); // Ensure database consistency
                 }
             }
+            // ✅ If Declining
             else
             {
-                // If declining, ensure the user is in the Decliners list.
-                if (!meeting.Decliners.Any(u => u.Id == user.Id))
+                var existingDecliner = meeting.Decliners.FirstOrDefault(d => d.UserId == user.Id);
+
+                // Ensure `VotingPowerGivenTo` is valid if provided
+                if (!string.IsNullOrEmpty(response.VotingPowerGivenTo))
                 {
-                    meeting.Decliners.Add(user);
+                    var delegateUser = meeting.Attendees.FirstOrDefault(a => a.Id == response.VotingPowerGivenTo);
+                    if (delegateUser == null)
+                    {
+                        return BadRequest("Invalid voting power delegate. Must be assigned to an attendee.");
+                    }
                 }
-                // Remove the user from Attendees if they were previously marked as attending.
-                if (meeting.Attendees.Any(u => u.Id == user.Id))
+
+                if (existingDecliner == null)
                 {
-                    meeting.Attendees.Remove(user);
+                    var newDecliner = new MeetingDecliner
+                    {
+                        MeetingId = meetingId,
+                        UserId = user.Id,
+                        VotingPowerGivenTo = response.VotingPowerGivenTo
+                    };
+                    meeting.Decliners.Add(newDecliner);
+                    context.MeetingDecliners.Add(newDecliner);
                 }
+                else
+                {
+                    existingDecliner.VotingPowerGivenTo = response.VotingPowerGivenTo;
+                }
+
+                // Remove from Attendees if previously marked as attending
+                meeting.Attendees.Remove(user);
             }
 
             await context.SaveChangesAsync();

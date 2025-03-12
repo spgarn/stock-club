@@ -11,6 +11,7 @@ export const translate = {
     "portfolio": "Innehav",
     "news": "Nyhetsflöde",
     "info": "Information",
+    "give_away_voting_power": "Ge bort rösträtt till",
     "email": "Email",
     "enter_email": "Skriv in Email",
     "password": "Lösenord",

@@ -9,7 +9,7 @@ import {
     ColumnDef,
     createColumnHelper,
 } from "@tanstack/react-table";
-import { CurrencyRates, StockHoldings } from "../../../api";
+import { CurrencyRate, StockHoldings } from "../../../api";
 import dayjs from "dayjs";
 import { formatCurrency } from "../../../funcs/funcs";
 import { translate } from "../../../i18n";
@@ -29,7 +29,7 @@ type IProps = {
     setSellPortion: (v: StockHoldings) => void;
     withLivePrice?: boolean;
     isPublic?: boolean;
-    currencies: CurrencyRates[];
+    currencies: CurrencyRate[];
 };
 
 
