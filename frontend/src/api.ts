@@ -25,11 +25,25 @@ export type Meeting = {
     meetingTime: Date;
     location: string;
     endedAt: Date | null;
-    attendees: User[];
+    attendees: {
+        userId: string;
+        id: string;
+        firstName: string;
+        lastName: string;
+        email: string;
+        userName: string;
+        admin: boolean;
+        votingPower: number
+    }[];
     decliners: {
-        UserId: string;
-        VotingPowerGivenTo: string;
-        user: User;
+        userId: string;
+        votingPowerGivenTo: string;
+        id: string;
+        firstName: string;
+        lastName: string;
+        email: string;
+        userName: string;
+        admin: boolean;
     }[];
 }
 

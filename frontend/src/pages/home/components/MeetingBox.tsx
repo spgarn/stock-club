@@ -13,6 +13,7 @@ import { toast } from 'react-toastify';
 import { AddToCalendarButton } from 'add-to-calendar-button-react';
 
 export default function MeetingBox({ meeting, user, refetch }: { meeting: Meeting, refetch: () => void, user: User }) {
+    console.log(meeting)
     const time = dayjs(meeting.meetingTime);
     const now = dayjs();
     const [isUpvoting, setIsUpvoting] = useState(false);
@@ -22,7 +23,7 @@ export default function MeetingBox({ meeting, user, refetch }: { meeting: Meetin
     const [attendance, setAttendance] = useState<boolean | undefined>();
 
     const userIsAttending = meeting.attendees.some(attendee => attendee.id === user.id)
-    const userHasDeclined = meeting.decliners.some(decliner => decliner.user.id === user.id)
+    const userHasDeclined = meeting.decliners.some(decliner => decliner.id === user.id)
 
 
     useEffect(() => {
@@ -33,6 +34,9 @@ export default function MeetingBox({ meeting, user, refetch }: { meeting: Meetin
             setAttendance(false)
         }
     }, [userHasDeclined, userIsAttending])
+
+
+
 
 
 
@@ -139,12 +143,12 @@ export default function MeetingBox({ meeting, user, refetch }: { meeting: Meetin
                     <div style={{ padding: "10px", borderTop: "1px solid #ccc" }}>
                         {meeting.attendees.length > 0 && (
                             <Typography variant="body1" color={colors.green[700]}>
-                                + {meeting.attendees.map(user => `${user.firstName} ${user.lastName}`).join(", ")}
+                                + {meeting.attendees.map(user => `${user.firstName} ${user.lastName} ${user.votingPower > 1 ? "+" + user.votingPower : ""}`).join(", ")}
                             </Typography>
                         )}
                         {meeting.decliners.length > 0 && (
                             <Typography variant="body1" color={colors.red[700]}>
-                                - {meeting.decliners.map(decliner => `${decliner.user.firstName} ${decliner.user.lastName}`).join(", ")}
+                                - {meeting.decliners.map(decliner => `${decliner.firstName} ${decliner.lastName}`).join(", ")}
                             </Typography>
                         )}
                     </div>

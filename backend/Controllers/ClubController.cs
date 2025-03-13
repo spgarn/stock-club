@@ -105,7 +105,8 @@ namespace club.Controllers
                         FirstName = u.FirstName,
                         LastName = u.LastName,
                         Email = u.Email ?? "",
-                        UserName = u.UserName ?? ""
+                        UserName = u.UserName ?? "",
+                        VotingPower = 1 + meeting.Decliners.Count(d => d.VotingPowerGivenTo == user.Id)
                     }).ToList(),
 
                     // ✅ Fix: Correctly format `MeetingDecliners`
@@ -113,15 +114,12 @@ namespace club.Controllers
                     {
                         UserId = decliner.UserId,
                         VotingPowerGivenTo = decliner.VotingPowerGivenTo,
-                        User = new UserDTO
-                        {
-                            Id = decliner.User.Id,
-                            FirstName = decliner.User.FirstName,
-                            LastName = decliner.User.LastName,
-                            UserName = decliner.User.UserName,
-                            Email = decliner.User.Email,
-                            Admin = false
-                        }
+                        Id = decliner.User.Id,
+                        FirstName = decliner.User.FirstName,
+                        LastName = decliner.User.LastName,
+                        UserName = decliner.User.UserName,
+                        Email = decliner.User.Email,
+                        Admin = false,
                     }).ToList(),
 
                     // ✅ Fix: Ensure `MeetingChats` are correctly formatted and returned

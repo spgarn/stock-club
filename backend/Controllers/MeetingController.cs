@@ -46,7 +46,6 @@ namespace club.Controllers
                 Agenda = meeting.Agenda,
                 MeetingProtocol = meeting.MeetingProtocol,
 
-                // ✅ Fix: Correctly format attendees
                 Attendees = meeting.Attendees.Select(user => new UserDTO
                 {
                     Id = user.Id,
@@ -54,23 +53,20 @@ namespace club.Controllers
                     LastName = user.LastName,
                     UserName = user.UserName,
                     Email = user.Email,
-                    Admin = false
+                    Admin = false,
+                    VotingPower = meeting.Decliners.Count(d => d.VotingPowerGivenTo == user.Id)
                 }).ToList(),
 
-                // ✅ Fix: Correctly format decliners from `MeetingDecliners` table
                 Decliners = meeting.Decliners.Select(decliner => new MeetingDeclinerDTO
                 {
                     UserId = decliner.UserId,
                     VotingPowerGivenTo = decliner.VotingPowerGivenTo,
-                    User = new UserDTO
-                    {
-                        Id = decliner.User.Id,
-                        FirstName = decliner.User.FirstName,
-                        LastName = decliner.User.LastName,
-                        UserName = decliner.User.UserName,
-                        Email = decliner.User.Email,
-                        Admin = false
-                    }
+                    Id = decliner.User.Id,
+                    FirstName = decliner.User.FirstName,
+                    LastName = decliner.User.LastName,
+                    UserName = decliner.User.UserName,
+                    Email = decliner.User.Email,
+                    Admin = false
                 }).ToList(),
 
                 // ✅ Fix: Ensure `MeetingChats` are correctly formatted and returned
