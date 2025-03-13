@@ -27,13 +27,14 @@ namespace club.Controllers
             var userClubIds = user.Clubs.Select(c => c.Id).ToList();
             var meeting = await context.Meeting
                 .Include(m => m.Attendees)
-                .Include(m => m.Decliners) // ✅ Fix: Ensure we load `MeetingDecliners`
-                .ThenInclude(d => d.User) // ✅ Fix: Load user info for each decliner
-                .Include(m => m.MeetingChats) // ✅ Fix: Ensure `MeetingChats` are loaded
-                .ThenInclude(c => c.User) // ✅ Fix: Load users who posted in the chat
+                .Include(m => m.Decliners)
+                .ThenInclude(d => d.User)
+                .Include(m => m.MeetingChats) 
+                .ThenInclude(c => c.User) 
                 .FirstOrDefaultAsync(x => x.Id == id && userClubIds.Contains(x.Club.Id));
 
             if (meeting == null) return NotFound();
+
 
             return Ok(new MeetingDTO
             {
@@ -54,8 +55,9 @@ namespace club.Controllers
                     UserName = user.UserName,
                     Email = user.Email,
                     Admin = false,
-                    VotingPower = meeting.Decliners.Count(d => d.VotingPowerGivenTo == user.Id)
+                    VotingPower = 1 + meeting.Decliners.Count(d => d.VotingPowerGivenTo == user.Id)
                 }).ToList(),
+
 
                 Decliners = meeting.Decliners.Select(decliner => new MeetingDeclinerDTO
                 {

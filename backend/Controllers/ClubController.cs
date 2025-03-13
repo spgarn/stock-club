@@ -106,7 +106,7 @@ namespace club.Controllers
                         LastName = u.LastName,
                         Email = u.Email ?? "",
                         UserName = u.UserName ?? "",
-                        VotingPower = 1 + meeting.Decliners.Count(d => d.VotingPowerGivenTo == user.Id)
+                        VotingPower = 1 + meeting.Decliners.Count(d => d.VotingPowerGivenTo == u.Id)
                     }).ToList(),
 
                     // ✅ Fix: Correctly format `MeetingDecliners`

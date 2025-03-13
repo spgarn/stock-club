@@ -13,7 +13,7 @@ import { toast } from 'react-toastify';
 import { AddToCalendarButton } from 'add-to-calendar-button-react';
 
 export default function MeetingBox({ meeting, user, refetch }: { meeting: Meeting, refetch: () => void, user: User }) {
-    console.log(meeting)
+
     const time = dayjs(meeting.meetingTime);
     const now = dayjs();
     const [isUpvoting, setIsUpvoting] = useState(false);
@@ -143,7 +143,17 @@ export default function MeetingBox({ meeting, user, refetch }: { meeting: Meetin
                     <div style={{ padding: "10px", borderTop: "1px solid #ccc" }}>
                         {meeting.attendees.length > 0 && (
                             <Typography variant="body1" color={colors.green[700]}>
-                                + {meeting.attendees.map(user => `${user.firstName} ${user.lastName} ${user.votingPower > 1 ? "+" + user.votingPower : ""}`).join(", ")}
+                                + {meeting.attendees.map((user, index) => (
+                                    <span key={user.id || index}>
+                                        {user.firstName} {user.lastName}
+                                        {user.votingPower > 1 && (
+                                            <span style={{ fontSize: "0.7em", verticalAlign: "super" }}>
+                                                {user.votingPower}
+                                            </span>
+                                        )}
+                                        {index < meeting.attendees.length - 1 && ", "}
+                                    </span>
+                                ))}
                             </Typography>
                         )}
                         {meeting.decliners.length > 0 && (
