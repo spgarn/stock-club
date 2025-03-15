@@ -170,6 +170,18 @@ namespace club.Controllers
                         UserName = suggestion.User.UserName,
                         Email = suggestion.User.Email ?? ""
                     },
+                    MeetingsSuggestionsUpvotes = suggestion.MeetingsSuggestionsUpvotes.Select(upvote =>
+                        new MeetingSuggestionUpvoteDTO
+                        {
+                            Id = upvote.Id,
+                            UserId = upvote.User.Id
+                        }).ToList(),
+                    MeetingsSuggestionsDownvotes = suggestion.MeetingsSuggestionsDownvotes.Select(downvote =>
+                        new MeetingSuggestionDownvoteDTO
+                        {
+                            Id = downvote.Id,
+                            UserId = downvote.User.Id
+                        }).ToList(),
                 }).ToList(),
             };
 
