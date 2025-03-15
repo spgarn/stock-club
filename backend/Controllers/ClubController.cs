@@ -73,6 +73,61 @@ namespace club.Controllers
 
             if (club == null) return NotFound();
 
+            var meeting = club.Meetings.Select(meeting => new MeetingDTO
+            {
+                Id = meeting.Id,
+                Name = meeting.Name,
+                Description = meeting.Description,
+                MeetingTime = meeting.MeetingTime,
+                EndedAt = meeting.EndedAt,
+                Location = meeting.Location,
+                Agenda = meeting.Agenda,
+                MeetingProtocol = meeting.MeetingProtocol,
+
+                Attendees = meeting.Attendees.Select(u => new UserDTO
+                {
+                    Id = u.Id,
+                    FirstName = u.FirstName,
+                    LastName = u.LastName,
+                    Email = u.Email ?? "",
+                    UserName = u.UserName ?? "",
+                    VotingPower = 1 + meeting.Decliners.Count(d => d.VotingPowerGivenTo == u.Id)
+                }).ToList(),
+
+
+                // ✅ Fix: Correctly format `MeetingDecliners`
+                Decliners = meeting.Decliners.Select(decliner => new MeetingDeclinerDTO
+                {
+                    UserId = decliner.UserId,
+                    VotingPowerGivenTo = decliner.VotingPowerGivenTo,
+                    Id = decliner.User.Id,
+                    FirstName = decliner.User.FirstName,
+                    LastName = decliner.User.LastName,
+                    UserName = decliner.User.UserName,
+                    Email = decliner.User.Email,
+                    Admin = false,
+                }).ToList(),
+
+
+                // ✅ Fix: Ensure `MeetingChats` are correctly formatted and returned
+                MeetingChats = meeting.MeetingChats.Select(chat => new MeetingChatDTO
+                {
+                    Id = chat.Id,
+                    CreatedAt = chat.CreatedAt,
+                    Message = chat.Message,
+                    UpdatedAt = chat.UpdatedAt,
+                    User = new UserDTO
+                    {
+                        Id = chat.User.Id,
+                        FirstName = chat.User.FirstName,
+                        LastName = chat.User.LastName,
+                        UserName = chat.User.UserName,
+                        Email = chat.User.Email,
+                        Admin = false
+                    }
+                }).ToList()
+            }).ToList();
+
             var clubDto = new ClubDto
             {
                 Id = club.Id,
@@ -88,58 +143,34 @@ namespace club.Controllers
                     UserName = u.UserName ?? ""
                 }).ToList(),
 
-                Meetings = club.Meetings.Select(meeting => new MeetingDTO
+                Meetings = meeting,
+                MeetingsSuggestions = club.MeetingsSuggestions.Select(suggestion => new MeetingSuggestionDTO
                 {
-                    Id = meeting.Id,
-                    Name = meeting.Name,
-                    Description = meeting.Description,
-                    MeetingTime = meeting.MeetingTime,
-                    EndedAt = meeting.EndedAt,
-                    Location = meeting.Location,
-                    Agenda = meeting.Agenda,
-                    MeetingProtocol = meeting.MeetingProtocol,
-
-                    Attendees = meeting.Attendees.Select(u => new UserDTO
+                    Id = suggestion.Id,
+                    Title = suggestion.Title,
+                    Description = suggestion.Description,
+                    CreatedAt = suggestion.CreatedAt,
+                    Completed = suggestion.Completed,
+                    Meeting = new MeetingDTO
                     {
-                        Id = u.Id,
-                        FirstName = u.FirstName,
-                        LastName = u.LastName,
-                        Email = u.Email ?? "",
-                        UserName = u.UserName ?? "",
-                        VotingPower = 1 + meeting.Decliners.Count(d => d.VotingPowerGivenTo == u.Id)
-                    }).ToList(),
-
-                    // ✅ Fix: Correctly format `MeetingDecliners`
-                    Decliners = meeting.Decliners.Select(decliner => new MeetingDeclinerDTO
+                        Id = suggestion.Meeting.Id,
+                        Name = suggestion.Meeting.Name,
+                        Description = suggestion.Meeting.Description,
+                        MeetingTime = suggestion.Meeting.MeetingTime,
+                        EndedAt = suggestion.Meeting.EndedAt,
+                        Location = suggestion.Meeting.Location,
+                        Agenda = suggestion.Meeting.Agenda,
+                        MeetingProtocol = suggestion.Meeting.MeetingProtocol,
+                    },
+                    User = new UserDTO
                     {
-                        UserId = decliner.UserId,
-                        VotingPowerGivenTo = decliner.VotingPowerGivenTo,
-                        Id = decliner.User.Id,
-                        FirstName = decliner.User.FirstName,
-                        LastName = decliner.User.LastName,
-                        UserName = decliner.User.UserName,
-                        Email = decliner.User.Email,
-                        Admin = false,
-                    }).ToList(),
-
-                    // ✅ Fix: Ensure `MeetingChats` are correctly formatted and returned
-                    MeetingChats = meeting.MeetingChats.Select(chat => new MeetingChatDTO
-                    {
-                        Id = chat.Id,
-                        CreatedAt = chat.CreatedAt,
-                        Message = chat.Message,
-                        UpdatedAt = chat.UpdatedAt,
-                        User = new UserDTO
-                        {
-                            Id = chat.User.Id,
-                            FirstName = chat.User.FirstName,
-                            LastName = chat.User.LastName,
-                            UserName = chat.User.UserName,
-                            Email = chat.User.Email,
-                            Admin = false
-                        }
-                    }).ToList()
-                }).ToList()
+                        Id = suggestion.User.Id,
+                        FirstName = suggestion.User.FirstName,
+                        LastName = suggestion.User.LastName,
+                        UserName = suggestion.User.UserName,
+                        Email = suggestion.User.Email ?? ""
+                    },
+                }).ToList(),
             };
 
             return Ok(clubDto);
