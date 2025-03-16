@@ -11,7 +11,7 @@ import { toast } from "react-toastify";
 import TextField from "@mui/material/TextField";
 import BasicDateTimePicker from "../../../../components/BasicDateTimePicker";
 import dayjs from "dayjs";
-import { NewInvestment } from "../modals/AddStockModal";
+import { NewInvestment } from "./AddStockModal";
 import Checkbox from "@mui/material/Checkbox";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import portfolioStyles from "../../portfolio.module.scss";
