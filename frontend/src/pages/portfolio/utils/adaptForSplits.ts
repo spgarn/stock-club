@@ -1,4 +1,4 @@
-import { Action, AggregatedData } from "../components/mooodals/ImportModal";
+import { Action, AggregatedData } from "../components/modals/ImportModal";
 
 
 
