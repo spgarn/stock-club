@@ -1,19 +1,19 @@
 import Dialog from "@mui/material/Dialog";
-import { BootstrapDialogTitle } from "../../../components/BootstrapDialogTitle";
-import { translate, translateText } from "../../../i18n";
+import { BootstrapDialogTitle } from "../../../../components/BootstrapDialogTitle";
+import { translate, translateText } from "../../../../i18n";
 import DialogContent from "@mui/material/DialogContent";
 import Button from "@mui/material/Button";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { useEffect, useState } from "react";
 import axios from "axios";
-import api, { StockHoldings } from "../../../api";
+import api, { StockHoldings } from "../../../../api";
 import { toast } from "react-toastify";
 import TextField from "@mui/material/TextField";
-import BasicDateTimePicker from "../../../components/BasicDateTimePicker";
+import BasicDateTimePicker from "../../../../components/BasicDateTimePicker";
 import dayjs from "dayjs";
-import portfolioStyles from "../portfolio.module.scss";
-import { formatCurrency } from "../../../funcs/funcs";
-import useClubs from "../../../hooks/useClubs";
+import portfolioStyles from "../../portfolio.module.scss";
+import { formatCurrency } from "../../../../funcs/funcs";
+import useClubs from "../../../../hooks/useClubs";
 
 type SellChunk = {
     amount: number;

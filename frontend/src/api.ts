@@ -1,4 +1,5 @@
 import axios from "axios";
+import { Transaction } from "./pages/portfolio/components/history/components/Transactions";
 
 // Create an axios instance with default config
 const api = axios.create({
@@ -203,6 +204,19 @@ export const getTemplates = async (clubId: number) => {
 export const getStocks = async (clubId: number) => {
     const response = await api.get<StockHoldings[]>(
         `/stocks/all/${clubId}`,
+        {
+            headers: {
+                "Access-Control-Allow-Origin": "*"
+            },
+            withCredentials: true
+        }
+    )
+    return response.data;
+}
+
+export const getTransactions = async (clubId: number) => {
+    const response = await api.get<Transaction[]>(
+        `/transactions/all/${clubId}`,
         {
             headers: {
                 "Access-Control-Allow-Origin": "*"

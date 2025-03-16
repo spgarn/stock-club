@@ -1,22 +1,23 @@
 import Dialog from "@mui/material/Dialog";
-import { BootstrapDialogTitle } from "../../../components/BootstrapDialogTitle";
-import { translate } from "../../../i18n";
 import DialogContent from "@mui/material/DialogContent";
-import useClubs from "../../../hooks/useClubs";
-import CSVParser, { CSVRow } from "../../../components/CSVParser";
-import LineMatcher, { colors, Connection } from "../../../components/LineMatcher";
 import { useMemo, useState } from "react";
-import api, { StockHoldings } from "../../../api";
-import StockPreview from "./StockPreview";
-import { convertToNumber } from "../../../funcs/funcs";
 import ModalNav from "./ModalNav";
 import Button from "@mui/material/Button";
 import { toast } from "react-toastify";
-import { LinearProgressWithLabel } from "./LinearProgressWithLabel";
 import Box from "@mui/material/Box";
-import { mergeBTAIntoLatest } from "../utils/mergeBTAIntoLatest";
-import { calculateRemainingBuyCostAndDate, calculateSoldCostAndDate } from "../utils/fifoDetailed";
-import { adaptForSplits } from "../utils/adaptForSplits";
+import LineMatcher, { colors, Connection } from "../../../../components/LineMatcher";
+import useClubs from "../../../../hooks/useClubs";
+import CSVParser, { CSVRow } from "../../../../components/CSVParser";
+import { translate } from "../../../../i18n";
+import { convertToNumber } from "../../../../funcs/funcs";
+import { calculateRemainingBuyCostAndDate, calculateSoldCostAndDate } from "../../utils/fifoDetailed";
+import { adaptForSplits } from "../../utils/adaptForSplits";
+import { mergeBTAIntoLatest } from "../../utils/mergeBTAIntoLatest";
+import api, { StockHoldings } from "../../../../api";
+import { BootstrapDialogTitle } from "../../../../components/BootstrapDialogTitle";
+import { LinearProgressWithLabel } from "../LinearProgressWithLabel";
+import StockPreview from "../StockPreview";
+import { Transaction } from "../history/components/Transactions";
 
 const STATIC_KEYS = ["csv_import_date", "csv_import_transaction_type", "csv_import_price", "csv_import_quantity", "csv_import_ISIN", "csv_import_diff", "csv_import_name", "csv_import_currency", "csv_import_share_price"]
 export type Action = {
@@ -132,7 +133,6 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
     const [table, setTable] = useState<{ keys: string[], values: string[], connections: Connection[], data: CSVRow[] }>({ keys: STATIC_KEYS, values: [], connections: [], data: [] })
     const { keys, values, connections } = table;
     const parseData = (data: CSVRow[]) => {
-        console.log("All columns:", Object.keys(data[0]));
         const columns = Object.keys(data[0]);
         const connections = bindDefaultConnections(columns);
         setTable({ keys, values: columns, data: data, connections })
@@ -144,12 +144,31 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
         }
     }
 
+    // Instead of a plain array, use a memoized value for transactions.
+    const transactions = useMemo(() => {
+        if (!table.data || table.data.length === 0) return [];
+        const txs: Transaction[] = [];
+        table.data.forEach((row) => {
+            const csv_import_date = row["Datum"];
+            const csv_import_transaction_type = row["Typ av transaktion"];
+            const csv_import_price = row["Belopp"];
+            if (csv_import_transaction_type === "Insättning" || csv_import_transaction_type === "Uttag") {
+                txs.push({
+                    amount: String(csv_import_price),
+                    date: new Date(String(csv_import_date)),
+                    type: csv_import_transaction_type
+                });
+            }
+        });
+        return txs;
+    }, [table.data]);
+
     const interpretedData = useMemo(() => {
         if (connections.length < 6) return [];
-        console.log("Interpreting data");
-        console.log(table.data);
 
         const aggregated = table.data.reduce((agg, row) => {
+
+
             //Map the keys to the data
             const [csv_import_date, csv_import_transaction_type, csv_import_price, csv_import_quantity, csv_import_ISIN, csv_import_diff, csv_import_name, csv_import_currency, csv_import_share_price] = STATIC_KEYS.map(key => {
                 const conn = table.connections.find(conn => conn.start === key);
@@ -200,6 +219,7 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
         const newAgg = adaptForSplits(aggregated)
 
         const stocks: StockHoldings[] = [];
+
         for (const data of newAgg) {
             // Filter out buy and sell actions
 
@@ -334,7 +354,6 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
                 if (data && data.count > 0 && Array.isArray(data.quotes) && data.quotes.length > 0) {
                     const quote = data.quotes[0];
                     const symbol = quote.symbol;
-                    console.log(symbol)
                     set_ISIN_Relations(existing => {
                         existing.set(key, { shortname: quote.shortname, symbol });
                         return new Map(existing);
@@ -359,6 +378,9 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
         return { ...d, stockName: existing?.symbol ?? d.stockName, ...existing }
     });
 
+
+
+
     const addStocks = async () => {
         setPage(5);
         setProgressbar([0, stocks.length]);
@@ -367,28 +389,45 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
             i++;
             setProgressbar([i, stocks.length]);
             try {
-                const res = await api.post<unknown>
+                await api.post<unknown>
                     ("/stocks/add/" + clubId, {
                         ...data,
                     }, {
                         headers: {
-                            "Access-Control-Allow-Origin": "*"
+                            "Access-Control-Allow-Origin": "*x"
                         },
                         withCredentials: true
                     });
-                const resData = res.data;
-                console.log(resData);
             } catch (err) {
                 console.error(err);
                 console.error(data);
                 toast.error(String(err))
             }
         }
-        setProgressbar([0, 0]);
+        for (const transaction of transactions) {
+            try {
+                await api.post<unknown>(
+                    "/transactions/add/" + clubId,
+                    { ...transaction },
+                    {
+                        headers: {
+                            "Access-Control-Allow-Origin": "*",
+                        },
+                        withCredentials: true,
+                    })
+
+            } catch (err) {
+                console.error(err);
+                console.error(transaction);
+                toast.error(String(err))
+            }
+        }
         toast.success(translate["stock_created_success"]);
         refetch();
         handleClose();
     }
+
+
     return (
         <Dialog
             open={true}
@@ -414,7 +453,7 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
                     <Box sx={{ display: "flex", justifyContent: "center" }}>{ISIN_Relations.size != totalISIN && <Button onClick={() => scan()} disabled={scanning}>{scanning ? `${translate["scanning"]}... ${ISIN_Relations.size} / ${totalISIN}` : translate["convert_ISIN"]}</Button>}
                     </Box>
                     {/* {failedFinds.length > 0 && <FailedFind item={failedFinds[0]} updateStock={(v) => console.log(v)} />} */}
-                    <StockPreview data={stocks} />
+                    <StockPreview data={stocks} transactions={transactions} />
                 </div>}
 
             </DialogContent>

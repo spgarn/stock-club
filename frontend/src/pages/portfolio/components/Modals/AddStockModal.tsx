@@ -1,78 +1,71 @@
 import Dialog from "@mui/material/Dialog";
-import { BootstrapDialogTitle } from "../../../components/BootstrapDialogTitle";
-import { translate, translateText } from "../../../i18n";
+import { BootstrapDialogTitle } from "../../../../components/BootstrapDialogTitle";
+import { translate } from "../../../../i18n";
 import DialogContent from "@mui/material/DialogContent";
 import Button from "@mui/material/Button";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import axios from "axios";
-import api, { StockHoldings } from "../../../api";
+import api from "../../../../api";
 import { toast } from "react-toastify";
 import TextField from "@mui/material/TextField";
-import BasicDateTimePicker from "../../../components/BasicDateTimePicker";
 import dayjs from "dayjs";
-import { NewInvestment } from "./AddStockModal";
-import Checkbox from "@mui/material/Checkbox";
 import FormControlLabel from "@mui/material/FormControlLabel";
-import portfolioStyles from "../portfolio.module.scss";
-import useClubs from "../../../hooks/useClubs";
+import Checkbox from "@mui/material/Checkbox";
+import portfolioStyles from "../../portfolio.module.scss";
+import useClubs from "../../../../hooks/useClubs";
+import BasicDatePicker from "../../../../components/BasicDatePicker";
 
-// };
-export default function EditStockModal({ handleClose, refetch, stock }: { handleClose: () => void; refetch: () => void; stock: StockHoldings }) {
+export type NewInvestment = {
+    stockName: string;
+    investedAt: Date;
+    amount: number;
+    buyPrice: number;
+    sellPrice: number | null;
+    sold: boolean;
+    soldAt: Date | null;
+    overridePrice: string | null;
+    currency: string;
+}
+
+export default function AddStockModal({ handleClose, refetch }: { handleClose: () => void; refetch: () => void; }) {
     const { clubId } = useClubs();
     const {
         control,
         register,
         handleSubmit,
         formState: { errors },
-        reset
     } = useForm<NewInvestment>({
         defaultValues: {
             investedAt: new Date(Date.now()),
             soldAt: new Date(Date.now())
         },
     });
-    useEffect(() => {
-        if (stock) {
-            reset({
-                stockName: stock.stockName,
-                investedAt: stock.investedAt ?? new Date(Date.now()),
-                amount: stock.amount,
-                buyPrice: stock.buyPrice,
-                sellPrice: stock.sellPrice ?? stock.currentPrice,
-                sold: stock.sold,
-                currency: stock.currency,
-                soldAt: new Date(Date.now()),
-                overridePrice: stock.overridePrice ? String(stock.overridePrice) : null
-            });
-        }
-    }, [stock, reset]);
     const [loading, setLoading] = useState(false);
     const onSubmit: SubmitHandler<NewInvestment> = async (data: NewInvestment) => {
         setLoading(true);
-        const override_price = data.overridePrice;
         try {
-            await api.put<unknown>
-                ("/stocks/edit/" + stock.id + "/club/" + clubId, {
+            const override_price = data.overridePrice;
+            const res = await api.post<unknown>
+                ("/stocks/add/" + clubId, {
                     ...data,
-                    overridePrice: override_price && override_price.length > 0 ? Number(override_price) : undefined,
-                    currency: stock.currency
+                    overridePrice: override_price && override_price.length > 0 ? Number(override_price) : undefined
                 }, {
                     headers: {
                         "Access-Control-Allow-Origin": "*"
                     },
                     withCredentials: true
                 });
-            toast.success(translate["stock_updated_success"]);
+            const resData = res.data;
+            toast.success(translate["stock_created_success"]);
             refetch();
             handleClose();
+            console.log(resData);
         } catch (err) {
+            console.log(err);
             if (axios.isAxiosError(err)) {
-                if (err.response?.data) {
-                    toast.error(translateText(err.response?.data?.title, err.response?.data?.title));
-                } else {
-                    toast.error(err.message);
-                }
+
+                toast.error(translate["invalid_stock"])
             } else {
                 toast.error(translate["something_went_wrong"])
             }
@@ -83,16 +76,16 @@ export default function EditStockModal({ handleClose, refetch, stock }: { handle
         <Dialog
             open={true}
             onClose={handleClose}
-            aria-labelledby="Stock"
-            aria-describedby="Stock"
+            aria-labelledby="alert-dialog-title"
+            aria-describedby="alert-dialog-description"
             fullWidth
             maxWidth="xs"
         >
             <BootstrapDialogTitle
-                id="edit_alert-dialog-title"
+                id="alert-dialog-title"
                 onClose={() => handleClose()}
             >
-                {translate["edit_stock"]}
+                {translate["add_stock"]}
             </BootstrapDialogTitle>
 
             <DialogContent>
@@ -100,7 +93,7 @@ export default function EditStockModal({ handleClose, refetch, stock }: { handle
                     <TextField
                         fullWidth={true}
                         error={!!errors.stockName}
-                        id="edit_stock_title"
+                        id="stock_title"
                         label={translate["stock_name"]}
                         type="text"
                         variant="standard"
@@ -112,7 +105,7 @@ export default function EditStockModal({ handleClose, refetch, stock }: { handle
                         control={control}
                         rules={{ required: translate["investment_date_required"] }}
                         render={({ field: { onChange, value } }) => (
-                            <BasicDateTimePicker
+                            <BasicDatePicker
                                 error={errors.investedAt ? errors?.investedAt.message : undefined}
                                 label={translate["investment_date"]}
                                 value={dayjs(value)}
@@ -123,7 +116,7 @@ export default function EditStockModal({ handleClose, refetch, stock }: { handle
                     <TextField
                         fullWidth={true}
                         error={!!errors.amount}
-                        id="edit_stock_amount"
+                        id="stock_amount"
                         label={translate["amount_of_stocks"]}
                         type="text"
                         variant="standard"
@@ -133,7 +126,7 @@ export default function EditStockModal({ handleClose, refetch, stock }: { handle
                     <TextField
                         fullWidth={true}
                         error={!!errors.buyPrice}
-                        id="edit_stock_content"
+                        id="stock_content"
                         label={translate["buyPrice"]}
                         type="text"
                         variant="standard"
@@ -141,6 +134,18 @@ export default function EditStockModal({ handleClose, refetch, stock }: { handle
                         {...register("buyPrice", { required: true })}
                         rows={4}
                     />
+                    <TextField
+                        fullWidth={true}
+                        error={!!errors.buyPrice}
+                        id="currency"
+                        label={translate["currency"]}
+                        type="text"
+                        variant="standard"
+                        helperText={errors.buyPrice ? errors?.buyPrice.message : " "}
+                        {...register("currency", { required: true })}
+                        rows={4}
+                    />
+
                     {/* <TextField
                         fullWidth={true}
                         error={!!errors.amount}
@@ -149,8 +154,9 @@ export default function EditStockModal({ handleClose, refetch, stock }: { handle
                         type="text"
                         variant="standard"
                         helperText={errors.amount ? errors?.amount.message : translate["leave_empty_for_automatic"]}
-                        {...register("overridePrice", { required: true })}
+                        {...register("overridePrice", { required: false })}
                     /> */}
+
                     <Controller
                         name="sold"
                         control={control}
@@ -191,7 +197,7 @@ export default function EditStockModal({ handleClose, refetch, stock }: { handle
                                             control={control}
                                             rules={{ required: translate["sell_date_required"] }}
                                             render={({ field: { onChange, value } }) => (
-                                                <BasicDateTimePicker
+                                                <BasicDatePicker
                                                     error={errors.soldAt ? errors?.soldAt.message : undefined}
                                                     label={translate["soldAt"]}
                                                     value={dayjs(value ?? new Date(Date.now()))}
@@ -207,7 +213,7 @@ export default function EditStockModal({ handleClose, refetch, stock }: { handle
 
 
                     <div className="align-center">
-                        <Button type="submit" variant="contained" disabled={loading}>{loading ? translate["editing_stock"] : translate["edit_stock"]}</Button>
+                        <Button type="submit" variant="contained" disabled={loading}>{loading ? translate["adding_stock"] : translate["add_stock"]}</Button>
                     </div>
                 </form>
 

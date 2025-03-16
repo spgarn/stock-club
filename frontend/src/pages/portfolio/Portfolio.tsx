@@ -6,23 +6,25 @@ import ToggleButton from "@mui/material/ToggleButton";
 import portfolioStyles from "./portfolio.module.scss";
 import { formatCurrency } from "../../funcs/funcs";
 import Button from "@mui/material/Button";
-import AddStockModal from "./components/AddStockModal";
 import { useQuery } from "@tanstack/react-query";
 import Loading from "../../components/Loading";
-import EditStockModal from "./components/EditStockModal";
-import SellPortionModal from "./components/SellPortionModal";
+import EditStockModal from "./components/modals/EditStockModal";
 import { toast } from "react-toastify";
 import axios from "axios";
 import RowSelect from "../../components/RowSelect";
 import Pagination from "@mui/material/Pagination";
 import useClubs from "../../hooks/useClubs";
-import ImportModal from "./components/ImportModal";
-import api, { getCurrencyRates, getStocks, StockHoldings } from "../../api";
+import api, { getCurrencyRates, getStocks, getTransactions, StockHoldings } from "../../api";
 import RenderStocks from "./components/RenderStocks";
 import DisplayToggle from "./components/DisplayToggle";
-import useStocks from "./components/useStocks";
+import useStocks from "./components/hooks/useStocks";
 import { useParams } from "react-router-dom";
 import ErrorMessage from "../../components/ErrorMessage";
+import SellPortionModal from "./components/modals/SellPortionModal";
+import ImportModal from "./components/modals/ImportModal";
+import AddStockModal from "./components/modals/AddStockModal";
+import useTransactions from "./components/hooks/useTransactions";
+
 export default function Portfolio() {
     const { id } = useParams(); // THis is for public
     const { clubId: activeClubId } = useClubs();
@@ -32,11 +34,14 @@ export default function Portfolio() {
         queryKey: ['club-stocks', clubId],
         queryFn: () => getStocks(clubId),
     });
+    const { data: transactions } = useQuery({
+        queryKey: ['club-transactions', clubId],
+        queryFn: () => getTransactions(clubId),
+    });
     const { data: currencies } = useQuery({
         queryKey: ["currency"],
         queryFn: getCurrencyRates,
     });
-
 
     const [rowCount, setRowCount] = useState(20);
     const [page, setPage] = useState(1);
@@ -45,11 +50,13 @@ export default function Portfolio() {
     const [editStock, setEditStock] = useState<null | StockHoldings>(null);
     const [sellPortion, setSellPortion] = useState<null | StockHoldings>(null);
     const [loading, setLoading] = useState(false);
-    const [displayMethod, setDisplayMethod] = useState<"active_stocks" | "sold_stocks" | "all_stocks">("active_stocks");
+    const [displayMethod, setDisplayMethod] = useState<"active_stocks" | "history">("active_stocks");
     const [currencyDisplay, setCurrencyDisplay] = useState<"kr" | "percent">("kr");
     const {
         totalValue, totalAmount, development, list
     } = useStocks(data, displayMethod, setPage, currencies ?? []);
+
+    const { netDeposit, transactionList, cash } = useTransactions(transactions, displayMethod, setPage);
 
 
     const changeRow = (row: number) => {
@@ -100,6 +107,8 @@ export default function Portfolio() {
             <Loading />
         </div>
     }
+
+    console.log((totalValue + cash) / netDeposit)
     return (
         <div>
             <div className={portfolioStyles.header}>
@@ -116,20 +125,44 @@ export default function Portfolio() {
                     <ToggleButton size="small" value="kr">kr</ToggleButton>
                 </ToggleButtonGroup>
             </div>
-            <div className={portfolioStyles.overview}>
-                <div>
-                    <p>{translate["total_stocks"]}</p>
-                    <p>{formatCurrency(totalAmount, false, 0, false)} {translate["individual_metric"]}</p>
-                </div>
-                <div>
-                    <p>{translate["total_value"]}</p>
-                    <p>{formatCurrency(totalValue, false, 2, false)} {translate["price_metric"]}</p>
-                </div>
-                <div>
-                    <p>{translate[displayMethod === "active_stocks" ? "dev_since_start" : "yield"]}</p>
-                    <p className={development >= 0 ? portfolioStyles.positive : portfolioStyles.negative}>{formatCurrency(development, false, 2, true)}%</p>
-                </div>
-            </div>
+            {
+                displayMethod === "active_stocks" ?
+                    <div className={portfolioStyles.overview}>
+
+                        <div>
+                            <p>{translate["total_stocks"]}</p>
+                            <p>{formatCurrency(totalAmount, false, 0, false)} {translate["individual_metric"]}</p>
+                        </div>
+                        <div>
+                            <p>{translate["total_value"]}</p>
+                            <p>{formatCurrency(totalValue, false, 0, false)} {translate["price_metric"]}</p>
+                        </div>
+                        <div>
+                            <p>{translate[displayMethod === "active_stocks" ? "dev_since_start" : "yield"]}</p>
+                            <p className={development >= 0 ? portfolioStyles.positive : portfolioStyles.negative}>{formatCurrency(development, false, 0, true)}%</p>
+                        </div>
+                    </div>
+                    : <div className={portfolioStyles.overview}>
+
+                        <div>
+                            <p>{translate["portfolio_value"]}</p>
+                            <p>{formatCurrency(totalValue, false, 0, false)} {translate["price_metric"]}</p>
+                        </div>
+                        <div>
+                            <p>{translate["net_deposit"]}</p>
+                            <p>{formatCurrency(netDeposit, false, 0, false)} {translate["price_metric"]}</p>
+                        </div>
+                        <div>
+                            <p>{translate["cash"]}</p>
+                            <p>{formatCurrency(cash, false, 0, false)} {translate["price_metric"]}</p>
+                        </div>
+                        <div>
+                            <p>{translate["dev_since_start"]}</p>
+                            <p className={development >= 0 ? portfolioStyles.positive : portfolioStyles.negative}>{formatCurrency(totalValue + cash - netDeposit, false, 0, true)} {translate["price_metric"]} / {formatCurrency(((netDeposit - (totalValue + cash)) / netDeposit) * -100, false, 2, true)} %</p>
+                        </div>
+
+                    </div>
+            }
             <div className={portfolioStyles.actionContainer}>
                 {!isPublic ? <Button onClick={() => setAddStockOpen(true)}>{translate["add_investment"]}</Button> : <p></p>}
                 <div>
@@ -140,15 +173,15 @@ export default function Portfolio() {
                 </div>
             </div>
 
-            <RenderStocks currencies={currencies ?? []} list={list} page={page} rowCount={rowCount} currencyDisplay={currencyDisplay} displayMethod={displayMethod} removeStock={removeStock} setEditStock={setEditStock} setSellPortion={setSellPortion} isPublic={isPublic} />
+            <RenderStocks transactions={transactionList} currencies={currencies ?? []} list={list} page={page} rowCount={rowCount} currencyDisplay={currencyDisplay} displayMethod={displayMethod} removeStock={removeStock} setEditStock={setEditStock} setSellPortion={setSellPortion} isPublic={isPublic} />
             {addStockOpen && <AddStockModal refetch={refetch} handleClose={() => setAddStockOpen(false)} />}
             {!!editStock && <EditStockModal refetch={refetch} handleClose={() => setEditStock(null)} stock={editStock} />}
             {!!sellPortion && <SellPortionModal refetch={refetch} handleClose={() => setSellPortion(null)} stock={sellPortion} />}
             {importModal && <ImportModal refetch={refetch} handleClose={() => setImportModal(false)} />}
 
-            <div className="pagination-container">
+            {displayMethod !== "history" && <div className="pagination-container">
                 <Pagination size="small" color="primary" count={maxPages} page={page} onChange={(_e, v) => setPage(v)} />
-            </div>
+            </div>}
             {!isPublic && <Button onClick={() => setImportModal(true)}>{translate["import_csv"]}</Button>}
         </div>
     )

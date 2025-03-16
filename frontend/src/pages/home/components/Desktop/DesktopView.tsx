@@ -1,7 +1,6 @@
 import { QueryObserverResult, RefetchOptions } from "@tanstack/react-query";
 import { Currencies } from "../Currencies";
 import PreviousMeetings from "../PreviousMeetings";
-import Proposals from "../Proposals";
 import UpcomingMeetings from "../UpcomingMeetings";
 import { ClubDetails, CurrencyRate, Meeting, User } from "../../../../api";
 import homeStyles from "../../home.module.scss";
@@ -15,7 +14,7 @@ type DesktopViewProps = {
     data: ClubDetails
 }
 
-export const DesktopView = ({ currencies, data, prevMeetings, refetch, upcomingMeetings, user }: DesktopViewProps) => {
+export const DesktopView = ({ currencies, prevMeetings, refetch, upcomingMeetings, user }: DesktopViewProps) => {
     return (
         <div className={homeStyles.desktopView}>
             <div>
@@ -23,7 +22,6 @@ export const DesktopView = ({ currencies, data, prevMeetings, refetch, upcomingM
                 <PreviousMeetings user={user} refetch={refetch} prevMeetings={prevMeetings} />
             </div>
             <div>
-                <Proposals user={user} refetch={refetch} meetingsSuggestions={data.meetingsSuggestions} />
                 <Currencies currencies={currencies || []} />
             </div>
 

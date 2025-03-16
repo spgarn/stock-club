@@ -18,6 +18,7 @@ namespace club.Data
         public DbSet<Stock> Stock { get; set; }
         public DbSet<ApplicationUser> User { get; set; }
         public DbSet<Currency> Currency { get; set; }
+        public DbSet<Transaction> Transaction { get; set; }
 
         // NEW: Add MeetingDecliner DbSet
         public DbSet<MeetingDecliner> MeetingDecliners { get; set; }

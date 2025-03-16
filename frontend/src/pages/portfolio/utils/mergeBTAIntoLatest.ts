@@ -1,4 +1,5 @@
-import { AggregatedData } from "../components/ImportModal";
+import { AggregatedData } from "../components/modals/ImportModal";
+
 
 // Helper function to process each transaction row
 export const processTransactions = (aggregated: AggregatedData[]): AggregatedData[] => {

@@ -1,5 +1,5 @@
 import { useMemo, useEffect } from 'react';
-import { CurrencyRate, StockHoldings } from '../../../api';
+import { CurrencyRate, StockHoldings } from '../../../../api';
 
 export default function useStocks(
   data: StockHoldings[] | undefined,
@@ -47,19 +47,6 @@ export default function useStocks(
     const activeValue = activeStocks.reduce((sum, s) => sum + s.currentPrice * s.amount, 0);
     const soldValue = soldStocks.reduce((sum, s) => sum + (s.sellPrice ?? 0), 0);
 
-    // Compute the displayed totals and development
-    if (displayMethod === 'all_stocks') {
-      const totalCost = activeCost + soldCost;
-      const totalValue = activeValue + soldValue;
-      const development = totalCost > 0 ? ((totalValue / totalCost) - 1) * 100 : 0;
-      return {
-        totalAmount: updatedStocks.length,
-        list: updatedStocks,
-        totalValue,
-        development,
-      };
-    }
-
     if (displayMethod === 'active_stocks') {
       const development = activeCost > 0 ? ((activeValue / activeCost) - 1) * 100 : 0;
       return {
@@ -74,7 +61,7 @@ export default function useStocks(
     return {
       totalAmount: soldStocks.length,
       list: soldStocks,
-      totalValue: soldValue,
+      totalValue: activeValue,
       development,
     };
   }, [data, displayMethod, currencies, setPage]);

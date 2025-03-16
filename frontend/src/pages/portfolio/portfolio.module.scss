@@ -26,6 +26,17 @@
     }
 }
 
+@media (max-width: 550px) {
+    .overview {
+        flex-direction: column;
+        > div {
+
+            flex-direction: row;
+
+        }
+    }
+}
+
 .form {
     display: flex;
     flex-direction: column;
