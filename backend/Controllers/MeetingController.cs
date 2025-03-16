@@ -29,8 +29,12 @@ namespace club.Controllers
                 .Include(m => m.Attendees)
                 .Include(m => m.Decliners)
                 .ThenInclude(d => d.User)
-                .Include(m => m.MeetingChats) 
-                .ThenInclude(c => c.User) 
+                .Include(m => m.MeetingsDecisions)
+                .ThenInclude(md => md.MeetingsDecisionsDownvotes)
+                .Include(m => m.MeetingsDecisions)
+                .ThenInclude(md => md.MeetingsDecisionsUpvotes)
+                .Include(m => m.MeetingChats)
+                .ThenInclude(c => c.User)
                 .FirstOrDefaultAsync(x => x.Id == id && userClubIds.Contains(x.Club.Id));
 
             if (meeting == null) return NotFound();
@@ -88,6 +92,36 @@ namespace club.Controllers
                         Admin = false
                     }
                 }).ToList(),
+                MeetingDecisions = meeting.MeetingsDecisions.Select(decision => new MeetingDecisionDto
+                {
+                    Id = decision.Id,
+                    Title = decision.Title,
+                    ExpiresAt = decision.ExpiresAt,
+                    User = new UserDTO
+                    {
+                        Id = decision.User.Id,
+                        FirstName = decision.User.FirstName,
+                        LastName = decision.User.LastName,
+                        Email = decision.User.Email ?? "",
+                        Admin = false,
+                        VotingPower = 0,
+                        Clubs = new List<ClubDto>()
+                    },
+                    CreatedAt = decision.CreatedAt,
+                    Completed = decision.Completed,
+                    MeetingsDecisionsUpvotes = decision.MeetingsDecisionsUpvotes.Select(upvote =>
+                        new MeetingDecisionUpvoteDto
+                        {
+                            Id = upvote.Id,
+                            UserId = upvote.User.Id
+                        }).ToList(),
+                    MeetingsDecisionsDownvotes = decision.MeetingsDecisionsDownvotes.Select(downvote =>
+                        new MeetingDecisionDownvoteDto
+                        {
+                            Id = downvote.Id,
+                            UserId = downvote.User.Id
+                        }).ToList(),
+                }).ToList()
             });
         }
 

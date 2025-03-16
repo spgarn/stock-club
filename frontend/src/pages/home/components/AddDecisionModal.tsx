@@ -1,35 +1,45 @@
+
+// const style = {
+//     position: 'absolute',
+//     top: '50%',
+//     left: '50%',
+//     transform: 'translate(-50%, -50%)',
+//     width: 400,
+//     bgcolor: 'background.paper',
+//     border: '2px solid #000',
+//     boxShadow: 24,
+//     p: 4,
+
 import Dialog from "@mui/material/Dialog";
 import { BootstrapDialogTitle } from "../../../components/BootstrapDialogTitle";
 import { translate, translateText } from "../../../i18n";
 import DialogContent from "@mui/material/DialogContent";
 import Button from "@mui/material/Button";
-import { Controller, SubmitHandler, useForm } from "react-hook-form";
+import { SubmitHandler, useForm } from "react-hook-form";
 import { useState } from "react";
 import axios from "axios";
-import api from "../../../api";
 import { toast } from "react-toastify";
 import TextField from "@mui/material/TextField";
-import TipTapEditor from "../../../components/TipTapEditor";
-export type AddDecision = {
+import api from "../../../api";
+export type NewDecision = {
     title: string;
-    markdown: string;
+    timeUntilExpiry: number;
 }
 // };
-export default function AddDecisionModal({ clubId, handleClose, refetch }: { clubId: number; handleClose: () => void; refetch: () => void; }) {
+export default function AddDecisionModal({ handleClose, refetch, clubId, meetingId }: { handleClose: () => void; refetch: () => void; clubId: number, meetingId: number }) {
     const {
-        control,
         register,
         handleSubmit,
         formState: { errors },
-    } = useForm<AddDecision>();
+    } = useForm<NewDecision>();
     const [loading, setLoading] = useState(false);
-    const onSubmit: SubmitHandler<AddDecision> = async (data: AddDecision) => {
-        if (loading) return;
+    const onSubmit: SubmitHandler<NewDecision> = async (data: NewDecision) => {
         setLoading(true);
         try {
             const res = await api.post<unknown>
-                ("/decisions/add/" + clubId, {
+                ("meeting_decisions/add/" + clubId + "/" + meetingId, {
                     ...data,
+                    timeUntilExpiry: Number(data.timeUntilExpiry)
                 }, {
                     headers: {
                         "Access-Control-Allow-Origin": "*"
@@ -76,25 +86,25 @@ export default function AddDecisionModal({ clubId, handleClose, refetch }: { clu
                         fullWidth={true}
                         error={!!errors.title}
                         id="decision_title"
-                        label={translate["title"]}
+                        label={translate["enter_title"]}
                         type="text"
                         variant="standard"
                         helperText={errors.title ? errors?.title.message : " "}
                         {...register("title", { required: true })}
                     />
-                    <Controller
-                        name="markdown"
-                        control={control}
-                        rules={{ required: translate["markdown_required"] }}
-                        render={({ field: { onChange, value } }) => (
-                            <TipTapEditor content={value} label={translate["template"]} onChange={onChange} />
-
-                        )}
+                    <TextField
+                        fullWidth={true}
+                        error={!!errors.timeUntilExpiry}
+                        id="decision_content"
+                        label={translate["enter_time_until_expiry"]}
+                        type="numbers"
+                        variant="standard"
+                        helperText={errors.timeUntilExpiry ? errors?.timeUntilExpiry.message : " "}
+                        {...register("timeUntilExpiry", { required: true })}
+                        rows={4}
                     />
-
-
                     <div className="align-center">
-                        <Button sx={{ marginTop: "10px" }} type="submit" variant="contained" disabled={loading}>{loading ? translate["adding_decision"] : translate["add_decision"]}</Button>
+                        <Button type="submit" variant="contained" disabled={loading}>{loading ? translate["adding"] : translate["add"]}</Button>
                     </div>
                 </form>
 

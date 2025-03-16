@@ -6,7 +6,7 @@ import Button from "@mui/material/Button";
 import { useQuery } from "@tanstack/react-query";
 import Loading from "../../components/Loading";
 import api, { getDecisions, getEmails, getUser } from "../../api";
-import AddDecisionModal from "./components/AddDecisionModal";
+import AddDecisionModal from "./components/AddNewsModal";
 import axios from "axios";
 import { toast } from "react-toastify";
 import Typography from "@mui/material/Typography";
@@ -17,14 +17,14 @@ import { Link } from "react-router-dom"; // Assuming React Router is used
 
 const ITEMS_PER_PAGE = 10;
 
-export default function Decisions() {
+export default function News() {
     const { data: user } = useQuery({
         queryKey: ['user'],
         queryFn: () => getUser(),
     });
 
     const { clubId } = useClubs();
-    const { data: decisions, refetch } = useQuery({
+    const { data: news, refetch } = useQuery({
         queryKey: ['club-decisions'],
         queryFn: () => getDecisions(),
     });
@@ -43,7 +43,7 @@ export default function Decisions() {
 
         setLoading(true);
         try {
-            await api.delete(`/decisions/${id}`, {
+            await api.delete(`/news/${id}`, {
                 headers: { "Access-Control-Allow-Origin": "*" },
                 withCredentials: true
             });
@@ -61,17 +61,17 @@ export default function Decisions() {
 
     const [addDecisionOpen, setAddDecisionOpen] = useState(false);
 
-    if (!decisions || !emails) {
+    if (!news || !emails) {
         return <Loading />;
     }
 
     // Merge and sort all items by date (descending)
     const allItems = [
-        ...decisions.map(decision => ({
-            id: `decision-${decision.id}`,
+        ...news.map(article => ({
+            id: `decision-${article.id}`,
             type: "decision",
-            title: decision.title,
-            date: decision.createdAt
+            title: article.title,
+            date: article.createdAt
         })),
         ...emails.map(email => ({
             id: `email-${email.dateReceived}`,

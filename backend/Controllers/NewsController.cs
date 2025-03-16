@@ -12,13 +12,13 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 namespace club.Controllers
 {
     [ApiController]
-    [Route("decisions")]
-    public class DecisionController : ExtendedController
+    [Route("news")]
+    public class NewsController : ExtendedController
     {
         [HttpGet]
         [Authorize]
         [Route("all")]
-        public async Task<ActionResult<ICollection<DecisionDTO>>> GetDecisions(
+        public async Task<ActionResult<ICollection<NewsDTO>>> GetNews(
            [FromServices] MyDbContext _context)
         {
             var result = await GetCurrentUser(_context);
@@ -30,7 +30,7 @@ namespace club.Controllers
             var decisions = _context.Decisions.Where(decision => user.Clubs.Select(c => c.Id).Contains(decision.Club.Id)).OrderByDescending(decision => decision.Id).ToArray();
 
             return Ok(decisions.Select(decision =>
-                 new DecisionDTO
+                 new NewsDTO
                  {
                      Id = decision.Id,
                      Title = decision.Title,
@@ -42,8 +42,8 @@ namespace club.Controllers
         [HttpPost]
         [Authorize]
         [Route("add/{clubId}")]
-        public async Task<ActionResult<string>> AddDecision(
-           [FromServices] MyDbContext _context, AddDecision decision, int clubId)
+        public async Task<ActionResult<string>> AddNews(
+           [FromServices] MyDbContext _context, AddNews news, int clubId)
         {
             var result = await GetCurrentUser(_context);
             if (result.Result != null) // If it's an error result
@@ -55,21 +55,21 @@ namespace club.Controllers
             if (club == null) return NotFound();
             _context.Decisions.Add(new Decisions
             {
-                Title = decision.Title,
-                Markdown = decision.Markdown,
+                Title = news.Title,
+                Markdown = news.Markdown,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
                 Club = club
 
             });
             await _context.SaveChangesAsync();
-            return CreatedAtAction(nameof(AddDecision), user.Id);
+            return CreatedAtAction(nameof(Dtos.AddNews), user.Id);
         }
 
         [HttpDelete]
         [Authorize]
         [Route("{id}")]
-        public async Task<ActionResult<string>> DeleteDecision(
+        public async Task<ActionResult<string>> DeleteNews(
           [FromServices] MyDbContext _context, int id)
         {
             var result = await GetCurrentUser(_context);
@@ -84,7 +84,7 @@ namespace club.Controllers
             if (decision == null) return NotFound();
             _context.Decisions.Remove(decision);
             await _context.SaveChangesAsync();
-            return CreatedAtAction(nameof(DeleteDecision), user.Id);
+            return CreatedAtAction(nameof(DeleteNews), user.Id);
         }
     }
 }

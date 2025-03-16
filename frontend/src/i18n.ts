@@ -129,6 +129,7 @@ export const translate = {
     "confirm_delete": "Är du säker att du vill ta bort denna mallen?",
     "confirm_delete_user": "Är du säker att du vill ta bort denna användaren?",
     "confirm_delete_stock": "Är du säker att du vill ta bort detta innehavet?",
+    "confirm_delete_decision": "Är du säker att du vill ta bort detta beslutet?",
     "meeting_protocols": "Mötesprotokoll",
     "meeting_protocol": "Mötesprotokoll",
     "choose_agenda_template": "Välj dagordning mall (valfri)",
@@ -149,15 +150,18 @@ export const translate = {
     "logged_out": "Du lyckades logga ut!",
     "you": "Du",
     "delete": "Ta bort",
-    "decisions": "Nyheter",
+    "decisions": "Beslut",
     "decision_created_success": "Beslut skapades!",
+    "news_created_success": "Nyhet skapades!",
     "decision_title": "Beslut titel",
-    "add_decision": "Lägg till nyhet",
+    "add_decision": "Lägg till beslut",
     "suggestion_deleted_success": "Förslag borttaget!",
+    "decision_deleted_success": "Beslut borttaget!",
     "confirm_delete_suggestion": "Är du säker att du vill ta bort detta förslaget?",
     "confirm_delete_news": "Är du säker att du vill ta bort denna nyheten?",
     "news_deleted": "Nyhet borttagen!",
-    "no_suggestions": "Det finns inget förslag just nu.",
+    "no_suggestions": "Det finns inga förslag just nu.",
+    "no_decisions": "Det finns inga beslut just nu",
     "no_chats": "Det finns inga chat meddelande just nu.",
     "sold_label": "Aktie är såld",
     "sold": "Såld",
@@ -228,7 +232,11 @@ export const translate = {
     "change_ticker": "Ändra ticker symbol",
     "skip": "Skippa",
     "_not_found_enter_name": " hittades inte, skriv in namn (för överskrida pris)",
-    "enter_override_price_for_": "Skriv pris för "
+    "enter_override_price_for_": "Skriv pris för ",
+    "new_decision": "Nytt beslut",
+    "enter_time_until_expiry": "Rösttid (sekunder)",
+    "add_news": "Lägg till nyhet",
+    "adding_news": "Lägger till nyhet.."
 }
 
 //Translate with fallback

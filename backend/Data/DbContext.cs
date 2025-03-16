@@ -14,6 +14,9 @@ namespace club.Data
         public DbSet<MeetingsSuggestion> MeetingsSuggestion { get; set; }
         public DbSet<MeetingsSuggestionsUpvote> MeetingsSuggestionsUpvote { get; set; }
         public DbSet<MeetingsSuggestionsDownvote> MeetingsSuggestionsDownvote { get; set; }
+        public DbSet<MeetingsDecisions> MeetingsDecisions { get; set; }
+        public DbSet<MeetingsDecisionsUpvote> MeetingsDecisionsUpvote { get; set; }
+        public DbSet<MeetingsDecisionsDownvote> MeetingsDecisionsDownvote { get; set; }
         public DbSet<StockHolding> StockHolding { get; set; }
         public DbSet<Stock> Stock { get; set; }
         public DbSet<ApplicationUser> User { get; set; }

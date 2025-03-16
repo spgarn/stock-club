@@ -22,6 +22,8 @@ public partial class Meeting
     public DateTime? EndedAt { get; set; }
 
     public virtual ICollection<MeetingsSuggestion> MeetingSuggestions { get; set; } = new List<MeetingsSuggestion>();
+    
+    public virtual ICollection<MeetingsDecisions> MeetingsDecisions { get; set; } = new List<MeetingsDecisions>();
 
     public virtual ICollection<ApplicationUser> Attendees { get; set; } = new List<ApplicationUser>();
 

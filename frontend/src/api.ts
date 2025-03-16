@@ -18,6 +18,21 @@ export type Club = {
     name: string;
     publicInvestments: boolean;
 }
+export type MeetingDecisionsRate = {
+    id: number;
+    userId: string;
+}
+export type MeetingDecisions = {
+    id: number;
+    meeting: Meeting;
+    title: string;
+    expiresAt: Date;
+    createdAt: Date;
+    completed: boolean | null;
+    meetingsDecisionsUpvotes: MeetingDecisionsRate[];
+    meetingsDecisionsDownvotes: MeetingDecisionsRate[];
+    user: User;
+}
 
 export type Meeting = {
     id: number;
@@ -46,6 +61,7 @@ export type Meeting = {
         userName: string;
         admin: boolean;
     }[];
+    meetingDecisions: MeetingDecisions[]
 }
 
 export type MeetingChat = {
@@ -161,7 +177,7 @@ export const getUsersNotInClub = async (clubId: number) => {
 
 export const getDecisions = async () => {
     const response = await api.get<Decisions[]>(
-        '/decisions/all',
+        '/news/all',
         {
             headers: {
                 "Access-Control-Allow-Origin": "*"

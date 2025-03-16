@@ -22,5 +22,7 @@ namespace club.Dtos
         public List<MeetingDeclinerDTO> Decliners { get; set; } = new List<MeetingDeclinerDTO>();
 
         public virtual ICollection<MeetingChatDTO> MeetingChats { get; set; } = new List<MeetingChatDTO>();
+        
+        public virtual ICollection<MeetingDecisionDto> MeetingDecisions { get; set; } = new List<MeetingDecisionDto>();
     }
 }

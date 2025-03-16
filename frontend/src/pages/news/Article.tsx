@@ -10,7 +10,7 @@ import dayjs from "dayjs";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { useTheme } from "@mui/material/styles";
 
-export default function Decision() {
+export default function Article() {
     const { id } = useParams();
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -146,7 +146,7 @@ const cleanSignallistanContent = (html: string) => {
     const splitPoint = html.indexOf("Kalender");
     if (splitPoint !== -1) {
         html = html.substring(0, splitPoint);
-    }   
+    }
 
 
 

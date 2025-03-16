@@ -10,12 +10,12 @@ import Register from './pages/register/Register';
 import Layout from './components/Layout';
 import Home from './pages/home/Home';
 import Portfolio from './pages/portfolio/Portfolio';
-import News from './pages/decisions/Decisions';
+import News from './pages/news/News';
 import Templates from './pages/templates/Templates';
 import Meeting from './pages/meeting/Meeting';
 import Members from './pages/members/Members';
 import ResetPassword from './pages/resetpassword/ResetPassword';
-import Decision from './pages/decision/Decision';
+import Article from './pages/news/Article';
 
 
 export const publicRoutes = createHashRouter(
@@ -55,7 +55,7 @@ export const publicRoutes = createHashRouter(
                     }
                 />
                 <Route path='news' element={<Suspense fallback={<></>}><News /></Suspense>} />
-                <Route path='news/:id' element={<Suspense fallback={<></>}><Decision /></Suspense>} />
+                <Route path='news/:id' element={<Suspense fallback={<></>}><Article /></Suspense>} />
 
                 <Route
                     path='meeting/:id'

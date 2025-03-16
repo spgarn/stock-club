@@ -29,6 +29,8 @@ import DOMPurify from 'dompurify';
 import AddSuggestionModal from "../home/components/AddSuggestionModal";
 import { SubmitHandler } from "react-hook-form";
 import { NewMeeting } from "../../components/ConfirmClub";
+import AddDecisionModal from "../home/components/AddDecisionModal";
+import Decisions from "../home/components/Decisions";
 const options = ['agenda', 'meeting_protocol', 'proposals', 'chat'];
 
 export default function Meeting() {
@@ -39,11 +41,12 @@ export default function Meeting() {
     const [isEditingAgenda, setIsEditingAgenda] = useState(false);
     const [isEditingProtocol, setIsEditingProtocol] = useState(false);
     const [addSuggestionOpen, setAddSuggestionOpen] = useState(false);
+    const [addDecisionOpen, setAddDecisionOpen] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [meetingProtocols, setMeetingProtocols] = useState("");
     const [chats, setChats] = useState<MeetingChat[]>([]);
     const { id } = useParams();
-    
+
     const getAgenda = (message: string) => {
         if (agenda != message) {
             setAgenda(message);
@@ -90,6 +93,7 @@ export default function Meeting() {
         queryKey: ['user'],
         queryFn: () => getUser(),
     });
+    console.log(meeting);
     const { sendAgenda, sendMeetingProtocol, sendChat, removeMessage, liveRefetch } = useMeetingSocket(Number(id), clubId, getAgenda, getMeetingProtocol, getChat, removeChat, refetchClubAndMeeting);
 
     const toggleMeeting = async () => {
@@ -253,6 +257,8 @@ export default function Meeting() {
             <div className="content-header">
                 <Typography variant="h5">{meeting.name} - {dayjs(meeting.meetingTime).format("HH:mm DD/MM YY")}</Typography>
                 <div className="flex">
+                    <Button onClick={() => setAddDecisionOpen(true)}>{translate["new_decision"]}</Button>
+
                     <Button onClick={() => setAddSuggestionOpen(true)}>{translate["new_proposal"]}</Button>
                     <Button onClick={() => setEditMeetingOpen(true)}>{translate["edit"]}</Button>
 
@@ -341,11 +347,16 @@ export default function Meeting() {
                     <Wrapper title={translate["proposals"]}>
                         <Suggestions user={user} refetch={liveRefetch} meetingsSuggestions={clubDetails.meetingsSuggestions} />
                     </Wrapper>
+                    <Wrapper title={translate["decisions"]}>
+                        <Decisions user={user} refetch={liveRefetch} meetingsDecisions={meeting.meetingDecisions} />
+                    </Wrapper>
                 </div>
 
             </div>}
             {editMeetingOpen && <EditMeetingModal refetch={liveRefetch} handleClose={() => setEditMeetingOpen(false)} meeting={meeting} />}
             {addSuggestionOpen && <AddSuggestionModal meetingId={meeting.id} clubId={clubId} refetch={refetchClubAndMeeting} handleClose={() => setAddSuggestionOpen(false)} />}
+            {addDecisionOpen && <AddDecisionModal meetingId={meeting.id} clubId={clubId} refetch={refetchClubAndMeeting} handleClose={() => setAddDecisionOpen(false)} />}
+
         </div>
     )
 }

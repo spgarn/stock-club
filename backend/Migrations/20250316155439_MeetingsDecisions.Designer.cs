@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using club.Data;
@@ -11,9 +12,11 @@ using club.Data;
 namespace club.Migrations
 {
     [DbContext(typeof(MyDbContext))]
-    partial class MyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250316155439_MeetingsDecisions")]
+    partial class MeetingsDecisions
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -617,6 +620,9 @@ namespace club.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("MeetingsDecisionsId")
+                        .HasColumnType("integer");
+
                     b.Property<int>("MeetingsSuggestionId")
                         .HasColumnType("integer");
 
@@ -624,6 +630,8 @@ namespace club.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("MeetingsDecisionsId");
 
                     b.HasIndex("MeetingsSuggestionId");
 
@@ -640,6 +648,9 @@ namespace club.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("MeetingsDecisionsId")
+                        .HasColumnType("integer");
+
                     b.Property<int>("MeetingsSuggestionId")
                         .HasColumnType("integer");
 
@@ -647,6 +658,8 @@ namespace club.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("MeetingsDecisionsId");
 
                     b.HasIndex("MeetingsSuggestionId");
 
@@ -954,7 +967,7 @@ namespace club.Migrations
                         .IsRequired();
 
                     b.HasOne("club.Models.Meeting", "Meeting")
-                        .WithMany("MeetingsDecisions")
+                        .WithMany()
                         .HasForeignKey("MeetingId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -973,7 +986,7 @@ namespace club.Migrations
             modelBuilder.Entity("club.Models.MeetingsDecisionsDownvote", b =>
                 {
                     b.HasOne("club.Models.MeetingsDecisions", "MeetingsDecisions")
-                        .WithMany("MeetingsDecisionsDownvotes")
+                        .WithMany()
                         .HasForeignKey("MeetingsDecisionsId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -990,7 +1003,7 @@ namespace club.Migrations
             modelBuilder.Entity("club.Models.MeetingsDecisionsUpvote", b =>
                 {
                     b.HasOne("club.Models.MeetingsDecisions", "MeetingsDecisions")
-                        .WithMany("MeetingsDecisionsUpvotes")
+                        .WithMany()
                         .HasForeignKey("MeetingsDecisionsId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1031,6 +1044,10 @@ namespace club.Migrations
 
             modelBuilder.Entity("club.Models.MeetingsSuggestionsDownvote", b =>
                 {
+                    b.HasOne("club.Models.MeetingsDecisions", null)
+                        .WithMany("MeetingsSuggestionsDownvotes")
+                        .HasForeignKey("MeetingsDecisionsId");
+
                     b.HasOne("club.Models.MeetingsSuggestion", "MeetingsSuggestion")
                         .WithMany("MeetingsSuggestionsDownvotes")
                         .HasForeignKey("MeetingsSuggestionId")
@@ -1048,6 +1065,10 @@ namespace club.Migrations
 
             modelBuilder.Entity("club.Models.MeetingsSuggestionsUpvote", b =>
                 {
+                    b.HasOne("club.Models.MeetingsDecisions", null)
+                        .WithMany("MeetingsSuggestionsUpvotes")
+                        .HasForeignKey("MeetingsDecisionsId");
+
                     b.HasOne("club.Models.MeetingsSuggestion", "MeetingsSuggestion")
                         .WithMany("MeetingsSuggestionsUpvotes")
                         .HasForeignKey("MeetingsSuggestionId")
@@ -1129,15 +1150,13 @@ namespace club.Migrations
                     b.Navigation("MeetingChats");
 
                     b.Navigation("MeetingSuggestions");
-
-                    b.Navigation("MeetingsDecisions");
                 });
 
             modelBuilder.Entity("club.Models.MeetingsDecisions", b =>
                 {
-                    b.Navigation("MeetingsDecisionsDownvotes");
+                    b.Navigation("MeetingsSuggestionsDownvotes");
 
-                    b.Navigation("MeetingsDecisionsUpvotes");
+                    b.Navigation("MeetingsSuggestionsUpvotes");
                 });
 
             modelBuilder.Entity("club.Models.MeetingsSuggestion", b =>

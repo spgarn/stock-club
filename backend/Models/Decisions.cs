@@ -3,7 +3,8 @@ using System.Collections.Generic;
 
 namespace club.Models;
 
-public partial class Decisions
+//Please note that this is actually NEWS, not Decisions. It has been left unchanged to not cause migration issues.
+public partial class Decisions //News
 {
     public int Id { get; set; }
 
