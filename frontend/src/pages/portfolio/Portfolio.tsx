@@ -8,7 +8,7 @@ import { formatCurrency } from "../../funcs/funcs";
 import Button from "@mui/material/Button";
 import { useQuery } from "@tanstack/react-query";
 import Loading from "../../components/Loading";
-import EditStockModal from "./components/modals/EditStockModal";
+import EditStockModal from "./components/mooodals/EditStockModal";
 import { toast } from "react-toastify";
 import axios from "axios";
 import RowSelect from "../../components/RowSelect";
@@ -20,9 +20,9 @@ import DisplayToggle from "./components/DisplayToggle";
 import useStocks from "./components/hooks/useStocks";
 import { useParams } from "react-router-dom";
 import ErrorMessage from "../../components/ErrorMessage";
-import SellPortionModal from "./components/modals/SellPortionModal";
-import ImportModal from "./components/modals/ImportModal";
-import AddStockModal from "./components/modals/AddStockModal";
+import SellPortionModal from "./components/mooodals/SellPortionModal";
+import ImportModal from "./components/mooodals/ImportModal";
+import AddStockModal from "./components/mooodals/AddStockModal";
 import useTransactions from "./components/hooks/useTransactions";
 
 export default function Portfolio() {

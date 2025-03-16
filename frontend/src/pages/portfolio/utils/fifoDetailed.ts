@@ -1,4 +1,4 @@
-import { Action } from "../components/modals/ImportModal";
+import { Action } from "../components/mooodals/ImportModal";
 
 
 export const calculateRemainingBuyCostAndDate = (

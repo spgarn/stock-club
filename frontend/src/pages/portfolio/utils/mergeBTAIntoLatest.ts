@@ -1,4 +1,4 @@
-import { AggregatedData } from "../components/modals/ImportModal";
+import { AggregatedData } from "../components/mooodals/ImportModal";
 
 
 // Helper function to process each transaction row
