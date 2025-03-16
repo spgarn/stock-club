@@ -17,13 +17,11 @@ export default function useTransactions(
 
     const netDeposit = list.reduce((sum, s) => sum + +s.amount, 0);
 
-    const cash = 73
 
 
 
     return {
       netDeposit: netDeposit,
-      cash: cash,
       transactionList: list ?? [],
     };
   }, [list, displayMethod, setPage]);

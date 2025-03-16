@@ -17,7 +17,6 @@ import FormControlLabel from "@mui/material/FormControlLabel";
 import portfolioStyles from "../../portfolio.module.scss";
 import useClubs from "../../../../hooks/useClubs";
 
-// };
 export default function EditStockModal({ handleClose, refetch, stock }: { handleClose: () => void; refetch: () => void; stock: StockHoldings }) {
     const { clubId } = useClubs();
     const {

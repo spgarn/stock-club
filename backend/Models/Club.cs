@@ -12,6 +12,9 @@ public partial class Club
     
     [SqlDefaultValue(DefaultValue = "false")]
     public bool PublicInvestments { get; set; }
+    
+    [SqlDefaultValue(DefaultValue = "0")]
+    public decimal Cash { get; set; }
 
     public virtual ICollection<Meeting> Meetings { get; set; } = new List<Meeting>();
 

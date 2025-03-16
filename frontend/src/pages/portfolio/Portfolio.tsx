@@ -24,10 +24,13 @@ import SellPortionModal from "./components/modals/SellPortionModal";
 import ImportModal from "./components/modals/ImportModal";
 import AddStockModal from "./components/modals/AddStockModal";
 import useTransactions from "./components/hooks/useTransactions";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faRefresh } from '@fortawesome/free-solid-svg-icons';
+import { ChangeCashModal } from "./components/modals/ChangeCashModal";
 
 export default function Portfolio() {
     const { id } = useParams(); // THis is for public
-    const { clubId: activeClubId } = useClubs();
+    const { clubId: activeClubId, activeClub, refetchClubs } = useClubs();
     const isPublic = !activeClubId && !!id;
     const clubId = id ? Number(id) : activeClubId;
     const { data, refetch, error } = useQuery({
@@ -47,6 +50,7 @@ export default function Portfolio() {
     const [page, setPage] = useState(1);
     const [addStockOpen, setAddStockOpen] = useState(false);
     const [importModal, setImportModal] = useState(false);
+    const [changeCash, setChangeCash] = useState(false);
     const [editStock, setEditStock] = useState<null | StockHoldings>(null);
     const [sellPortion, setSellPortion] = useState<null | StockHoldings>(null);
     const [loading, setLoading] = useState(false);
@@ -56,13 +60,15 @@ export default function Portfolio() {
         totalValue, totalAmount, development, list
     } = useStocks(data, displayMethod, setPage, currencies ?? []);
 
-    const { netDeposit, transactionList, cash } = useTransactions(transactions, displayMethod, setPage);
+    const { netDeposit, transactionList } = useTransactions(transactions, displayMethod, setPage);
 
 
     const changeRow = (row: number) => {
         setRowCount(row);
         setPage(1);
     }
+
+    if (!activeClub) return <Loading />;
 
     const removeStock = async (id: number) => {
 
@@ -108,7 +114,6 @@ export default function Portfolio() {
         </div>
     }
 
-    console.log((totalValue + cash) / netDeposit)
     return (
         <div>
             <div className={portfolioStyles.header}>
@@ -153,12 +158,20 @@ export default function Portfolio() {
                             <p>{formatCurrency(netDeposit, false, 0, false)} {translate["price_metric"]}</p>
                         </div>
                         <div>
-                            <p>{translate["cash"]}</p>
-                            <p>{formatCurrency(cash, false, 0, false)} {translate["price_metric"]}</p>
+                            <p>{translate["cash"]}  <FontAwesomeIcon
+                                onClick={() => setChangeCash(true)}
+                                icon={faRefresh}
+                                style={{
+                                    marginLeft: 5,
+                                    cursor: "pointer"
+                                }}
+                                size='sm'
+                            /></p>
+                            <p>{formatCurrency(activeClub.cash, false, 0, false)} {translate["price_metric"]}</p>
                         </div>
                         <div>
                             <p>{translate["dev_since_start"]}</p>
-                            <p className={development >= 0 ? portfolioStyles.positive : portfolioStyles.negative}>{formatCurrency(totalValue + cash - netDeposit, false, 0, true)} {translate["price_metric"]} / {formatCurrency(((netDeposit - (totalValue + cash)) / netDeposit) * -100, false, 2, true)} %</p>
+                            <p className={development >= 0 ? portfolioStyles.positive : portfolioStyles.negative}>{formatCurrency(totalValue + activeClub.cash - netDeposit, false, 0, true)} {translate["price_metric"]} / {formatCurrency(((netDeposit - (totalValue + activeClub.cash)) / netDeposit) * -100, false, 2, true)} %</p>
                         </div>
 
                     </div>
@@ -178,6 +191,7 @@ export default function Portfolio() {
             {!!editStock && <EditStockModal refetch={refetch} handleClose={() => setEditStock(null)} stock={editStock} />}
             {!!sellPortion && <SellPortionModal refetch={refetch} handleClose={() => setSellPortion(null)} stock={sellPortion} />}
             {importModal && <ImportModal refetch={refetch} handleClose={() => setImportModal(false)} />}
+            {changeCash && <ChangeCashModal handleClose={() => setChangeCash(false)} currenctCash={activeClub.cash} refetch={refetchClubs} />}
 
             {displayMethod !== "history" && <div className="pagination-container">
                 <Pagination size="small" color="primary" count={maxPages} page={page} onChange={(_e, v) => setPage(v)} />

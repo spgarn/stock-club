@@ -16,6 +16,7 @@ export default api;
 export type Club = {
     id: number;
     name: string;
+    cash: number,
     publicInvestments: boolean;
 }
 export type MeetingDecisionsRate = {

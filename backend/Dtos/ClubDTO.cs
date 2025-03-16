@@ -8,7 +8,8 @@ namespace club.Dtos
         public string Name { get; set; }
         
         public bool PublicInvestments { get; set; }
-
+        
+        public decimal Cash { get; set; }
         public ICollection<MeetingDTO> Meetings { get; set; } = new List<MeetingDTO>();
 
         public ICollection<MeetingSuggestionDTO> MeetingsSuggestions { get; set; } = new List<MeetingSuggestionDTO>();

@@ -32,6 +32,7 @@ namespace club.Controllers
                 Id = club.Id,
                 Name = club.Name,
                 PublicInvestments = club.PublicInvestments,
+                Cash = club.Cash,
                 Users = club.Users.Select(u => new UserDTO
                 {
                     Id = u.Id,
@@ -133,7 +134,7 @@ namespace club.Controllers
                 Id = club.Id,
                 Name = club.Name,
                 PublicInvestments = club.PublicInvestments,
-
+                Cash = club.Cash,
                 Users = club.Users.Select(u => new UserDTO
                 {
                     Id = u.Id,
@@ -203,6 +204,7 @@ namespace club.Controllers
             if (activeClub == null) return NotFound();
             activeClub.Name = data.Name;
             activeClub.PublicInvestments = data.PublicInvestments;
+            activeClub.Cash = data.Cash; 
             context.Club.Update(activeClub);
             await context.SaveChangesAsync();
             return CreatedAtAction(nameof(EditClub), user.Id);
