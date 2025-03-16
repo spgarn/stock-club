@@ -26,7 +26,7 @@ export const AppContext = createContext<AppContextProps | undefined>(undefined);
 const key = "auth-user-coolfashion";
 export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     const [user, setUser] = useState<null | undefined | User>(undefined);
-
+    
     useEffect(() => {
         console.log("Retrieving");
         if (typeof window === "undefined") {

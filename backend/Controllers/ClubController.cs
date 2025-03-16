@@ -190,7 +190,7 @@ namespace club.Controllers
         }
 
         [HttpPut]
-        [Authorize(Roles = "Admin")]
+        // [Authorize(Roles = "Admin")]
         [Route("edit/{clubId}")]
         public async Task<ActionResult<string>> EditClub(
             [FromServices] MyDbContext context, EditClubForm data, int clubId)
@@ -204,10 +204,55 @@ namespace club.Controllers
             if (activeClub == null) return NotFound();
             activeClub.Name = data.Name;
             activeClub.PublicInvestments = data.PublicInvestments;
-            activeClub.Cash = data.Cash; 
+            activeClub.Cash = data.Cash;
             context.Club.Update(activeClub);
             await context.SaveChangesAsync();
             return CreatedAtAction(nameof(EditClub), user.Id);
+        }
+
+        [HttpPost]
+        [Authorize]
+        [Route("create")]
+        public async Task<ActionResult<ClubDto>> CreateClub(
+            [FromServices] MyDbContext context,
+            [FromBody] AddClubForm form)
+        {
+            // Get the current user
+            var result = await GetCurrentUser(context);
+            if (result.Result != null)
+                return result.Result;
+            if (result.Value == null)
+                return NotFound();
+            var user = result.Value;
+            
+            var club = new Club
+            {
+                Name = form.Name,
+                PublicInvestments = form.PublicInvestments,
+                Cash = form.Cash,
+                Users = new List<ApplicationUser> { user }
+            };
+            
+            context.Club.Add(club);
+            await context.SaveChangesAsync();
+            
+            var clubDto = new ClubDto
+            {
+                Id = club.Id,
+                Name = club.Name,
+                PublicInvestments = club.PublicInvestments,
+                Cash = club.Cash,
+                Users = club.Users.Select(u => new UserDTO
+                {
+                    Id = u.Id,
+                    FirstName = u.FirstName,
+                    LastName = u.LastName,
+                    Email = u.Email ?? "",
+                    UserName = u.UserName ?? ""
+                }).ToList()
+            };
+            
+            return CreatedAtAction(nameof(GetClubSuggestions), new { id = club.Id }, clubDto);
         }
 
         [HttpPost]

@@ -140,7 +140,7 @@ export default function Members() {
 
             </div>
             <BasicTable columns={columns} data={usersInClub} />
-            {isAdmin && !!activeClub && <Button sx={{ marginTop: "1rem" }} onClick={() => setShowEditClub(activeClub)}>{translate["edit_club"]}</Button>}
+            {!!activeClub && <Button sx={{ marginTop: "1rem" }} onClick={() => setShowEditClub(activeClub)}>{translate["edit_club"]}</Button>}
             {!!showEditClub && <EditClub refetch={refetchClubs} handleClose={() => setShowEditClub(null)} club={showEditClub} />}
 
         </div>

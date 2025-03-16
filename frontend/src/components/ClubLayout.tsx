@@ -8,12 +8,12 @@ import { toast } from 'react-toastify';
 import ErrorMessage from './ErrorMessage';
 import useClubs from '../hooks/useClubs';
 import ConfirmClub from './ConfirmClub';
+import api from '../api';
 
 export default function ClubLayout() {
     const { user, logout } = useAppContext();
-    const { clubs: data, error, activeClub: latestClub, pickClub, clubId } = useClubs();
+    const { clubs: data, error, activeClub: latestClub, pickClub, clubId, refetchClubs } = useClubs();
     const [confirmClub, setConfirmClub] = useState(false);
-    console.log(error);
     useEffect(() => {
         console.log(error);
         if (error?.message?.includes("401")) {
@@ -25,9 +25,24 @@ export default function ClubLayout() {
         return <NoPermission />
     }
 
+    const handleSubmit = async () => {
+        await api.post("/club/create/", {
+            cash: 0,
+            name: user.userName + "'s Club",
+            publicInvestments: false
+        }, {
+            headers: {
+                "Access-Control-Allow-Origin": "*"
+            },
+            withCredentials: true
+        });
+        refetchClubs()
+    }
+
+
     if (data && data.length === 0) {
         //Not part of any club
-        return <ErrorMessage error={translate["no_club"]} withLogout={true} />
+        return <ErrorMessage error={translate["no_club"]} withLogout withCreateNewClub createClub={handleSubmit} />
     }
     return (
         <div className='container'>
