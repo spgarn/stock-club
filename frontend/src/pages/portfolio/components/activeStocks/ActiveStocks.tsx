@@ -81,18 +81,27 @@ export default function ActiveStocks({
       cols.push({
         id: "devSinceBuy",
         header: translate["dev_since_buy"],
-        accessorFn: (original: StockHoldings) =>
-          Number(original.currentPrice) - Number(original.buyPrice),
+        accessorFn: (original: StockHoldings) => {
+          const buyPrice = Number(original.buyPrice);
+          const currentPrice = Number(original.currentPrice);
+
+          if (!buyPrice) return 0; // Prevents NaN errors
+
+          return currencyDisplay === "percent"
+            ? ((currentPrice - buyPrice) / buyPrice) * 100
+            : (currentPrice * original.amount) - buyPrice;
+        },
         enableSorting: true,
         cell: (info: CellContext<StockHoldings, any>) => {
           const original = info.row.original;
-          const buyPrice = original.buyPrice;
+          const buyPrice = Number(original.buyPrice) || 1; // Prevent division by zero
           const currentPrice = Number(original.currentPrice);
-
+          const amount = Number(original.amount);
+          const value = (currentPrice * amount) - buyPrice;
           if (original?.sellPrice) return translate["sold"];
 
           if (currencyDisplay === "percent") {
-            const percent = 100 * ((currentPrice / buyPrice) - 1);
+            const percent = (value / buyPrice) * 100;
             return (
               <span
                 className={
@@ -103,11 +112,10 @@ export default function ActiveStocks({
               </span>
             );
           }
-          const value = (currentPrice * original.amount) - buyPrice;
+
+          
           return (
-            <span
-              className={value >= 0 ? portfolioStyles.positive : portfolioStyles.negative}
-            >
+            <span className={value >= 0 ? portfolioStyles.positive : portfolioStyles.negative}>
               {formatCurrency(value, true, 0, true)}
             </span>
           );
