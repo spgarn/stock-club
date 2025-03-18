@@ -9,23 +9,45 @@ public class UpdateStockJob(MyDbContext dbContext) : IJob
 {
     public async Task Execute(IJobExecutionContext context)
     {
-        var random = new Random();
-        // Generate a random delay between 0 and 10 seconds (0 to 20000 milliseconds)
-        var delay = random.Next(0, 20001); // 0 to 20000 milliseconds
-        await Task.Delay(delay);
-        var stock = await dbContext.Stock.OrderBy(stock => stock.UpdatedAt).FirstOrDefaultAsync();
-        Console.WriteLine("Retrieving stocks");
-        if (stock != null)
+        Console.WriteLine("Updating stock prices...");
+
+        var stocks = await dbContext.Stock.ToListAsync();
+
+        foreach (var stock in stocks)
         {
-            //Get updated price
             var price = await YahooApi.GetStock(stock.StockName);
             if (price != null)
             {
                 stock.CurrentPrice = price.Value;
+                stock.UpdatedAt = DateTime.UtcNow;
             }
-            stock.UpdatedAt = DateTime.UtcNow;
-            dbContext.Update(stock);
-            await dbContext.SaveChangesAsync();
         }
+
+        await dbContext.SaveChangesAsync();
+        Console.WriteLine("Stock prices updated.");
+    }
+}
+
+public class SetOpeningPriceJob(MyDbContext dbContext) : IJob
+{
+    public async Task Execute(IJobExecutionContext context)
+    {
+        Console.WriteLine("Setting opening prices at 08:00 Swedish time...");
+
+        var stocks = await dbContext.Stock.ToListAsync();
+
+        foreach (var stock in stocks)
+        {
+            var price = await YahooApi.GetStock(stock.StockName);
+            if (price != null)
+            {
+                stock.OpeningPrice = price.Value;
+                stock.CurrentPrice = price.Value; // Ensure opening matches at start of the day
+                stock.UpdatedAt = DateTime.UtcNow;
+            }
+        }
+
+        await dbContext.SaveChangesAsync();
+        Console.WriteLine("Opening prices updated.");
     }
 }

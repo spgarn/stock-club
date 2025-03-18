@@ -56,6 +56,7 @@ namespace club.Controllers
                     Currency = stock.Currency,
                     StockName = stock.StockName,
                     SoldAt = stock?.SoldAt,
+                    OpeningPrice = stock.Stock.OpeningPrice,
                     CurrentPrice =
                         stock?.Stock != null
                             ? stock.Stock.CurrentPrice
@@ -91,6 +92,7 @@ namespace club.Controllers
                 {
                     StockName = stockDto.StockName,
                     CurrentPrice = validPrice.Value,
+                    OpeningPrice = validPrice.Value,
                     Active = true,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow,
@@ -144,6 +146,7 @@ namespace club.Controllers
                 {
                     StockName = stockDto.StockName,
                     CurrentPrice = validPrice.Value,
+                    OpeningPrice = validPrice.Value,
                     Active = true,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow,

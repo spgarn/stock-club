@@ -23,15 +23,15 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
-{
-    options.AddSecurityDefinition("oauth2", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
     {
-        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
-        Name = "Authorization",
-        Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey
-    });
-    options.OperationFilter<SecurityRequirementsOperationFilter>();
-}
+        options.AddSecurityDefinition("oauth2", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+        {
+            In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+            Name = "Authorization",
+            Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey
+        });
+        options.OperationFilter<SecurityRequirementsOperationFilter>();
+    }
 );
 builder.Services.AddCors(options =>
 {
@@ -67,18 +67,30 @@ builder.Services.AddAuthentication()
         options.ExpireTimeSpan = TimeSpan.FromDays(365);
         options.SlidingExpiration = true;
     });
-builder.Services.AddIdentityCore<ApplicationUser>().AddRoles<IdentityRole>().AddEntityFrameworkStores<MyDbContext>().AddApiEndpoints();
+builder.Services.AddIdentityCore<ApplicationUser>().AddRoles<IdentityRole>().AddEntityFrameworkStores<MyDbContext>()
+    .AddApiEndpoints();
 
 // Add Quartz for CRON
 builder.Services.AddQuartz(q =>
 {
-    // Define the job and trigger
-    q.AddJob<UpdateStockJob>(opts => opts.WithIdentity("UpdateStockJob"));
+    // Job to update stock prices every minute
+    var updateStockJobKey = new JobKey("UpdateStockJob");
+    q.AddJob<UpdateStockJob>(opts => opts.WithIdentity(updateStockJobKey));
     q.AddTrigger(opts => opts
-        .ForJob("UpdateStockJob")
+        .ForJob(updateStockJobKey)
         .WithIdentity("UpdateStockTrigger")
-        .WithCronSchedule("0 * * ? * *")); // Every minute
+       .WithCronSchedule("0 * * ? * *"));
+
+    // Job to set opening price at 08:00 Swedish time
+    var setOpeningPriceJobKey = new JobKey("SetOpeningPriceJob");
+    q.AddJob<SetOpeningPriceJob>(opts => opts.WithIdentity(setOpeningPriceJobKey));
+    q.AddTrigger(opts => opts
+        .ForJob(setOpeningPriceJobKey)
+        .WithIdentity("SetOpeningPriceTrigger")
+        .WithCronSchedule("0 0 10 * * ?", x => x.InTimeZone(TimeZoneInfo.FindSystemTimeZoneById("Europe/Stockholm"))));
 });
+
+// Ensure Quartz jobs run as a background service
 builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
 builder.Services.AddTransient<IEmailSender, EmailSender>();
 builder.Services.AddTransient<EmailSender, EmailSender>();
@@ -106,6 +118,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
 app.UsePathBase("/api");
 app.UseCors("reactApp");
 //app.MapIdentityApi<ApplicationUser>();
