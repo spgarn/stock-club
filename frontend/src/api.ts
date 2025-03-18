@@ -126,6 +126,7 @@ export type StockHoldings = {
     buyPrice: number;
     amount: number;
     currentPrice: number;
+    openingPrice: number;
     sold: boolean;
     soldAt: Date | null;
     overridePrice: number | null;

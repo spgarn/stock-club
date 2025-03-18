@@ -16,7 +16,6 @@ export default function useStocks(
       return { totalAmount: 0, list: [], totalValue: 0, development: 0 };
     }
 
-    console.log(data);
 
     // Create a currency lookup object for quick access
     const currencyLookup = currencies.reduce((acc, c) => {

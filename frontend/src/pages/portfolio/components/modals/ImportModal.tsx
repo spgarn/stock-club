@@ -255,6 +255,7 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
                     sold: false,
                     soldAt: null,
                     overridePrice: null,
+                    openingPrice: 0,
                     avanzaName: data.csv_import_name,
                     currency:
                         data.actions.find((a) => a.csv_import_currency)?.csv_import_currency ||
@@ -287,6 +288,7 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
                     buyPrice: soldCost,          // FIFO cost basis for sold shares
                     amount: totalSellQty,
                     currentPrice: 0,
+                    openingPrice: 0,
                     sold: true,
                     soldAt: sellAggregate.date,  // Latest sell date
                     overridePrice: null,

@@ -13,6 +13,8 @@ export const translate = {
     "history": "Historik",
     "news": "Nyhetsflöde",
     "cash": "kontanter",
+    "todays_winner": "Dagens vinnare",
+    "todays_loser": "Dagens förlorare",
     "info": "Information",
     "give_away_voting_power": "Ge bort rösträtt till",
     "email": "Email",

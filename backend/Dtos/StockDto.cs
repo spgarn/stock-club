@@ -16,7 +16,7 @@ namespace club.Dtos
 
         public decimal? CurrentPrice { get; set; }
 
-        public decimal OpeningPrice { get; set; }
+        public decimal? OpeningPrice { get; set; }
 
         public decimal? OverridePrice { get; set; }
 

@@ -1,7 +1,7 @@
 import { Button } from "@mui/material";
 import { translate } from "../../i18n";
 import homeStyles from "./home.module.scss";
-import { getClubDetails, getCurrencyRates, getUser } from "../../api";
+import { getClubDetails, getCurrencyRates, getStocks, getUser } from "../../api";
 import {
     useQuery,
 } from '@tanstack/react-query'
@@ -34,10 +34,18 @@ export default function Home() {
         queryFn: getCurrencyRates,
     });
 
+    const { data: stocks } = useQuery({
+        queryKey: ["stocksHome"],
+        queryFn: () => getStocks(id),
+    });
+
     const { data: user } = useQuery({
         queryKey: ['user'],
         queryFn: () => getUser(),
     });
+
+
+
     const { upcomingMeetings, prevMeetings } = useMemo(() => {
         if (!data?.meetings) {
             return { upcomingMeetings: [], prevMeetings: [] }
@@ -60,7 +68,7 @@ export default function Home() {
                 <Button variant="contained" onClick={() => setAddMeetingOpen(true)}>{translate["new_meeting"]}</Button>
             </div>
             {isMobile ? <MobileView data={data} prevMeetings={prevMeetings} currencies={currencies} user={user} upcomingMeetings={upcomingMeetings} refetch={refetch} />
-                : <DesktopView data={data} prevMeetings={prevMeetings} currencies={currencies} user={user} upcomingMeetings={upcomingMeetings} refetch={refetch} />}
+                : <DesktopView stocks={stocks?.filter(stocks => !stocks.sold) ?? []} data={data} prevMeetings={prevMeetings} currencies={currencies} user={user} upcomingMeetings={upcomingMeetings} refetch={refetch} />}
 
             {addMeetingOpen && <AddMeetingModal clubId={id} refetch={refetchClubAndMeeting} handleClose={() => setAddMeetingOpen(false)} />}
         </div>

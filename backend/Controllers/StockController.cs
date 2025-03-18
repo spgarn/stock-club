@@ -56,7 +56,7 @@ namespace club.Controllers
                     Currency = stock.Currency,
                     StockName = stock.StockName,
                     SoldAt = stock?.SoldAt,
-                    OpeningPrice = stock.Stock.OpeningPrice,
+                    OpeningPrice = stock.Stock?.OpeningPrice ?? 0,
                     CurrentPrice =
                         stock?.Stock != null
                             ? stock.Stock.CurrentPrice
