@@ -87,7 +87,7 @@ builder.Services.AddQuartz(q =>
     q.AddTrigger(opts => opts
         .ForJob(setOpeningPriceJobKey)
         .WithIdentity("SetOpeningPriceTrigger")
-        .WithCronSchedule("0 0 10 * * ?", x => x.InTimeZone(TimeZoneInfo.FindSystemTimeZoneById("Europe/Stockholm"))));
+        .WithCronSchedule("0 0 8 * * ?", x => x.InTimeZone(TimeZoneInfo.FindSystemTimeZoneById("Europe/Stockholm"))));
 });
 
 // Ensure Quartz jobs run as a background service
