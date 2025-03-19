@@ -88,8 +88,8 @@ export default function News() {
     return (
         <div>
             <div className="content-header">
-                <Typography variant="h5">{translate["decisions"]}</Typography>
-                <Button onClick={() => setAddDecisionOpen(true)}>{translate["add_decision"]}</Button>
+                <Typography variant="h5">{translate["news"]}</Typography>
+                <Button onClick={() => setAddDecisionOpen(true)}>{translate["add_news"]}</Button>
             </div>
 
             <div className={"content-box " + homeStyles.max500}>
