@@ -29,7 +29,6 @@ export default function Members() {
         queryKey: ['user'],
         queryFn: () => getUser(),
     });
-    const isAdmin = !!user?.admin;
     const { data: usersInClub, refetch } = useQuery({
         queryKey: ['usermanagement-in-club', clubId],
         queryFn: () => getUsersInClub(clubId),
@@ -112,7 +111,7 @@ export default function Members() {
             header: () => translate["email"],
             cell: info => info.renderValue(),
         }),
-        ...(isAdmin ? [columnHelper.accessor('id', {
+        columnHelper.accessor('id', {
             header: "",
             cell: info => {
                 return <div>
@@ -122,7 +121,7 @@ export default function Members() {
 
                 </div>
             },
-        })] : []),
+        })
     ];
     if (!usersInClub) {
         return <div>
@@ -133,10 +132,11 @@ export default function Members() {
         <div>
             <div className="content-header">
                 <Typography variant="h5">{translate["members"]}</Typography>
-                {isAdmin ? <div className="flexGap">
+                <div className="flexGap">
+
                     <TextField disabled={loading} value={email} onChange={(v) => setEmail(v.target.value)} label={translate["enter_email"]} />
                     <Button disabled={loading} variant="contained" onClick={addUser}>{translate["add_user"]}</Button>
-                </div> : <div></div>}
+                </div>
 
             </div>
             <BasicTable columns={columns} data={usersInClub} />

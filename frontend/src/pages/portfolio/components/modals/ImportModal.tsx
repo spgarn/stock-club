@@ -385,7 +385,7 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
 
     const addStocks = async () => {
         setPage(5);
-        setProgressbar([0, stocks.length]);
+        setProgressbar([0, stocks.length + transactions.length]);
         let i = 0;
         for (const data of stocks) {
             i++;
@@ -407,6 +407,7 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
             }
         }
         for (const transaction of transactions) {
+            i++;
             try {
                 await api.post<unknown>(
                     "/transactions/add/" + clubId,

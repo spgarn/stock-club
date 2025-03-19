@@ -30,7 +30,7 @@ public class CurrencyService : ICurrencyService
 
     public async Task<List<Currency>> FetchAndStoreCurrencyRatesAsync()
     {
-        var url = "https://api.fxratesapi.com/latest?currencies=EUR,SEK,USD,GBP,DKK&base=SEK";
+        var url = "https://api.fxratesapi.com/latest?currencies=EUR,SEK,USD,GBP,NOK,DKK&base=SEK";
         var response = await _httpClient.GetAsync(url);
 
         if (!response.IsSuccessStatusCode)

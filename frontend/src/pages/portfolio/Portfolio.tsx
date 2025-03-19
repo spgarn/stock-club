@@ -27,6 +27,7 @@ import useTransactions from "./components/hooks/useTransactions";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faRefresh } from '@fortawesome/free-solid-svg-icons';
 import { ChangeCashModal } from "./components/modals/ChangeCashModal";
+import { AddTransactionModal } from "./components/modals/AddTransactionModal";
 
 export default function Portfolio() {
     const { id } = useParams(); // THis is for public
@@ -37,7 +38,7 @@ export default function Portfolio() {
         queryKey: ['club-stocks', clubId],
         queryFn: () => getStocks(clubId),
     });
-    const { data: transactions } = useQuery({
+    const { data: transactions, refetch: transactionRefetch } = useQuery({
         queryKey: ['club-transactions', clubId],
         queryFn: () => getTransactions(clubId),
     });
@@ -49,6 +50,7 @@ export default function Portfolio() {
     const [rowCount, setRowCount] = useState(20);
     const [page, setPage] = useState(1);
     const [addStockOpen, setAddStockOpen] = useState(false);
+    const [addTransactioOpen, setAddTransactioOpen] = useState(false);
     const [importModal, setImportModal] = useState(false);
     const [changeCash, setChangeCash] = useState(false);
     const [editStock, setEditStock] = useState<null | StockHoldings>(null);
@@ -178,6 +180,7 @@ export default function Portfolio() {
             }
             <div className={portfolioStyles.actionContainer}>
                 {!isPublic ? <Button onClick={() => setAddStockOpen(true)}>{translate["add_investment"]}</Button> : <p></p>}
+                {!isPublic ? <Button onClick={() => setAddTransactioOpen(true)}>{translate["add_transaction"]}</Button> : <p></p>}
                 <div>
                     <RowSelect
                         value={rowCount}
@@ -188,6 +191,7 @@ export default function Portfolio() {
 
             <RenderStocks transactions={transactionList} currencies={currencies ?? []} list={list} page={page} rowCount={rowCount} currencyDisplay={currencyDisplay} displayMethod={displayMethod} removeStock={removeStock} setEditStock={setEditStock} setSellPortion={setSellPortion} isPublic={isPublic} />
             {addStockOpen && <AddStockModal refetch={refetch} handleClose={() => setAddStockOpen(false)} />}
+            {addTransactioOpen && <AddTransactionModal refetch={transactionRefetch} handleClose={() => setAddTransactioOpen(false)} />}
             {!!editStock && <EditStockModal refetch={refetch} handleClose={() => setEditStock(null)} stock={editStock} />}
             {!!sellPortion && <SellPortionModal refetch={refetch} handleClose={() => setSellPortion(null)} stock={sellPortion} />}
             {importModal && <ImportModal refetch={refetch} handleClose={() => setImportModal(false)} />}
