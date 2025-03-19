@@ -41,7 +41,7 @@ export const MobileView = ({ refetch, data, prevMeetings, currencies, upcomingMe
             {displayMethod === "prev_meetings" ? <PreviousMeetings refetch={refetch} user={user} prevMeetings={prevMeetings} /> :
                 displayMethod === "info" ?
                     <div className="meeting-cards" >
-                        <StockPerformance stocks={stocks || []} />
+                        <StockPerformance currencies={currencies || []} stocks={stocks || []} />
                         <Currencies currencies={currencies || []} />
                     </div>
                     : <Proposals user={user} refetch={refetch} meetingsSuggestions={data.meetingsSuggestions} />}

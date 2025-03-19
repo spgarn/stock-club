@@ -28,7 +28,7 @@ export const DesktopView = ({ currencies, prevMeetings, refetch, upcomingMeeting
             <div>
                 <Typography variant="h5">{translate["info"]}</Typography>
                 <div className="meeting-cards" >
-                    <StockPerformance stocks={stocks || []} />
+                    <StockPerformance currencies={currencies || []} stocks={stocks || []} />
                     <Currencies currencies={currencies || []} />
                 </div>
             </div>

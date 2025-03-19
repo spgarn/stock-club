@@ -1,5 +1,5 @@
 import { colors, Typography } from "@mui/material";
-import { StockHoldings } from "../../../api";
+import { CurrencyRate, StockHoldings } from "../../../api";
 import { translate } from "../../../i18n";
 import portfolioStyles from "../../portfolio/portfolio.module.scss";
 import { formatCurrency } from "../../../funcs/funcs";
@@ -7,7 +7,7 @@ import { formatCurrency } from "../../../funcs/funcs";
 // Helper function for formatting percentage values
 const formatPercentage = (value: number): string => `${value.toFixed(2)}%`;
 
-export const StockPerformance = ({ stocks }: { stocks: StockHoldings[] }) => {
+export const StockPerformance = ({ stocks, currencies }: { stocks: StockHoldings[], currencies: CurrencyRate[] }) => {
     // Compute the percentage difference for each stock.
     const stocksWithDiff = stocks.map(stock => ({
         ...stock,
@@ -22,6 +22,17 @@ export const StockPerformance = ({ stocks }: { stocks: StockHoldings[] }) => {
     // Get the 5 biggest upward movements and 5 biggest downward movements.
     const biggestUp = sortedStocks.slice(0, 5);
     const biggestDown = sortedStocks.slice(-5);
+
+    // Create a currency lookup object for quick access
+    const currencyLookup = currencies.reduce((acc, c) => {
+        acc[c.name] = c.rate;
+        return acc;
+    }, {} as Record<string, number>);
+
+    // Function to convert prices using the lookup
+    const getConvertedPrice = (price: number, currency: string): number => {
+        return price * (currencyLookup[currency] || 1);
+    };
 
     return (
         <>
@@ -45,7 +56,7 @@ export const StockPerformance = ({ stocks }: { stocks: StockHoldings[] }) => {
 
 
                         <span className={portfolioStyles.positive} style={{ alignSelf: "center", }}>
-                            +{formatCurrency(stock.amount * (stock.currentPrice - stock.openingPrice), true, 0)}
+                            +{formatCurrency(stock.amount * getConvertedPrice((stock.currentPrice - stock.openingPrice), stock.currency), true, 0)}
                         </span>
 
                     </div>
@@ -69,7 +80,7 @@ export const StockPerformance = ({ stocks }: { stocks: StockHoldings[] }) => {
                         </span>
 
                         <span className={portfolioStyles.negative} style={{ alignSelf: "center" }}>
-                            {formatCurrency(stock.amount * (stock.currentPrice - stock.openingPrice), true, 0)}
+                            {formatCurrency(stock.amount * getConvertedPrice((stock.currentPrice - stock.openingPrice), stock.currency), true, 0)}
                         </span>
                     </div>
                 ))}
