@@ -154,7 +154,7 @@ export default function ImportModal({ handleClose, refetch }: { handleClose: () 
             const csv_import_price = row["Belopp"];
             if (csv_import_transaction_type === "Insättning" || csv_import_transaction_type === "Uttag") {
                 txs.push({
-                    amount: String(csv_import_price),
+                    amount: String(csv_import_price).replaceAll(",", "."),
                     date: new Date(String(csv_import_date)),
                     type: csv_import_transaction_type
                 });
