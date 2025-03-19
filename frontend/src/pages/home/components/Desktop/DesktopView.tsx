@@ -5,6 +5,8 @@ import UpcomingMeetings from "../UpcomingMeetings";
 import { ClubDetails, CurrencyRate, Meeting, StockHoldings, User } from "../../../../api";
 import homeStyles from "../../home.module.scss";
 import { StockPerformance } from "../StockPerformance";
+import Typography from "@mui/material/Typography";
+import { translate } from "../../../../i18n";
 
 type DesktopViewProps = {
     refetch: (options?: RefetchOptions) => Promise<QueryObserverResult<ClubDetails, Error>>
@@ -23,9 +25,12 @@ export const DesktopView = ({ currencies, prevMeetings, refetch, upcomingMeeting
                 <UpcomingMeetings user={user} refetch={refetch} upcomingMeetings={upcomingMeetings} />
                 <PreviousMeetings user={user} refetch={refetch} prevMeetings={prevMeetings} />
             </div>
-            <div className="meeting-cards" >
-                <Currencies currencies={currencies || []} />
-                <StockPerformance stocks={stocks || []} />
+            <div>
+                <Typography variant="h5">{translate["info"]}</Typography>
+                <div className="meeting-cards" >
+                    <StockPerformance stocks={stocks || []} />
+                    <Currencies currencies={currencies || []} />
+                </div>
             </div>
 
         </div>

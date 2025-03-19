@@ -67,7 +67,7 @@ export default function Home() {
             <div className={homeStyles.actions}>
                 <Button variant="contained" onClick={() => setAddMeetingOpen(true)}>{translate["new_meeting"]}</Button>
             </div>
-            {isMobile ? <MobileView data={data} prevMeetings={prevMeetings} currencies={currencies} user={user} upcomingMeetings={upcomingMeetings} refetch={refetch} />
+            {isMobile ? <MobileView stocks={stocks?.filter(stocks => !stocks.sold) ?? []} data={data} prevMeetings={prevMeetings} currencies={currencies} user={user} upcomingMeetings={upcomingMeetings} refetch={refetch} />
                 : <DesktopView stocks={stocks?.filter(stocks => !stocks.sold) ?? []} data={data} prevMeetings={prevMeetings} currencies={currencies} user={user} upcomingMeetings={upcomingMeetings} refetch={refetch} />}
 
             {addMeetingOpen && <AddMeetingModal clubId={id} refetch={refetchClubAndMeeting} handleClose={() => setAddMeetingOpen(false)} />}

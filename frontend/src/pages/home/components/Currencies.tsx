@@ -6,8 +6,8 @@ import { translate } from "../../../i18n";
 export const Currencies = ({ currencies }: { currencies: CurrencyRate[] }) => {
     return (
         <>
-            <Typography variant="h5">{translate["info"]}</Typography>
             <div className={"content-box"}>
+            <Typography style={{ padding: "12px" }} variant="h6">{translate["currency"]}</Typography>
                 {currencies?.filter(currency => currency.name !== "SEK").map(currency => <div key={currency.id} style={{ display: "flex", gap: "10px", padding: "12px" }}>
                     <span style={{ color: colors.blueGrey["400"] }}>{currency.name}:</span>
                     <span>{formatCurrency(currency.rate)}</span>
