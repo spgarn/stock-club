@@ -69,7 +69,6 @@ namespace club.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin")]
         [Route("add/{clubId}")]
         public async Task<ActionResult<string>> AddUser(
            [FromServices] MyDbContext _context, AddUser data, int clubId)
@@ -93,7 +92,6 @@ namespace club.Controllers
         }
 
         [HttpDelete]
-        [Authorize(Roles = "Admin")]
         [Route("{clubId}/userid/{userId}")]
         public async Task<ActionResult<string>> RemoveUser(
            [FromServices] MyDbContext _context, int clubId, string userId)
