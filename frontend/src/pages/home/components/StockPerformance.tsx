@@ -3,11 +3,26 @@ import { CurrencyRate, StockHoldings } from "../../../api";
 import { translate } from "../../../i18n";
 import portfolioStyles from "../../portfolio/portfolio.module.scss";
 import { formatCurrency } from "../../../funcs/funcs";
+import Loading from "../../../components/Loading";
 
 // Helper function for formatting percentage values
 const formatPercentage = (value: number): string => `${value.toFixed(2)}%`;
 
 export const StockPerformance = ({ stocks, currencies }: { stocks: StockHoldings[], currencies: CurrencyRate[] }) => {
+
+    const totalStockDifference = stocks.reduce(
+        (acc, stock) => {
+            const valueDiff = (stock.currentPrice - stock.openingPrice) * stock.amount;
+            const totalOpeningValue = stock.openingPrice * stock.amount;
+
+            return {
+                numberDiff: acc.numberDiff + valueDiff,
+                percentDiff: acc.percentDiff + totalOpeningValue,
+            };
+        },
+        { numberDiff: 0, percentDiff: 0 }
+    );
+
     // Compute the percentage difference for each stock.
     const stocksWithDiff = stocks.map(stock => ({
         ...stock,
@@ -34,12 +49,34 @@ export const StockPerformance = ({ stocks, currencies }: { stocks: StockHoldings
         return price * (currencyLookup[currency] || 1);
     };
 
+    if (stocks.length === 0) return <Loading />
+
     return (
         <>
             <div className="content-box" style={{ padding: "12px", rowGap: "8px" }}>
+                <Typography variant="h6">{translate["todays_difference"]}</Typography>
+                <div style={{ display: "grid", gridTemplateColumns: "25% min-content min-content", placeItems: "center", columnGap: "8px" }}>
+                    <Typography
+                        style={{
+                            color: colors.blueGrey["400"],
+                            alignSelf: "center",
+                            justifySelf: "start"
+                        }}
+                    >
+                        {translate["total_value"]}:
+                    </Typography>
+                    <span className={totalStockDifference.numberDiff >= 0 ? portfolioStyles.positiveBubble : portfolioStyles.negativeBubble} style={{ minWidth: "75px", textAlign: "center" }}>
+                        {formatPercentage((totalStockDifference.numberDiff / totalStockDifference.percentDiff) * 100)}
+                    </span>
+                    <span className={totalStockDifference.numberDiff >= 0 ? portfolioStyles.positive : portfolioStyles.negative}>
+                        {totalStockDifference.numberDiff >= 0 ? "+" + formatCurrency(totalStockDifference.numberDiff, true, 0) : "-" + formatCurrency(totalStockDifference.numberDiff, true, 0)}
+                    </span>
+                </div>
+            </div>
+            <div className="content-box" style={{ padding: "12px", rowGap: "8px" }}>
                 <Typography variant="h6">{translate["todays_winner"]}</Typography>
                 {biggestUp.map(stock => (
-                    <div style={{ display: "grid", gridTemplateColumns: "25% min-content min-content", placeItems: "start", columnGap: "8px" }}>
+                    <div key={stock.id} style={{ display: "grid", gridTemplateColumns: "25% min-content min-content", placeItems: "start", columnGap: "8px" }}>
 
                         <a
                             href={`https://finance.yahoo.com/quote/${stock.stockName}/`}
@@ -65,7 +102,7 @@ export const StockPerformance = ({ stocks, currencies }: { stocks: StockHoldings
             <div className="content-box" style={{ padding: "12px", rowGap: "8px" }}>
                 <Typography variant="h6">{translate["todays_loser"]}</Typography>
                 {biggestDown.map(stock => (
-                    <div style={{ display: "grid", gridTemplateColumns: "25% min-content min-content", placeItems: "start", columnGap: "8px" }}>
+                    <div key={stock.id + stock.currentPrice} style={{ display: "grid", gridTemplateColumns: "25% min-content min-content", placeItems: "start", columnGap: "8px" }}>
                         <a
                             href={`https://finance.yahoo.com/quote/${stock.stockName}/`}
                             style={{

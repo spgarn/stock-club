@@ -19,6 +19,7 @@ export const translate = {
     "info": "Information",
     "give_away_voting_power": "Ge bort rösträtt till",
     "email": "Email",
+    "todays_difference": "Dagens förändring",
     "enter_email": "Skriv in Email",
     "password": "Lösenord",
     "enter_pass": "Skriv in Lösenord",

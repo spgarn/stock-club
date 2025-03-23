@@ -2,8 +2,10 @@ import { colors, Typography, } from "@mui/material";
 import { CurrencyRate } from "../../../api";
 import { formatCurrency } from "../../../funcs/funcs";
 import { translate } from "../../../i18n";
+import Loading from "../../../components/Loading";
 
 export const Currencies = ({ currencies }: { currencies: CurrencyRate[] }) => {
+    if (currencies.length === 0) return <Loading />
     return (
         <>
             <div className={"content-box"}>

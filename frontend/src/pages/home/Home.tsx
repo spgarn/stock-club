@@ -1,7 +1,7 @@
 import { Button } from "@mui/material";
 import { translate } from "../../i18n";
 import homeStyles from "./home.module.scss";
-import { getClubDetails, getCurrencyRates, getStocks, getUser } from "../../api";
+import { getClubDetails, getCurrencyRates, getEmails, getStocks, getUser } from "../../api";
 import {
     useQuery,
 } from '@tanstack/react-query'
@@ -44,18 +44,24 @@ export default function Home() {
         queryFn: () => getUser(),
     });
 
+    useQuery({
+        queryKey: ['club-emails'],
+        queryFn: () => getEmails(),
+    });
 
 
-    const { upcomingMeetings, prevMeetings } = useMemo(() => {
+
+    const { upcomingMeetings, prevMeetings, activeStocks } = useMemo(() => {
         if (!data?.meetings) {
-            return { upcomingMeetings: [], prevMeetings: [] }
+            return { upcomingMeetings: [], prevMeetings: [], activeStocks: [] }
         }
         const meetings = data.meetings;
         return {
             upcomingMeetings: meetings.filter(meeting => dayjs(meeting.meetingTime).isAfter(dayjs())),
-            prevMeetings: meetings.filter(meeting => dayjs(meeting.meetingTime).isBefore(dayjs()) || dayjs(meeting.meetingTime).isSame(dayjs()))
+            prevMeetings: meetings.filter(meeting => dayjs(meeting.meetingTime).isBefore(dayjs()) || dayjs(meeting.meetingTime).isSame(dayjs())),
+            activeStocks: stocks?.filter(stocks => !stocks.sold) ?? []
         }
-    }, [data?.meetings]);
+    }, [data?.meetings, stocks]);
 
     if (!clubData || !data || !user) {
         return <Loading />
@@ -67,8 +73,8 @@ export default function Home() {
             <div className={homeStyles.actions}>
                 <Button variant="contained" onClick={() => setAddMeetingOpen(true)}>{translate["new_meeting"]}</Button>
             </div>
-            {isMobile ? <MobileView stocks={stocks?.filter(stocks => !stocks.sold) ?? []} data={data} prevMeetings={prevMeetings} currencies={currencies} user={user} upcomingMeetings={upcomingMeetings} refetch={refetch} />
-                : <DesktopView stocks={stocks?.filter(stocks => !stocks.sold) ?? []} data={data} prevMeetings={prevMeetings} currencies={currencies} user={user} upcomingMeetings={upcomingMeetings} refetch={refetch} />}
+            {isMobile ? <MobileView stocks={activeStocks} data={data} prevMeetings={prevMeetings} currencies={currencies} user={user} upcomingMeetings={upcomingMeetings} refetch={refetch} />
+                : <DesktopView stocks={activeStocks} data={data} prevMeetings={prevMeetings} currencies={currencies} user={user} upcomingMeetings={upcomingMeetings} refetch={refetch} />}
 
             {addMeetingOpen && <AddMeetingModal clubId={id} refetch={refetchClubAndMeeting} handleClose={() => setAddMeetingOpen(false)} />}
         </div>
