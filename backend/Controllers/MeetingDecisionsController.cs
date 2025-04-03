@@ -8,13 +8,16 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
 using System.Security.Claims;
+using club.Hubs;
+using Microsoft.AspNetCore.SignalR;
 
 namespace club.Controllers
 {
     [ApiController]
     [Route("meeting_decisions")]
-    public class MeetingDecisionsController : ExtendedController
+    public class MeetingDecisionsController(IHubContext<MeetingHub> hubContext) : ExtendedController
     {
+        
 
         [HttpPost]
         [Authorize]
@@ -50,6 +53,30 @@ namespace club.Controllers
 
             context.MeetingsDecisions.Add(meetingDecision);
             await context.SaveChangesAsync();
+            
+            await hubContext.Clients.Group(meetingId.ToString()).SendAsync("DecisionVote", meetingDecision.Id, meetingDecision.Title, meetingDecision.ExpiresAt, meetingDecision.CreatedAt);
+            
+            _ = Task.Run(async () =>
+            {
+                // Calculate delay time
+                var diff = (meetingDecision.ExpiresAt - meetingDecision.CreatedAt).TotalSeconds;
+                Console.WriteLine(diff);
+    
+                // Wait until the expiration time
+                await Task.Delay(TimeSpan.FromSeconds(diff));
+                
+                //Gather the votes
+                
+                Console.WriteLine("Posting results");
+
+                var upvotes = context.MeetingsDecisionsUpvote.Where(c => c.MeetingsDecisions.Equals(meetingDecision));
+                var downvotes = context.MeetingsDecisionsDownvote.Where(c => c.MeetingsDecisions.Equals(meetingDecision));
+                // Then send the SignalR notification
+                await hubContext.Clients.Group(meetingId.ToString()).SendAsync(
+                    "DecisionVoteResults", 
+                    meetingDecision.Id, upvotes.Count(), downvotes.Count());
+            });
+            
             return CreatedAtAction(nameof(AddDecision), user.Id);
         }
 
@@ -106,6 +133,11 @@ namespace club.Controllers
             if (decision == null)
             {
                 return NotFound();
+            }
+
+            if (decision.ExpiresAt < DateTime.Now)
+            {
+                return StatusCode(400, "Vote time has expired");
             }
 
             //Delete previous reacts on this decision by this user

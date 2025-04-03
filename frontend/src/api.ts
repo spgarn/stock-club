@@ -35,6 +35,13 @@ export type MeetingDecisions = {
     user: User;
 }
 
+export type MeetingDecisionsBasic = {
+    id: number;
+    title: string;
+    expiresAt: Date;
+    createdAt: Date;
+}
+
 export type Meeting = {
     id: number;
     name: string;

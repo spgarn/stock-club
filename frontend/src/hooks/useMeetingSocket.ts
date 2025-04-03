@@ -7,9 +7,9 @@ import {
     HubConnection,
 } from "@microsoft/signalr"
 import { useEffect, useState } from "react";
-import { MeetingChat } from "../api";
+import { MeetingChat, MeetingDecisionsBasic } from "../api";
 
-export default function useMeetingSocket(meetingId: number, clubId: number, getAgenda: (m: string) => void, getMeetingProtocol: (m: string) => void, getChat: (chat: MeetingChat) => void, removeChat: (id: number) => void, refetch: () => void) {
+export default function useMeetingSocket(meetingId: number, clubId: number, getAgenda: (m: string) => void, getMeetingProtocol: (m: string) => void, getChat: (chat: MeetingChat) => void, removeChat: (id: number) => void, refetch: () => void, setActiveDecision: (v: MeetingDecisionsBasic) => void, setDecisionVoteResults: (v: { id: number; upvotes: number; downvotes: number }) => void) {
 
     const [connection, setConnection] = useState<HubConnection | null>(null);
     const getMessage = (message: string) => console.log(message);
@@ -35,6 +35,22 @@ export default function useMeetingSocket(meetingId: number, clubId: number, getA
             socketConnection.on("chat", getChat);
             socketConnection.on("chatRemove", removeChat);
             socketConnection.on("liveRefetch", refetch);
+            socketConnection.on("decisionVote", setActiveDecision);
+            socketConnection.on("decisionVote", (id: number, title: string, expiresAt: Date, createdAt: Date) => {
+                setActiveDecision({
+                    id,
+                    title,
+                    expiresAt,
+                    createdAt
+                })
+            });
+            socketConnection.on("decisionVoteResults", (id: number, upvotes: number, downvotes: number) => {
+                setDecisionVoteResults({
+                    id,
+                    upvotes,
+                    downvotes
+                })
+            });
             await socketConnection.start();
 
             //Join room
@@ -46,7 +62,7 @@ export default function useMeetingSocket(meetingId: number, clubId: number, getA
             configSocket();
 
         return () => {
-            socketConnection?.invoke("LeaveRoom", meetingId);
+            //socketConnection?.invoke("LeaveRoom", meetingId);
             // socketConnection?.off("ping", getMessage);
             // socketConnection?.off("agenda", getAgenda);
             // socketConnection?.off("meetingProtocol", getMeetingProtocol);

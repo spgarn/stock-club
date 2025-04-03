@@ -1,15 +1,4 @@
 
-// const style = {
-//     position: 'absolute',
-//     top: '50%',
-//     left: '50%',
-//     transform: 'translate(-50%, -50%)',
-//     width: 400,
-//     bgcolor: 'background.paper',
-//     border: '2px solid #000',
-//     boxShadow: 24,
-//     p: 4,
-
 import Dialog from "@mui/material/Dialog";
 import { BootstrapDialogTitle } from "../../../components/BootstrapDialogTitle";
 import { translate, translateText } from "../../../i18n";

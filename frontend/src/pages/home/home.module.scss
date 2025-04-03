@@ -41,7 +41,7 @@
 }
 
 .attendanceMeetingWrapper {
-    gap:0.5rem;
+    gap: 0.5rem;
     padding-left: 1rem;
     padding-right: 1rem;
     border-left: 3px solid colors.$black;
@@ -52,8 +52,8 @@
 }
 
 .attendanceVoteIcon {
-    border:1px solid colors.$gray;
-    padding:8px;
+    border: 1px solid colors.$gray;
+    padding: 8px;
     border-radius: 10px;
     margin-bottom: 8px;
 }
@@ -68,13 +68,13 @@
     opacity: 0.5;
 }
 
-.hoverLink{
+.hoverLink {
     background-color: colors.$white;
     border: 1px solid colors.$gray;
     border-radius: 10px;
 }
 
-.hoverLink:hover{
+.hoverLink:hover {
     cursor: pointer;
     -webkit-box-shadow: 5px 5px 40px 7px rgba(0, 0, 0, 0.2);
     -moz-box-shadow: 5px 5px 40px 7px rgba(0, 0, 0, 0.2);
@@ -109,7 +109,6 @@
     }
 }
 
-
 .suggestion {
     display: flex;
     flex-direction: column;
@@ -125,31 +124,45 @@
         display: flex;
         gap: 10px;
         margin-top: 10px;
-        .reactButton {
-            border-radius: 20px;
-            padding: 0.5rem 0.8rem;
-            border: 1px solid colors.$gray;
-            display: flex;
-            gap: 5px;
-            svg {
-                font-size: 1.4em;
-            }
-            span {
-                font-size: 1.2em;
-            }
-        }
-        .reacted {
-            border: 1px solid colors.$black;
-            background-color: colors.$background;
-        }
-        .reactButton:hover {
-            cursor: pointer;
-            border: 1px solid colors.$primary;
-            svg,
-            span {
-                color: colors.$primary;
-            }
-        }
+    }
+}
+
+.reactButton {
+    border-radius: 20px;
+    padding: 0.5rem 0.8rem;
+    border: 1px solid colors.$gray;
+    display: flex;
+    gap: 5px;
+    svg {
+        font-size: 1.4em;
+    }
+    span {
+        font-size: 1.2em;
+    }
+}
+.reacted {
+    border: 1px solid colors.$black;
+    background-color: colors.$background;
+}
+.lockedReact {
+    border-radius: 20px;
+    padding: 0.5rem 0.8rem;
+    display: flex;
+    gap: 5px;
+    border: none;
+    svg {
+        font-size: 1.4em;
+    }
+    span {
+        font-size: 1.2em;
+    }
+}
+.reactButton:hover {
+    cursor: pointer;
+    border: 1px solid colors.$primary;
+    svg,
+    span {
+        color: colors.$primary;
     }
 }
 

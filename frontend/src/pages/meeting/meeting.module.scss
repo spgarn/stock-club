@@ -117,3 +117,25 @@
         cursor: pointer;
     }
 }
+
+.reactButtonModal {
+    border-radius: 20px;
+    padding: 0.5rem 0.8rem;
+    border: 1px solid colors.$gray;
+    display: flex;
+    gap: 5px;
+    svg {
+        font-size: 1.4em;
+    }
+    span {
+        font-size: 1.2em;
+    }
+}
+.reactButtonModal:hover {
+    cursor: pointer;
+    border: 1px solid colors.$primary;
+    svg,
+    span {
+        color: colors.$primary;
+    }
+}

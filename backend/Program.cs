@@ -4,13 +4,10 @@ using Microsoft.EntityFrameworkCore;
 using Swashbuckle.AspNetCore.Filters;
 using club.Models;
 using club;
-using Microsoft.AspNetCore.Http.Connections;
-using club.Controllers;
 using club.Hubs;
 using club.Jobs;
 using club.Services;
 using Microsoft.AspNetCore.Identity.UI.Services;
-using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
 using Quartz;
 
 var builder = WebApplication.CreateBuilder(args);

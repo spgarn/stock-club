@@ -9,7 +9,7 @@ import { useParams } from "react-router-dom";
 import meetingStyles from "./meeting.module.scss";
 import { translate, translateText } from "../../i18n";
 import { useQuery } from "@tanstack/react-query";
-import api, { getClubDetails, getMeeting, getUser, MeetingChat } from "../../api";
+import api, { getClubDetails, getMeeting, getUser, MeetingChat, MeetingDecisions, MeetingDecisionsBasic, User } from "../../api";
 import ErrorMessage from "../../components/ErrorMessage";
 import Loading from "../../components/Loading";
 import Suggestions from "../home/components/Suggestions";
@@ -29,9 +29,16 @@ import DOMPurify from 'dompurify';
 import AddSuggestionModal from "../home/components/AddSuggestionModal";
 import { SubmitHandler } from "react-hook-form";
 import { NewMeeting } from "../../components/ConfirmClub";
-import AddDecisionModal from "../home/components/AddDecisionModal";
-import Decisions from "../home/components/Decisions";
+import AddDecisionModal from "./components/AddDecisionModal";
+import Decisions from "./components/Decisions";
+import DecisionVoteModal from "./components/DecisionVoteModal";
+import DecisionVoteResultsModal from "./components/DecisionVoteResultsModal";
 const options = ['agenda', 'meeting_protocol', 'proposals', 'chat'];
+export type DecisionVoteResults = { decision: MeetingDecisions, upvotes: number; downvotes: number; };
+
+const getReaction = (decision: MeetingDecisions | undefined, user: User) => {
+
+}
 
 export default function Meeting() {
     const [displayMethod, setDisplayMethod] = useState<"agenda" | "meeting_protocol" | "proposals" | "chat">("agenda");
@@ -44,6 +51,8 @@ export default function Meeting() {
     const [addDecisionOpen, setAddDecisionOpen] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [meetingProtocols, setMeetingProtocols] = useState("");
+    const [activeDecision, setActiveDecision] = useState<null | MeetingDecisionsBasic>(null);
+    const [decisionVoteResults, setDecisionVoteResults] = useState<null | DecisionVoteResults>(null);
     const [chats, setChats] = useState<MeetingChat[]>([]);
     const { id } = useParams();
 
@@ -93,8 +102,16 @@ export default function Meeting() {
         queryKey: ['user'],
         queryFn: () => getUser(),
     });
-    console.log(meeting);
-    const { sendAgenda, sendMeetingProtocol, sendChat, removeMessage, liveRefetch } = useMeetingSocket(Number(id), clubId, getAgenda, getMeetingProtocol, getChat, removeChat, refetchClubAndMeeting);
+    const setVoteResults = (v: { id: number; upvotes: number; downvotes: number; }) => {
+        const decision = meeting?.meetingDecisions.find(m => m.id === v.id);
+        if (decision) {
+            setDecisionVoteResults({ decision, upvotes: v.upvotes, downvotes: v.downvotes })
+        } else {
+            console.log("No decision found")
+        }
+
+    }
+    const { sendAgenda, sendMeetingProtocol, sendChat, removeMessage, liveRefetch } = useMeetingSocket(Number(id), clubId, getAgenda, getMeetingProtocol, getChat, removeChat, refetchClubAndMeeting, setActiveDecision, setVoteResults);
 
     const toggleMeeting = async () => {
         try {
@@ -235,7 +252,6 @@ export default function Meeting() {
         agenda,
         meetingProtocols,
         submitting,
-        onSubmit,
     ]);
 
 
@@ -348,7 +364,7 @@ export default function Meeting() {
                         <Suggestions user={user} refetch={liveRefetch} meetingsSuggestions={clubDetails.meetingsSuggestions} />
                     </Wrapper>
                     <Wrapper title={translate["decisions"]}>
-                        <Decisions user={user} refetch={liveRefetch} meetingsDecisions={meeting.meetingDecisions} />
+                        <Decisions user={user} refetch={liveRefetch} meetingsDecisions={meeting.meetingDecisions} openModal={(v) => setActiveDecision(v)} />
                     </Wrapper>
                 </div>
 
@@ -356,6 +372,8 @@ export default function Meeting() {
             {editMeetingOpen && <EditMeetingModal refetch={liveRefetch} handleClose={() => setEditMeetingOpen(false)} meeting={meeting} />}
             {addSuggestionOpen && <AddSuggestionModal meetingId={meeting.id} clubId={clubId} refetch={refetchClubAndMeeting} handleClose={() => setAddSuggestionOpen(false)} />}
             {addDecisionOpen && <AddDecisionModal meetingId={meeting.id} clubId={clubId} refetch={refetchClubAndMeeting} handleClose={() => setAddDecisionOpen(false)} />}
+            {!!activeDecision && <DecisionVoteModal meetingId={meeting.id} clubId={clubId} handleClose={() => setActiveDecision(null)} decision={activeDecision} refetch={refetchClubAndMeeting} reaction={getReaction(meeting.meetingDecisions.find(d => d.id == activeDecision.id), user)} />}
+            {!!decisionVoteResults && <DecisionVoteResultsModal results={decisionVoteResults} handleClose={() => setActiveDecision(null)} />}
 
         </div>
     )

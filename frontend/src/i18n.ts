@@ -244,7 +244,13 @@ export const translate = {
     "new_decision": "Nytt beslut",
     "enter_time_until_expiry": "Rösttid (sekunder)",
     "add_news": "Lägg till nyhet",
-    "adding_news": "Lägger till nyhet.."
+    "adding_news": "Lägger till nyhet..",
+    "vote_decision": "Rösta på beslut",
+    "seconds": "Sekunder",
+    "votes": "Röster",
+    "decision_win": "Beslutet har gått igenom! Den fick",
+    "decision_lose": "Beslutet gick inte igenom! Den fick",
+    "decision_tie": "Beslutet blev oavgjort."
 }
 
 //Translate with fallback
